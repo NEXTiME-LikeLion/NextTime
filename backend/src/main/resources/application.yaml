@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: nextime-api
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/nextime}
+    username: ${DB_USERNAME:nextime}
+    password: ${DB_PASSWORD:nextime}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
