@@ -14,3 +14,8 @@ spring:
 
   flyway:
     enabled: true
+
+mqtt:
+  broker-url: ${MQTT_BROKER_URL:tcp://localhost:1883}
+  client-id: ${MQTT_CLIENT_ID:nextime-backend-demo}
+  topic: ${MQTT_TOPIC:esp32/button}
