@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NEXTiME ESP32 연결 테스트</title>
+  <style>
+    body { max-width: 720px; margin: 48px auto; padding: 0 20px; font-family: sans-serif; }
+    .card { padding: 24px; border: 1px solid #ddd; border-radius: 16px; }
+    .ok { color: #087f23; }
+    .bad { color: #b00020; }
+    #signal { margin-top: 20px; padding: 20px; border-radius: 12px; background: #f4f4f4; }
+  </style>
+</head>
+<body>
+  <h1>ESP32 버튼 연결 테스트</h1>
+  <div class="card">
+    <p>MQTT 상태: <strong id="mqtt">확인 중...</strong></p>
+    <p>SSE 상태: <strong id="sse">연결 중...</strong></p>
+    <div id="signal">아직 버튼 신호가 없습니다.</div>
+  </div>
+  <script>
+    const mqtt = document.querySelector('#mqtt');
+    const sse = document.querySelector('#sse');
+    const signal = document.querySelector('#signal');
+
+    async function refreshStatus() {
+      try {
+        const status = await fetch('/api/demo/mqtt/status').then(response => response.json());
+        mqtt.textContent = status.connected
+          ? `연결됨 (${status.brokerUrl}, ${status.topic})`
+          : '연결 안 됨';
+        mqtt.className = status.connected ? 'ok' : 'bad';
+      } catch (error) {
+        mqtt.textContent = '백엔드 상태 조회 실패';
+        mqtt.className = 'bad';
+      }
+    }
+
+    const events = new EventSource('/api/demo/button-events');
+    events.addEventListener('connected', () => {
+      sse.textContent = '연결됨';
+      sse.className = 'ok';
+    });
+    events.addEventListener('button-pressed', event => {
+      const data = JSON.parse(event.data);
+      signal.innerHTML = `<strong>버튼 신호 수신!</strong><br>`
+        + `topic: ${data.topic}<br>`
+        + `payload: ${data.payload}<br>`
+        + `수신 시각: ${data.receivedAt}`;
+      signal.className = 'ok';
+    });
+    events.onerror = () => {
+      sse.textContent = '재연결 중...';
+      sse.className = 'bad';
+    };
+
+    refreshStatus();
+    setInterval(refreshStatus, 3000);
+  </script>
+</body>
+</html>
