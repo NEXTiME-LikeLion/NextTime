@@ -13,14 +13,14 @@ export const lightTheme = {
         border: {
             default: '#E5E6EC',
         },
-    },
-
-    primary: {
-        default: '#00FF90',
+        
+        primary: {
+            default: '#00FF90',
+        },
     },
 },
 
-export const nextimeTheme = {
+export const nextTimeTheme = {
     colors: {
         bg: {
             default: '#252843',
