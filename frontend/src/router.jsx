@@ -7,3 +7,5 @@ const router = createBrowserRouter([
     element: <TabLayout />,
   },
 ]);
+
+export default router;

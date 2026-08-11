@@ -15,10 +15,15 @@ body {
   overflow: hidden;
 }
 
+body {
+  display: flex;
+  justify-content: center;
+}
+
 #root {
   width: 100%;
+  max-width: 430px;
   height: 100dvh; /* iOS 주소창 유무에 흔들리지 않는 동적 뷰포트 높이 */
-  background-color: blueviolet;
   display: flex;
   flex-direction: column;
   overflow: hidden;
