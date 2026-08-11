@@ -1,38 +1,48 @@
-function MenuItem({ $active, MenuIcon, text }) {
+import { NavLink } from "react-router-dom";
+import styled from "styled-components";
+
+function MenuItem({ to, Icon, text, end }) {
   return (
-    <MenuButton>
-      <MenuIcon />
-      <MenuText>{text}</MenuText>
-    </MenuButton>
+    <MenuLink to={to} end={end}>
+      <MenuButton>
+        <MenuIcon>
+          <Icon />
+        </MenuIcon>
+        <MenuText>{text}</MenuText>
+      </MenuButton>
+    </MenuLink>
   );
 }
 
 export default MenuItem;
 
-const MenuButton = styled.div`
+const MenuLink = styled(NavLink)`
   flex: 1;
+  color: #68686D;
+  font-weight: 400;
+  text-decoration: none;
 
+  &.active {
+    color: ${({ theme }) => theme.colors.primary.default};
+    font-weight: 700;
+  }
+`;
+
+const MenuButton = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  flex-shrink: 0;
 `;
 
-const MenuIcon = styled.div`
-  width: 1.37488rem;
-  height: 1.37488rem;
+const MenuIcon = styled.span`
+  width: 1.375rem;
+  height: 1.375rem;
 `;
 
 const MenuText = styled.p`
-  color: ${({ $active, theme }) =>
-    $active ? theme.colors.primary.default : "#68686D"};
   text-align: center;
-
-  font-family: Pretendard;
   font-size: 0.625rem;
-  font-style: normal;
-  font-weight: ${({ $active }) => ($active ? 700 : 400)};
   line-height: 0.9375rem; /* 150% */
   letter-spacing: -0.0125rem;
 `;
