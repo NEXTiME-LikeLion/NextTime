@@ -1,11 +1,12 @@
 import styled from "styled-components";
+import MenuItem from "./MenuItem";
 
 function BottomNavigation() {
   return (
     <NavContainer>
-      <Button />
-      <Button />
-      <Button />
+      <MenuItem />
+      <MenuItem />
+      <MenuItem />
     </NavContainer>
   );
 }
@@ -22,14 +23,4 @@ const NavContainer = styled.div`
 
   border-top: 0.669px solid rgba(44, 44, 48, 0.2);
   background: #fff;
-`;
-
-const Button = styled.div`
-  flex: 1;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  flex-shrink: 0;
 `;
