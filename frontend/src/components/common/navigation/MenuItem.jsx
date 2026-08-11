@@ -2,7 +2,7 @@ function MenuItem({ $active, MenuIcon, text }) {
   return (
     <MenuButton>
       <MenuIcon />
-      <MenuText>text</MenuText>
+      <MenuText>{text}</MenuText>
     </MenuButton>
   );
 }
