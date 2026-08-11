@@ -13,12 +13,12 @@ export const lightTheme = {
         border: {
             default: '#E5E6EC',
         },
-        
+
         primary: {
             default: '#00FF90',
         },
     },
-},
+};
 
 export const nextTimeTheme = {
     colors: {
