@@ -6,10 +6,14 @@
   --safe-right: env(safe-area-inset-right, 0px);
 }
 
-html,
-body {
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html,
+body {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -18,6 +22,19 @@ body {
 body {
   display: flex;
   justify-content: center;
+  font-family:
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 #root {
