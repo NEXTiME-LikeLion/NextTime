@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.nextime.NextimeApiApplicationTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-08-11T08:19:22.099Z" hostname="choeinhaui-MacBookPro.local" time="0.009">
+  <properties/>
+  <testcase name="applicationClassIsAvailable()" classname="com.nextime.NextimeApiApplicationTests" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
