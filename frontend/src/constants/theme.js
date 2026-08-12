@@ -3,6 +3,9 @@ export const brand = {
         primary: '#00D579',
         textMuted: '#B2B2B2',
     },
+    toast: {
+        bg: '#252843',
+    },
     splash: {
         bg: '#73D182',
         mascotBody: '#F6F6EA',

@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useToast } from "../../contexts/ToastContext";
+import Toast from "../../components/Toast/Toast";
 import * as S from "./Signup.styles";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordCheck, setPasswordCheck] = useState("");
+  const { toast, showToast } = useToast();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,6 +17,7 @@ const Signup = () => {
     }
 
     console.log("회원가입 시도:", { email, password });
+    showToast("회원가입 완료!");
   };
 
   return (
@@ -62,6 +66,8 @@ const Signup = () => {
         이미 계정이 있나요?
         <S.StyledLink to="/login">로그인 하기</S.StyledLink>
       </S.BottomText>
+
+      {toast && <Toast message={toast.message} marginTop={29} />}
     </S.FormContainer>
   );
 };
