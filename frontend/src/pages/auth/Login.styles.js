@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-
+import { brand } from '../../constants/theme';
 
 export const FormContainer = styled.form`
   display: flex;
@@ -15,16 +15,15 @@ export const Title = styled.h2`
   font-weight: 700;
   line-height: 1.4;
   text-align: center;
-  margin-bottom: 36px; 
+  margin-bottom: 36px;
 `;
 
 export const InputGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px; 
-  margin-bottom: 36px; 
+  gap: 16px;
+  margin-bottom: 36px;
 `;
-
 
 export const Input = styled.input`
   width: 100%;
@@ -41,7 +40,6 @@ export const Input = styled.input`
   &::placeholder {
     color: ${({ theme }) => theme.colors.text.secondary};
   }
-
 `;
 
 export const SubmitButton = styled.button`
@@ -49,8 +47,8 @@ export const SubmitButton = styled.button`
   height: 56px;
   border-radius: 16px;
   border: none;
-  background-color: #3DDC97;
-  color: #FFFFFF;
+  background-color: ${brand.auth.primary};
+  color: #ffffff;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
@@ -64,7 +62,7 @@ export const BottomText = styled.p`
 `;
 
 export const StyledLink = styled(Link)`
-  color: #3DDC97;
+  color: ${brand.auth.primary};
   font-weight: 600;
   text-decoration: none;
   margin-left: 6px;
