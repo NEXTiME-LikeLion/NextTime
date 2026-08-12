@@ -22,7 +22,7 @@ export const AuthLayout = ({ logoMarginTop = 140, bottomPadding = 40 }) => {
 };
 
 const PageWrapper = styled.div`
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   display: flex;
   justify-content: center;
