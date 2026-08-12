@@ -1,16 +1,15 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
 import styled from "styled-components";
 import logoSvg from "../assets/logo2.svg";
 import statusBarImg from "../assets/statusbar.svg";
 
-export const AuthLayout = () => {
+export const AuthLayout = ({ logoMarginTop = 140, bottomPadding = 40 }) => {
   return (
     <PageWrapper>
-      <Container>
+      <Container $bottomPadding={bottomPadding}>
         <StatusBarImage src={statusBarImg} alt="" />
 
-        <Header>
+        <Header $marginTop={logoMarginTop}>
           <LogoImage src={logoSvg} alt="NEXTIME" />
         </Header>
 
@@ -36,7 +35,7 @@ const Container = styled.div`
   max-width: 430px;
   min-height: 100vh;
   background-color: ${({ theme }) => theme.colors.bg.surface};
-  padding: 0 14px 40px;
+  padding: ${({ $bottomPadding }) => `0 14px ${$bottomPadding}px`};
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -60,7 +59,7 @@ const Header = styled.header`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 140px;
+  margin-top: ${({ $marginTop }) => $marginTop}px;
   margin-bottom: 80px;
 `;
 

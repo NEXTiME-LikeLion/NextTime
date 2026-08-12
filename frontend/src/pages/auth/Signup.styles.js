@@ -22,7 +22,19 @@ export const InputGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-bottom: 36px;
+  margin-bottom: 72px;
+`;
+
+export const FieldWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+export const Label = styled.label`
+  font-size: 18px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
 export const Input = styled.input`
@@ -38,8 +50,8 @@ export const Input = styled.input`
   box-sizing: border-box;
 
   &::placeholder {
-   color: ${brand.auth.textMuted};
-   font-weight: 700;
+    color: ${brand.auth.textMuted};
+    font-weight: 700;
   }
 `;
 
@@ -56,15 +68,15 @@ export const SubmitButton = styled.button`
 `;
 
 export const BottomText = styled.p`
-  margin-top: 20px;
+  margin-top: 12px;
   text-align: center;
   font-size: 14px;
   color: ${brand.auth.textMuted};
+  font-weight: 700;
 `;
 
 export const StyledLink = styled(Link)`
   color: ${brand.auth.primary};
-  font-weight: 600;
   text-decoration: none;
   margin-left: 6px;
 `;
