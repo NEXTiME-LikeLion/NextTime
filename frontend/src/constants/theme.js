@@ -32,7 +32,7 @@ export const lightTheme = {
     },
 };
 
-export const nexttimeTheme = {
+export const nextTimeTheme = {
     colors: {
         bg: {
             default: '#252843',
