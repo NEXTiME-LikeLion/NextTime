@@ -8,7 +8,6 @@
 # main으로 병합한 뒤 Vercel Production main 브랜치로 재배포 시
 # "main 변경" 표시에 main으로 변경
 # push to main일 경우 작동하도록 !
-
 name: Deploy
 
 on:
@@ -21,7 +20,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # 1. Organization 레포 checkout
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. AUTO_ACTIONS 토큰으로 fork 레포 접근 테스트
+      - name: Test fork repository access
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_ACTIONS }}
+        run: |
+          echo "Testing access to jiminxha/NextTime..."
+
+          git ls-remote \
+            "https://x-access-token:${GH_TOKEN}@github.com/jiminxha/NextTime.git"
+
+          echo "✅ Successfully accessed jiminxha/NextTime"
+
+      # 3. Organization → 개인 fork 동기화
       - name: Sync frontend branch to fork
         uses: cpina/github-action-push-to-another-repository@main
         env:
