@@ -5,9 +5,9 @@
 ## fork 레포의 브랜치에 push되면 그 이후에는 연동된 Vercel이 자동 재배포
 
 # [최종 배포 시]
-# main으로 병합한 뒤 Vercel Production main 브랜치로 재배포 시
-# "main 변경" 표시에 main으로 변경
+# main으로 병합한 뒤 Vercel Production main 브랜치로 재배포 시 main으로 변경
 # push to main일 경우 작동하도록 !
+
 name: Deploy
 
 on:
