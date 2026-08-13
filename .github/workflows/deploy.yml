@@ -1,3 +1,10 @@
+## 현재 Vercel 배포는 organization이 아니라 fork한 jiminxha의 개인 레포로 되어 있음
+
+## deploy.yml은 Organization의 frontend(main) 브랜치에 push(merge)하는 경우
+## jiminxha의 fork한 레포의 frontend(main) 브랜치에 push 내용을 그대로 가져오는 CI/CD
+## fork 레포의 브랜치에 push되면 그 이후에는 연동된 Vercel이 자동 재배포
+
+# [최종 배포 시]
 # main으로 병합한 뒤 Vercel Production main 브랜치로 재배포 시
 # "main 변경" 표시에 main으로 변경
 # push to main일 경우 작동하도록 !

@@ -1,0 +1,51 @@
+## preview.yml은 Organization의 frontend(main) 브랜치에 pr을 작성하는 경우
+## 해당 PR의 댓글로 preview URL을 생성하는 CI/CD
+
+# [최종 배포 시]
+# main으로 병합한 뒤 Vercel Production main 브랜치로 재배포 시
+# "main 변경" 표시에 main으로 변경
+# pr to main일 경우 작동하도록 !
+
+name: Preview
+
+on:
+  pull_request:
+    branches: ["frontend"] # main 변경
+
+jobs:
+  vercel-preview:
+    runs-on: ubuntu-latest
+
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest && npm install --global pnpm
+      - name: Get Vercel Environment Variables
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Project Artifacts to Vercel
+        id: deploy
+        run: |
+          url="$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})"
+          alias="pr-${{ github.event.pull_request.number }}-[프로젝트명].vercel.app"
+          vercel alias set "$url" "$alias" --token=${{ secrets.VERCEL_TOKEN }}
+          echo "preview_url=https://$alias" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with Preview URL
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ✅ PREVIEW ${{ steps.deploy.outputs.preview_url }}
+
+permissions:
+  contents: read
+  pages: write
+  deployments: write
+  id-token: write
+  issues: write
+  pull-requests: write
