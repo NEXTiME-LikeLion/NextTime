@@ -16,24 +16,22 @@ on:
     branches: ["frontend"] # main 변경
 
 jobs:
-  build:
+  sync-to-fork:
+    # Avoid rerunning this workflow after it is copied to the fork.
+    if: github.repository == 'NEXTiME-LikeLion/NextTime'
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - name: creates output
-        run: sh ./build.sh
-      - name: Pushes to another repository
-        id: push_directory
+      - uses: actions/checkout@v4
+      - name: Sync frontend branch to fork
         uses: cpina/github-action-push-to-another-repository@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.AUTO_ACTIONS }}
         with:
-          source-directory: "output"
+          source-directory: "."
           destination-github-username: jiminxha
           destination-repository-name: NextTime
           user-email: ${{ secrets.EMAIL }}
-          commit-message: ${{ github.event.commits[0].message }}
+          commit-message: ${{ github.event.head_commit.message }}
           target-branch: frontend # main 변경
-      - name: Test get variable exported by push-to-another-repository
-        run: echo $DESTINATION_CLONED_DIRECTORY
+          create-target-branch-if-needed: true
