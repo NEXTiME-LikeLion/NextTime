@@ -137,11 +137,9 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
-      # 1. 소스 코드 checkout
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Node.js 환경 설정
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -149,60 +147,22 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      # 3. Vercel CLI 설치
       - name: Install Vercel CLI
-        run: |
-          npm install --global vercel@latest
+        run: npm install --global vercel@latest
 
-      # 4. Vercel Token 인증 확인
       - name: Check Vercel Authentication
-        run: |
-          vercel whoami --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel whoami --token=${{ secrets.VERCEL_TOKEN }}
 
-      # 5. Vercel Preview 환경 설정 가져오기
-      - name: Get Vercel Environment Variables
-        run: |
-          vercel pull \
-            --yes \
-            --environment=preview \
-            --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Install Dependencies
+        run: npm install
 
-      # 6. vercel pull 이후 생성된 프로젝트 연결 정보 확인
-      - name: Check Vercel Project Configuration
-        run: |
-          echo "=== .vercel directory ==="
-          ls -la .vercel
+      - name: Build Project
+        run: npm run build
 
-          echo ""
-          echo "=== .vercel/project.json ==="
-          cat .vercel/project.json
-
-      # 7. GitHub Actions 환경에서 npm 자체가 정상적으로 동작하는지 확인
-      - name: Test npm install
-        run: |
-          echo "=== shell ==="
-          which sh
-          ls -l /bin/sh
-
-          echo ""
-          echo "=== Node / npm ==="
-          node --version
-          npm --version
-
-          echo ""
-          echo "=== npm install ==="
-          npm install
-
-      # 8. Vercel Preview용 Build
-      - name: Build Project Artifacts
-        run: |
-          vercel build --token=${{ secrets.VERCEL_TOKEN }}
-
-      # 9. Vercel에 Prebuilt Artifact 배포
-      - name: Deploy Project Artifacts to Vercel
+      - name: Deploy Preview to Vercel
         id: deploy
         run: |
-          url="$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})"
+          url="$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }})"
 
           alias="pr-${{ github.event.pull_request.number }}-next-time.vercel.app"
 
@@ -213,7 +173,6 @@ jobs:
 
           echo "preview_url=https://$alias" >> "$GITHUB_OUTPUT"
 
-      # 10. PR에 Preview URL 댓글 작성
       - name: Comment PR with Preview URL
         uses: thollander/actions-comment-pull-request@v2
         with:
