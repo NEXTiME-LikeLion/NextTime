@@ -1,0 +1,39 @@
+## 현재 Vercel 배포는 organization이 아니라 fork한 jiminxha의 개인 레포로 되어 있음
+
+## deploy.yml은 Organization의 frontend(main) 브랜치에 push(merge)하는 경우
+## jiminxha의 fork한 레포의 frontend(main) 브랜치에 push 내용을 그대로 가져오는 CI/CD
+## fork 레포의 브랜치에 push되면 그 이후에는 연동된 Vercel이 자동 재배포
+
+# [최종 배포 시]
+# main으로 병합한 뒤 Vercel Production main 브랜치로 재배포 시
+# "main 변경" 표시에 main으로 변경
+# push to main일 경우 작동하도록 !
+
+name: Deploy
+
+on:
+  push:
+    branches: ["frontend"] # main 변경
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: creates output
+        run: sh ./build.sh
+      - name: Pushes to another repository
+        id: push_directory
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.AUTO_ACTIONS }}
+        with:
+          source-directory: "output"
+          destination-github-username: jiminxha
+          destination-repository-name: NextTime
+          user-email: ${{ secrets.EMAIL }}
+          commit-message: ${{ github.event.commits[0].message }}
+          target-branch: frontend # main 변경
+      - name: Test get variable exported by push-to-another-repository
+        run: echo $DESTINATION_CLONED_DIRECTORY
