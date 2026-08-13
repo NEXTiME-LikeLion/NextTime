@@ -3,11 +3,11 @@ import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
 import { ThemeProvider } from "styled-components";
-import { lightTheme } from "./constants/theme.js";
+import { theme } from "./constants/theme.js";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <ThemeProvider theme={lightTheme}>
+    <ThemeProvider theme={theme}>
       <App />
     </ThemeProvider>
   </StrictMode>,

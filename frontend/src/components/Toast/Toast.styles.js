@@ -1,5 +1,4 @@
 import styled, { keyframes } from "styled-components";
-import { brand } from "../../constants/theme";
 
 const slideUp = keyframes`
   from {
@@ -20,7 +19,7 @@ export const ToastWrapper = styled.div`
   gap: 8px;
   padding: 16px 28px;
   border-radius: 999px;
-  background-color: ${brand.toast.bg};
+  background-color: ${({ theme }) => theme.brand.toast.bg};
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;

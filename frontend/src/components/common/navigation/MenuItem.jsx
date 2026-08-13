@@ -18,12 +18,12 @@ export default MenuItem;
 
 const MenuLink = styled(NavLink)`
   flex: 1;
-  color: #68686D;
+  color: ${({ theme }) => theme.colors.gray};
   font-weight: 400;
   text-decoration: none;
 
   &.active {
-    color: ${({ theme }) => theme.colors.primary.default};
+    color: ${({ theme }) => theme.colors.primary};
     font-weight: 700;
   }
 `;
