@@ -1,3 +1,12 @@
+---
+name: Feature request
+about: 기능 추가 이슈
+title: ''
+labels: ''
+assignees: ''
+
+---
+
 ## 🏋️‍♀️ 기능 소개
 
 > 추가하려는 기능에 대해 간결하게 설명해주세요
