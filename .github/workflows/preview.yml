@@ -128,18 +128,16 @@ jobs:
   vercel-preview:
     runs-on: ubuntu-latest
 
-    # defaults:
-    #   run:
-    #     working-directory: frontend
-
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
+      # 1. Repository checkout
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2. Node.js 설정
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -147,18 +145,26 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      # 3. Vercel CLI 설치
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      # 4. Vercel 인증 확인
       - name: Check Vercel Authentication
         run: vercel whoami --token=${{ secrets.VERCEL_TOKEN }}
 
+      # 5. Frontend dependencies 설치
       - name: Install Dependencies
+        working-directory: frontend
         run: npm install
 
+      # 6. Frontend build
       - name: Build Project
+        working-directory: frontend
         run: npm run build
 
+      # 7. Vercel Preview 배포
+      # 반드시 repository root에서 실행
       - name: Deploy Preview to Vercel
         id: deploy
         run: |
@@ -173,6 +179,7 @@ jobs:
 
           echo "preview_url=https://$alias" >> "$GITHUB_OUTPUT"
 
+      # 8. PR에 Preview URL 댓글
       - name: Comment PR with Preview URL
         uses: thollander/actions-comment-pull-request@v2
         with:
