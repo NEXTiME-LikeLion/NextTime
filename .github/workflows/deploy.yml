@@ -13,11 +13,10 @@ name: Deploy
 
 on:
   push:
-    branches: ["frontend"] # main 변경
+    branches: ["frontend"]
 
 jobs:
   sync-to-fork:
-    # Avoid rerunning this workflow after it is copied to the fork.
     if: github.repository == 'NEXTiME-LikeLion/NextTime'
     runs-on: ubuntu-latest
 
@@ -33,5 +32,5 @@ jobs:
           destination-repository-name: NextTime
           user-email: ${{ secrets.EMAIL }}
           commit-message: ${{ github.event.head_commit.message }}
-          target-branch: frontend # main 변경
+          target-branch: frontend
           create-target-branch-if-needed: true
