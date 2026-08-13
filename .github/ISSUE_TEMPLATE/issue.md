@@ -1,6 +1,6 @@
 ---
-name: Feature request
-about: 기능 추가 이슈
+name: NEXTiME 이슈 템플릿
+about: 이슈를 생성해보세요 ~,~
 title: ''
 labels: ''
 assignees: ''
