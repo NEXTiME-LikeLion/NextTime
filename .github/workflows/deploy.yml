@@ -1,0 +1,36 @@
+# main으로 병합한 뒤 Vercel Production main 브랜치로 재배포 시
+# "main 변경" 표시에 main으로 변경
+# push to main일 경우 작동하도록 !
+
+name: Deploy
+
+on:
+  push:
+    branches: ["frontend"] # main 변경
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container: pandoc/latex
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install mustache (to update the date)
+        run: apk add ruby && gem install mustache
+      - name: creates output
+        run: sh ./build.sh
+      - name: Pushes to another repository
+        id: push_directory
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.AUTO_ACTIONS }}
+        with:
+          source-directory: "output"
+          destination-github-username: jiminxha
+          destination-repository-name: NextTime
+          user-email: ${{ secrets.EMAIL }}
+          commit-message: ${{ github.event.commits[0].message }}
+          target-branch: frontend # main 변경
+      - name: Test get variable exported by push-to-another-repository
+        run: echo $DESTINATION_CLONED_DIRECTORY
