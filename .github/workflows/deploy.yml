@@ -20,32 +20,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Organization 레포 checkout
-      - name: Checkout
+      - name: Checkout source repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 2. AUTO_ACTIONS 토큰으로 fork 레포 접근 테스트
-      - name: Test fork repository access
-        env:
-          GH_TOKEN: ${{ secrets.AUTO_ACTIONS }}
+      - name: Check GitHub Token Access
         run: |
           echo "Testing access to jiminxha/NextTime..."
-
-          git ls-remote \
-            "https://x-access-token:${GH_TOKEN}@github.com/jiminxha/NextTime.git"
-
+          git ls-remote https://x-access-token:${{ secrets.AUTO_ACTIONS }}@github.com/jiminxha/NextTime.git
           echo "✅ Successfully accessed jiminxha/NextTime"
 
-      # 3. Organization → 개인 fork 동기화
-      - name: Sync frontend branch to fork
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.AUTO_ACTIONS }}
-        with:
-          source-directory: "."
-          destination-github-username: jiminxha
-          destination-repository-name: NextTime
-          user-email: ${{ secrets.EMAIL }}
-          commit-message: ${{ github.event.head_commit.message }}
-          target-branch: frontend
-          create-target-branch-if-needed: true
+      - name: Push frontend branch to fork
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git remote add fork https://x-access-token:${{ secrets.AUTO_ACTIONS }}@github.com/jiminxha/NextTime.git
+
+          git push fork HEAD:frontend --force
