@@ -20,22 +20,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Organization 레포 checkout
+      # GitHub 기본 토큰을 git credential에 저장하지 않도록 설정
       - name: Checkout source repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Check GitHub Token Access
+      # 2. fork 레포 접근 테스트
+      - name: Test fork repository access
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_ACTIONS }}
         run: |
           echo "Testing access to jiminxha/NextTime..."
-          git ls-remote https://x-access-token:${{ secrets.AUTO_ACTIONS }}@github.com/jiminxha/NextTime.git
+
+          git ls-remote \
+            "https://x-access-token:${GH_TOKEN}@github.com/jiminxha/NextTime.git"
+
           echo "✅ Successfully accessed jiminxha/NextTime"
 
+      # 3. Organization frontend → fork frontend
       - name: Push frontend branch to fork
+        env:
+          AUTO_ACTIONS: ${{ secrets.AUTO_ACTIONS }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git remote add fork https://x-access-token:${{ secrets.AUTO_ACTIONS }}@github.com/jiminxha/NextTime.git
+          git remote add fork \
+            "https://x-access-token:${AUTO_ACTIONS}@github.com/jiminxha/NextTime.git"
 
           git push fork HEAD:frontend --force
