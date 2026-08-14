@@ -1,8 +1,9 @@
+// src/components/Toast/Toast.jsx
 import { ToastWrapper, Icon } from "./Toast.styles";
 
-const Toast = ({ message, marginTop = 29 }) => {
+const Toast = ({ message }) => {
   return (
-    <ToastWrapper $marginTop={marginTop}>
+    <ToastWrapper>
       <Icon>✅</Icon>
       {message}
     </ToastWrapper>

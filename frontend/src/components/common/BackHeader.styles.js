@@ -41,5 +41,5 @@ export const ArrowIcon = styled.svg`
 export const Title = styled.h1`
   font-size: 18px;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.bg_black};
+  color: #252843;
 `;
