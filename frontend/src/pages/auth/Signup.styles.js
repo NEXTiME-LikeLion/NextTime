@@ -1,6 +1,5 @@
-import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import { brand } from '../../constants/theme';
+import styled from "styled-components";
+import { Link } from "react-router-dom";
 
 export const FormContainer = styled.form`
   display: flex;
@@ -10,7 +9,7 @@ export const FormContainer = styled.form`
 
 export const Title = styled.h2`
   align-self: stretch;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: "#191B24"; // FIX
   font-size: 20px;
   font-weight: 700;
   line-height: 1.4;
@@ -34,7 +33,7 @@ export const FieldWrapper = styled.div`
 export const Label = styled.label`
   font-size: 18px;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: '#686D79"; // FIX
 `;
 
 export const Input = styled.input`
@@ -42,15 +41,15 @@ export const Input = styled.input`
   height: 56px;
   padding: 16px 20px;
   border-radius: 20px;
-  border: 1px solid ${brand.auth.textMuted};
-  background-color: ${({ theme }) => theme.colors.bg.surface};
-  color: ${({ theme }) => theme.colors.text.primary};
+  border: 1px solid ${({ theme }) => theme.brand.auth.textMuted};
+  background-color: ${({ theme }) => theme.colors.white};
+  color: "#191B24"; // FIX
   font-size: 15px;
   outline: none;
   box-sizing: border-box;
 
   &::placeholder {
-    color: ${brand.auth.textMuted};
+    color: ${({ theme }) => theme.brand.auth.textMuted};
     font-weight: 700;
   }
 `;
@@ -60,7 +59,7 @@ export const SubmitButton = styled.button`
   height: 56px;
   border-radius: 16px;
   border: none;
-  background-color: ${brand.auth.primary};
+  background-color: ${({ theme }) => theme.brand.auth.primary};
   color: #ffffff;
   font-size: 16px;
   font-weight: 400;
@@ -71,12 +70,12 @@ export const BottomText = styled.p`
   margin-top: 12px;
   text-align: center;
   font-size: 14px;
-  color: ${brand.auth.textMuted};
+  color: ${({ theme }) => theme.brand.auth.textMuted};
   font-weight: 700;
 `;
 
 export const StyledLink = styled(Link)`
-  color: ${brand.auth.primary};
+  color: ${({ theme }) => theme.brand.auth.primary};
   text-decoration: none;
   margin-left: 6px;
 `;
