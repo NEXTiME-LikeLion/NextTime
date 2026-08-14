@@ -27,14 +27,14 @@ const PageWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: ${({ theme }) => theme.colors.bg.default};
+  background-color: "#F7F7FA"; // FIX
 `;
 
 const Container = styled.div`
   width: 100%;
   max-width: 430px;
   min-height: 100vh;
-  background-color: ${({ theme }) => theme.colors.bg.surface};
+  background-color: ${({ theme }) => theme.colors.white};
   padding: ${({ $bottomPadding }) => `0 14px ${$bottomPadding}px`};
   display: flex;
   flex-direction: column;
