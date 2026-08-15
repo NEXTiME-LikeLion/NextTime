@@ -5,6 +5,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import HomePage from "./pages/HomePage";
 import PatternPage from "./pages/PatternPage";
+import PatternRecordPage from "./pages/PatternRecordPage";
 import SettingsPage from "./pages/SettingsPage";
 import GoalPage from "./pages/settings/GoalPage";
 import ExcludePage from "./pages/settings/ExcludePage";
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "pattern", element: <PatternPage /> },
+      { path: "pattern/records", element: <PatternRecordPage /> },
       { path: "settings", element: <SettingsPage /> },
     ],
   },
