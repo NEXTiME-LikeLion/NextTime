@@ -11,8 +11,9 @@ function UrgeActionSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { showToast } = useToast();
 
-  const handleSubmit = (reason) => {
+  const handleSubmit = (selected) => {
     // TODO: API 연동 - reason 전송 코드 추가
+    console.log("기록된 이유:", selected);
     showToast("기록했어요. 다음 추천에 반영할게요.");
     setIsModalOpen(false);
   };

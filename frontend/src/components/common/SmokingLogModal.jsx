@@ -20,8 +20,18 @@ function SmokingLogModal({ isOpen, onClose, onSubmit }) {
     minute: "2-digit",
   });
 
+  const handleModalClose = () => {
+    setSelected("");
+    onClose();
+  };
+
+  const handleModalSubmit = () => {
+    setSelected("");
+    onSubmit(selected);
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={handleModalClose}>
       <Title>방금 피운 담배를 기록할까요?</Title>
 
       <TimeBlock>
@@ -48,10 +58,10 @@ function SmokingLogModal({ isOpen, onClose, onSubmit }) {
       </QuestionBlock>
 
       <ButtonBlock>
-        <PrimaryButton type="button" onClick={() => onSubmit(selected)}>
+        <PrimaryButton type="button" onClick={handleModalSubmit}>
           기록하기
         </PrimaryButton>
-        <SkipButton type="button" onClick={onClose}>
+        <SkipButton type="button" onClick={handleModalClose}>
           건너뛰기
         </SkipButton>
       </ButtonBlock>
