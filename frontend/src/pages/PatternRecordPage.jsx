@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
+import { useToast } from "../contexts/ToastContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import BackHeader from "../components/common/BackHeader";
+import SmokingLogModal from "../components/common/SmokingLogModal";
+import Toast from "../components/Toast/Toast";
 import {
   RecordList,
   RecordItem,
@@ -195,6 +198,7 @@ const mockRecords = [
 ];
 
 function PatternRecordPage() {
+  // 기록 별 시트
   const navigate = useNavigate();
   const location = useLocation();
   const selectedIdFromState = location.state?.selectedId;
@@ -216,6 +220,17 @@ function PatternRecordPage() {
 
   const handleCloseSheet = () => {
     setIsSheetOpen(false);
+  };
+
+  // 빠른 흡연 기록 모달
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { showToast } = useToast();
+
+  const handleSubmit = (selected) => {
+    // TODO: API 연동 - reason 전송 코드 추가
+    console.log("기록된 이유:", selected);
+    showToast("기록했어요. 다음 추천에 반영할게요.");
+    setIsModalOpen(false);
   };
 
   return (
@@ -242,9 +257,19 @@ function PatternRecordPage() {
         </RecordList>
       </ScrollContent>
 
-      <AddButton type="button" aria-label="기록 추가">
+      <AddButton
+        type="button"
+        aria-label="기록 추가"
+        onClick={() => setIsModalOpen(true)}
+      >
         <AddImg src={Plus} />
       </AddButton>
+
+      <SmokingLogModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+      />
     </PageContainer>
   );
 }
