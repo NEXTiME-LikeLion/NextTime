@@ -12,15 +12,17 @@ const slideUp = keyframes`
 `;
 
 export const ToastWrapper = styled.div`
-  position: fixed;
-  bottom: 32px;
+  position: ${({ $placement }) =>
+    $placement === "tab-bottom" ? "absolute" : "fixed"};
+  bottom: ${({ $placement }) =>
+    $placement === "tab-bottom" ? "2rem" : "32px"};
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 16px 28px;
-  border-radius: 999px;
+  border-radius: 6.25rem;
   background-color: ${({ theme }) => theme.brand.toast.bg};
   color: #ffffff;
   font-size: 16px;
