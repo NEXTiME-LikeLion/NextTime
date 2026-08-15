@@ -59,4 +59,9 @@ public class User {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
+
+    public void completeOnboarding() {
+        onboardingCompleted = true;
+        updatedAt = Instant.now();
+    }
 }

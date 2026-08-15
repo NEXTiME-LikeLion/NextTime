@@ -7,6 +7,7 @@ import com.nextime.security.RestAuthenticationEntryPoint;
 import com.nextime.security.SecurityConfig;
 import com.nextime.user.application.UserRegistrationResult;
 import com.nextime.user.application.UserRegistrationService;
+import com.nextime.user.application.OnboardingService;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -26,10 +27,12 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @WebMvcTest(UserController.class)
 @Import({
@@ -49,6 +52,9 @@ class UserControllerSecurityTest {
 
     @MockitoBean
     private UserRegistrationService userRegistrationService;
+
+    @MockitoBean
+    private OnboardingService onboardingService;
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
@@ -116,6 +122,58 @@ class UserControllerSecurityTest {
     }
 
     @Test
+    void onboardingWithoutAuthenticationReturns401() throws Exception {
+        mockMvc.perform(put("/users/me/onboarding")
+                        .contentType(APPLICATION_JSON)
+                        .content(validOnboardingBody()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void onboardingReturns200() throws Exception {
+        User user = userFixture();
+        when(user.isOnboardingCompleted()).thenReturn(true);
+        when(user.getUpdatedAt()).thenReturn(Instant.parse("2026-08-16T01:00:00Z"));
+        when(userRepository.findByCognitoSub("cognito-sub-123")).thenReturn(Optional.of(user));
+        when(onboardingService.complete(
+                org.mockito.ArgumentMatchers.eq(user.getId()),
+                org.mockito.ArgumentMatchers.any(OnboardingRequest.class)
+        ))
+                .thenReturn(user);
+
+        mockMvc.perform(put("/users/me/onboarding")
+                        .with(jwt().jwt(token -> token.subject("cognito-sub-123")))
+                        .contentType(APPLICATION_JSON)
+                        .content(validOnboardingBody()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.onboardingCompleted").value(true))
+                .andExpect(jsonPath("$.data.updatedAt").value("2026-08-16T01:00:00Z"));
+    }
+
+    @Test
+    void onboardingRejectsMoreThanTwoContexts() throws Exception {
+        User user = userFixture();
+        when(userRepository.findByCognitoSub("cognito-sub-123")).thenReturn(Optional.of(user));
+
+        mockMvc.perform(put("/users/me/onboarding")
+                        .with(jwt().jwt(token -> token.subject("cognito-sub-123")))
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "baseline": {
+                                    "smokingFrequency": "SIX_TO_TEN",
+                                    "smokingContextCodes": ["STRESS", "AFTER_MEAL", "OTHER"],
+                                    "otherContext": "야근할 때"
+                                  }
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.fieldErrors[0].field")
+                        .value("baseline.smokingContextCodes"));
+    }
+
+    @Test
     void jwtSubjectResolvesInternalUser() throws Exception {
         UUID userId = UUID.fromString("30000000-0000-0000-0000-000000000001");
         User user = mock(User.class);
@@ -149,5 +207,17 @@ class UserControllerSecurityTest {
         when(user.isOnboardingCompleted()).thenReturn(false);
         when(user.getCreatedAt()).thenReturn(Instant.parse("2026-08-16T00:00:00Z"));
         return user;
+    }
+
+    private String validOnboardingBody() {
+        return """
+                {
+                  "baseline": {
+                    "smokingFrequency": "SIX_TO_TEN",
+                    "smokingContextCodes": ["STRESS", "OTHER"],
+                    "otherContext": "야근할 때"
+                  }
+                }
+                """;
     }
 }
