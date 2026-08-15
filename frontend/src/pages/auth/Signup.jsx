@@ -66,8 +66,7 @@ const Signup = () => {
         이미 계정이 있나요?
         <S.StyledLink to="/login">로그인 하기</S.StyledLink>
       </S.BottomText>
-
-      {toast && <Toast message={toast.message} marginTop={29} />}
+      {toast && <Toast message={toast.message} />}
     </S.FormContainer>
   );
 };
