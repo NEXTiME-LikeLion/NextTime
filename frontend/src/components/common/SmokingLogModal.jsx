@@ -37,7 +37,9 @@ function SmokingLogModal({ isOpen, onClose, onSubmit }) {
               key={reason}
               type="button"
               $active={selected === reason}
-              onClick={() => setSelected(reason)}
+              onClick={() =>
+                setSelected((prev) => (prev === reason ? "" : reason))
+              }
             >
               {reason}
             </OptionButton>

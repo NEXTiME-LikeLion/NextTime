@@ -1,9 +1,9 @@
 // src/components/Toast/Toast.jsx
 import { ToastWrapper, Icon } from "./Toast.styles";
 
-const Toast = ({ message }) => {
+const Toast = ({ message, placement = "default" }) => {
   return (
-    <ToastWrapper>
+    <ToastWrapper $placement={placement}>
       <Icon>✅</Icon>
       {message}
     </ToastWrapper>
