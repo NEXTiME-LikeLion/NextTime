@@ -10,6 +10,7 @@ import SettingsPage from "./pages/SettingsPage";
 import GoalPage from "./pages/settings/GoalPage";
 import ExcludePage from "./pages/settings/ExcludePage";
 import DevicePage from "./pages/settings/DevicePage";
+import NextTimePage from "./pages/next-time/NextTimePage";
 
 const router = createBrowserRouter([
   {
@@ -47,6 +48,10 @@ const router = createBrowserRouter([
     path: "/signup",
     element: <AuthLayout logoMarginTop={70} bottomPadding={100} />,
     children: [{ index: true, element: <Signup /> }],
+  },
+  {
+    path: "/next-time",
+    element: <NextTimePage />,
   },
 ]);
 
