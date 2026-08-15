@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import RecordList from "../RecordList";
 import { SectionTitle } from "./RecentChangeSection";
 import { Section } from "./HelpfulActionSection";
 
@@ -43,21 +44,7 @@ function RecentRecordsSection() {
         </ViewAllButton>
       </SectionHeader>
 
-      <RecordList>
-        {mockRecentRecords.map((record) => (
-          <RecordItem key={record.id} type="button">
-            <RecordTitle>{record.title}</RecordTitle>
-            <RecordMeta>
-              {record.time} | {record.moment} |{" "}
-              <Status $status={record.status}>
-                {record.status.length === 2
-                  ? record.status.join(" → ")
-                  : record.status[0]}
-              </Status>
-            </RecordMeta>
-          </RecordItem>
-        ))}
-      </RecordList>
+      <RecordList RecordList={mockRecentRecords} />
     </Section>
   );
 }

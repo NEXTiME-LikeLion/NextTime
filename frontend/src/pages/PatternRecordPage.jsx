@@ -5,13 +5,7 @@ import BackHeader from "../components/common/BackHeader";
 import SmokingLogModal from "../components/common/SmokingLogModal";
 import RecordDetailSheet from "../components/common/RecordDetailSheet";
 import Toast from "../components/Toast/Toast";
-import {
-  RecordList,
-  RecordItem,
-  RecordTitle,
-  RecordMeta,
-  Status,
-} from "../components/pattern/sections/RecentRecordsSection";
+import RecordList, { RecordItem } from "../components/pattern/RecordList";{ RecordItem } from "../components/pattern/RecordList";
 import styled from "styled-components";
 import Plus from "../assets/plus.svg";
 
@@ -241,25 +235,11 @@ function PatternRecordPage() {
       </HeaderWrap>
 
       <ScrollContent>
-        <RecordList>
-          {records.map((record) => (
-            <RecordPageItem
-              key={record.id}
-              type="button"
-              onClick={() => handleItemClick(record)}
-            >
-              <RecordTitle>{record.title}</RecordTitle>
-              <RecordMeta>
-                {record.time} | {record.moment} |{" "}
-                <Status $status={record.status}>
-                  {record.status.length === 2
-                    ? record.status.join(" → ")
-                    : record.status[0]}
-                </Status>
-              </RecordMeta>
-            </RecordPageItem>
-          ))}
-        </RecordList>
+        <RecordList 
+            recordList={records}
+            onClick={handleItemClick}
+            ItemComponent={RecordPageItem}
+        />
       </ScrollContent>
 
       <AddButton
