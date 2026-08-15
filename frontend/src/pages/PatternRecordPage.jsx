@@ -3,7 +3,7 @@ import { useToast } from "../contexts/ToastContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import BackHeader from "../components/common/BackHeader";
 import SmokingLogModal from "../components/common/SmokingLogModal";
-import RecordDetailSheet from "../components/common/RecordDetailSheet";
+import RecordDetailSheet from "../components/pattern/RecordDetailSheet";
 import Toast from "../components/Toast/Toast";
 import RecordList, { RecordItem } from "../components/pattern/RecordList";
 import styled from "styled-components";

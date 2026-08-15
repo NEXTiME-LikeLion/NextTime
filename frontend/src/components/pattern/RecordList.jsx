@@ -4,7 +4,11 @@ function RecordList({ recordList, onClick, ItemComponent = RecordItem }) {
   return (
     <ListWrapper>
       {recordList.map((record) => (
-        <ItemComponent key={record.id} type="button">
+        <ItemComponent
+          key={record.id}
+          type="button"
+          onClick={() => onClick?.(record)}
+        >
           <RecordTitle>{record.title}</RecordTitle>
           <RecordMeta>
             {record.time} | {record.moment} |{" "}
@@ -53,3 +57,5 @@ const RecordMeta = styled.p`
   font-weight: 400;
   line-height: 1.4;
 `;
+
+const Status = styled.span``;

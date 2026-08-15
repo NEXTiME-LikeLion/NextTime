@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import BottomSheet from "./BottomSheet";
+import BottomSheet from "../common/BottomSheet";
 
 function RecordDetailSheet({ isOpen, onClose, record }) {
   if (!record) return null;
