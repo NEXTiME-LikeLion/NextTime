@@ -20,54 +20,55 @@ const ExcludePage = () => {
   };
 
   return (
-    <S.Wrapper>
+    <>
       <BackHeader title="추천 제외 관리" />
+      <S.Wrapper>
+        <S.Content>
+          <S.SectionLabel>추천하지 않을 행동</S.SectionLabel>
 
-      <S.Content>
-        <S.SectionLabel>추천하지 않을 행동</S.SectionLabel>
+          {excludedList.length > 0 ? (
+            <S.ItemList>
+              {excludedList.map((item, index) => (
+                <div key={item.id}>
+                  <S.Item>
+                    <S.ItemLabel>{item.label}</S.ItemLabel>
+                    <S.RestoreButton onClick={() => handleRestore(item)}>
+                      다시 추천받기
+                    </S.RestoreButton>
+                  </S.Item>
+                  <S.Divider />
+                </div>
+              ))}
+            </S.ItemList>
+          ) : (
+            <S.EmptyContent>
+              <S.EmptyCenterBlock>
+                <S.EmptyIconWrapper>
+                  <S.EmptyImage src={CheckImg} alt="" />
+                </S.EmptyIconWrapper>
 
-        {excludedList.length > 0 ? (
-          <S.ItemList>
-            {excludedList.map((item, index) => (
-              <div key={item.id}>
-                <S.Item>
-                  <S.ItemLabel>{item.label}</S.ItemLabel>
-                  <S.RestoreButton onClick={() => handleRestore(item)}>
-                    다시 추천받기
-                  </S.RestoreButton>
-                </S.Item>
-                <S.Divider />
-              </div>
-            ))}
-          </S.ItemList>
-        ) : (
-          <S.EmptyContent>
-            <S.EmptyCenterBlock>
-              <S.EmptyIconWrapper>
-                <S.EmptyImage src={CheckImg} alt="" />
-              </S.EmptyIconWrapper>
+                <S.EmptyTitle>아직 제외한 행동이 없어요</S.EmptyTitle>
+                <S.EmptyDescription>
+                  사용하면서 나와 맞지 않는 행동을
+                  <br />
+                  하나씩 알아갈게요
+                </S.EmptyDescription>
+              </S.EmptyCenterBlock>
 
-              <S.EmptyTitle>아직 제외한 행동이 없어요</S.EmptyTitle>
-              <S.EmptyDescription>
-                사용하면서 나와 맞지 않는 행동을
+              <S.FooterDivider />
+
+              <S.FooterNote>
+                NEXT TIME를 사용하면서 나와 맞지 않는 행동은
                 <br />
-                하나씩 알아갈게요
-              </S.EmptyDescription>
-            </S.EmptyCenterBlock>
+                결과 기록에서 추천을 줄일 수 있어요.
+              </S.FooterNote>
+            </S.EmptyContent>
+          )}
+        </S.Content>
 
-            <S.FooterDivider />
-
-            <S.FooterNote>
-              NEXT TIME를 사용하면서 나와 맞지 않는 행동은
-              <br />
-              결과 기록에서 추천을 줄일 수 있어요.
-            </S.FooterNote>
-          </S.EmptyContent>
-        )}
-      </S.Content>
-
-      {toast && <Toast message={toast.message} />}
-    </S.Wrapper>
+        {toast && <Toast message={toast.message} />}
+      </S.Wrapper>
+    </>
   );
 };
 

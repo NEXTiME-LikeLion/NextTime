@@ -3,6 +3,7 @@ import styled from "styled-components";
 export const StatusBarImage = styled.img`
   width: 100%;
   height: auto;
+  aspect-ratio: 375 / 57.828;
   display: block;
 `;
 
@@ -17,7 +18,7 @@ export const HeaderWrapper = styled.header`
 export const BackButton = styled.button`
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 32px;
   height: 32px;
   border: none;
@@ -42,4 +43,11 @@ export const Title = styled.h1`
   font-size: 18px;
   font-weight: 700;
   color: #252843;
+`;
+
+export const RightContent = styled.div`
+  position: absolute;
+  right: 20px;
+  font-size: 14px;
+  color:${({ theme }) => theme.colors.bg1};
 `;
