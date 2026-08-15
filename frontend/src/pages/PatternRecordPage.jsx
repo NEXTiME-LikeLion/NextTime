@@ -5,7 +5,7 @@ import BackHeader from "../components/common/BackHeader";
 import SmokingLogModal from "../components/common/SmokingLogModal";
 import RecordDetailSheet from "../components/common/RecordDetailSheet";
 import Toast from "../components/Toast/Toast";
-import RecordList, { RecordItem } from "../components/pattern/RecordList";{ RecordItem } from "../components/pattern/RecordList";
+import RecordList, { RecordItem } from "../components/pattern/RecordList";
 import styled from "styled-components";
 import Plus from "../assets/plus.svg";
 
@@ -235,10 +235,10 @@ function PatternRecordPage() {
       </HeaderWrap>
 
       <ScrollContent>
-        <RecordList 
-            recordList={records}
-            onClick={handleItemClick}
-            ItemComponent={RecordPageItem}
+        <RecordList
+          recordList={records}
+          onClick={handleItemClick}
+          ItemComponent={RecordPageItem}
         />
       </ScrollContent>
 
