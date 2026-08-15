@@ -1,4 +1,4 @@
-import TabMainLayout from "../components/common/TabMainLayout";
+import TabMainLayout from "../layouts/TabMainLayout";
 import PatternHeader from "../components/pattern/PatternHeader";
 import PatternContent from "../components/pattern/PatternContent";
 
