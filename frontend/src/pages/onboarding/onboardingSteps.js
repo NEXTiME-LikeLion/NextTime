@@ -65,7 +65,7 @@ export const ONBOARDING_STEPS = [
                 label: "결심이 선 계기를 알려주세요.",
                 note: "* 자유 입력",
                 type: "text",
-                placeholder: "예: 러닝을 꾸준히 하는데 항상 숨이 먼저 차서 더 이상 기록이 늘지 않았어요.",
+                placeholder: "예) 러닝을 꾸준히 하는데 항상 숨이 먼저 차서 더 이상 기록이 늘지 않았어요.",
             },
             {
                 key: "nextMe",

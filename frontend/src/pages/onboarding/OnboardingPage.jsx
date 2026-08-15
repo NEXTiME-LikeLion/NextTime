@@ -47,7 +47,7 @@ const OnboardingPage = () => {
     if (stepIndex < totalSteps - 1) {
       setStepIndex((i) => i + 1);
     } else {
-      navigate("/");
+      navigate("/onboarding/loading");
     }
   };
 

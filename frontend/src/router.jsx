@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import OnboardingPage from "./pages/onboarding/OnboardingPage";
+import OnboardingLoadingPage from "./pages/onboarding/OnboardingLoadingPage";
 import TabLayout from "./layouts/TabLayout";
 import AuthLayout from "./layouts/AuthLayout";
 import Login from "./pages/auth/Login";
@@ -17,7 +18,10 @@ const router = createBrowserRouter([
     path: "/onboarding",
     element: <OnboardingPage />,
   },
-
+  {
+    path: "/onboarding/loading",
+    element: <OnboardingLoadingPage />,
+  },
   {
     path: "/settings/goal",
     element: <GoalPage />,
