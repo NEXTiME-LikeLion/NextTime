@@ -1,8 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import ProgressIndicator from "./ProgressIndicator";
 import rightArrow from "../../assets/right-arrow.svg";
 import styled from "styled-components";
 
 function TodayChangeSection() {
+  const navigate = useNavigate();
   // TODO: API 연동 시 교체
   const todayChange = {
     overcomeCount: 3,
@@ -20,7 +22,17 @@ function TodayChangeSection() {
     <Section>
       <SectionTitle>오늘의 변화</SectionTitle>
 
-      <Card>
+      <Card
+        onClick={() => navigate("/pattern")}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            navigate("/pattern");
+          }
+        }}
+      >
         <TopRow>
           <StatBlock>
             <StatCount>
@@ -74,6 +86,19 @@ const Card = styled.div`
   padding: 1rem 1.25rem;
   border-radius: 1.25rem;
   background: rgba(178, 178, 178, 0.04);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.98;
+  }
+
+  &:active {
+    transform: scale(0.995);
+    opacity: 0.96;
+  }
 `;
 
 const TopRow = styled.div`
