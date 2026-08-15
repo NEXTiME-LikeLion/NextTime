@@ -50,20 +50,20 @@ const Section = styled.section`
   line-height: 1.4;
 `;
 
-const TitleBlock = styled.div`
+export const TitleBlock = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   align-self: flex-start;
 `;
 
-const SectionTitle = styled.h3`
+export const SectionTitle = styled.p`
   color: #000;
   font-size: 1.125rem;
   font-weight: 700;
 `;
 
-const Subtitle = styled.p`
+export const Subtitle = styled.p`
   color: ${({ theme }) => theme.colors.bg1};
   font-size: 0.75rem;
   font-weight: 400;
@@ -85,7 +85,7 @@ const PatternArrowIcon = styled.img`
   object-fit: contain;
 `;
 
-const SummaryText = styled.p`
+export const SummaryText = styled.p`
   width: 100%;
   display: flex;
   padding: 0.5rem 0.75rem;

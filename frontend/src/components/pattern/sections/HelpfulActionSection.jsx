@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { SectionTitle } from "./RecentChangeSection";
 
 // TODO: API 연동 시 교체
 const fitActions = [
@@ -25,13 +26,11 @@ function HelpfulActionSection() {
       <ActionList>
         {fitActions.map((action) => (
           <ActionItem key={action.label}>
-            <ActionCommon $variant={action.variant}>
-              {action.label}
-            </ActionCommon>
+            <CommonText $variant={action.variant}>{action.label}</CommonText>
             <ActionText>
-              <ActionCommon $variant={action.variant}>
+              <CommonText $variant={action.variant}>
                 {action.totalCount}회 중 {action.overcomeCount}회
-              </ActionCommon>
+              </CommonText>
               <ActionDetail>{action.detail}</ActionDetail>
             </ActionText>
           </ActionItem>
@@ -43,17 +42,11 @@ function HelpfulActionSection() {
 
 export default HelpfulActionSection;
 
-const Section = styled.section`
+export const Section = styled.section`
   display: flex;
   flex-direction: column;
   gap: 1rem;
   line-height: 1.4;
-`;
-
-const SectionTitle = styled.h3`
-  color: #000;
-  font-size: 1.125rem;
-  font-weight: 700;
 `;
 
 const ActionList = styled.div`
@@ -70,7 +63,7 @@ const ActionItem = styled.div`
   gap: auto;
 `;
 
-const ActionCommon = styled.p`
+export const CommonText = styled.p`
   color: ${({ $variant, theme }) =>
     $variant === "best" ? theme.colors.primary : theme.colors.gray};
   text-align: center;
