@@ -24,6 +24,13 @@ public class UserProfile {
     @Column(name = "smoking_frequency", length = 30)
     private SmokingFrequency smokingFrequency;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "goal_type", length = 30)
+    private OnboardingGoal goal;
+
+    @Column(name = "difficult_moment", length = 500)
+    private String difficultMoment;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -33,13 +40,26 @@ public class UserProfile {
     protected UserProfile() {
     }
 
-    public UserProfile(UUID userId, SmokingFrequency smokingFrequency) {
+    public UserProfile(
+            UUID userId,
+            SmokingFrequency smokingFrequency,
+            OnboardingGoal goal,
+            String difficultMoment
+    ) {
         this.userId = userId;
         this.smokingFrequency = smokingFrequency;
+        this.goal = goal;
+        this.difficultMoment = difficultMoment;
     }
 
-    public void updateSmokingFrequency(SmokingFrequency smokingFrequency) {
+    public void updateOnboarding(
+            SmokingFrequency smokingFrequency,
+            OnboardingGoal goal,
+            String difficultMoment
+    ) {
         this.smokingFrequency = smokingFrequency;
+        this.goal = goal;
+        this.difficultMoment = difficultMoment;
     }
 
     @PrePersist

@@ -7,12 +7,16 @@ import com.nextime.user.api.OnboardingRequest;
 import com.nextime.user.domain.SmokingContext;
 import com.nextime.user.domain.SmokingContextRepository;
 import com.nextime.user.domain.SmokingFrequency;
+import com.nextime.user.domain.OnboardingGoal;
+import com.nextime.user.domain.TobaccoType;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserProfile;
 import com.nextime.user.domain.UserProfileRepository;
 import com.nextime.user.domain.UserRepository;
 import com.nextime.user.domain.UserSmokingContext;
 import com.nextime.user.domain.UserSmokingContextRepository;
+import com.nextime.user.domain.UserTobaccoType;
+import com.nextime.user.domain.UserTobaccoTypeRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +49,8 @@ class OnboardingServiceTest {
     private SmokingContextRepository smokingContextRepository;
     @Mock
     private UserSmokingContextRepository userSmokingContextRepository;
+    @Mock
+    private UserTobaccoTypeRepository userTobaccoTypeRepository;
     @InjectMocks
     private OnboardingService service;
 
@@ -70,6 +76,8 @@ class OnboardingServiceTest {
         assertThat(selections.getValue())
                 .extracting(UserSmokingContext::getCustomText)
                 .containsExactly(null, "야근할 때");
+        verify(userTobaccoTypeRepository).deleteAllByUserId(USER_ID);
+        verify(userTobaccoTypeRepository).saveAll(any());
         verify(user).completeOnboarding();
     }
 
@@ -84,7 +92,11 @@ class OnboardingServiceTest {
 
         service.complete(USER_ID, request(List.of("AFTER_MEAL"), null));
 
-        verify(profile).updateSmokingFrequency(SmokingFrequency.SIX_TO_TEN);
+        verify(profile).updateOnboarding(
+                SmokingFrequency.SIX_TO_TEN,
+                OnboardingGoal.REDUCE,
+                "회의가 길어질 때"
+        );
         verify(userSmokingContextRepository).deleteAllByUserId(USER_ID);
         verify(userSmokingContextRepository).saveAll(any());
     }
@@ -130,11 +142,16 @@ class OnboardingServiceTest {
     }
 
     private OnboardingRequest request(List<String> codes, String otherContext) {
-        return new OnboardingRequest(new BaselineRequest(
-                SmokingFrequency.SIX_TO_TEN,
-                codes,
-                otherContext
-        ));
+        return new OnboardingRequest(
+                new BaselineRequest(
+                        SmokingFrequency.SIX_TO_TEN,
+                        codes,
+                        otherContext
+                ),
+                List.of(TobaccoType.CIGARETTE, TobaccoType.HEATED_TOBACCO),
+                OnboardingGoal.REDUCE,
+                "  회의가 길어질 때  "
+        );
     }
 
     private SmokingContext context(String code, String id, boolean active) {

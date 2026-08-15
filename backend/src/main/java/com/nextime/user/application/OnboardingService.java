@@ -12,6 +12,8 @@ import com.nextime.user.domain.UserProfileRepository;
 import com.nextime.user.domain.UserRepository;
 import com.nextime.user.domain.UserSmokingContext;
 import com.nextime.user.domain.UserSmokingContextRepository;
+import com.nextime.user.domain.UserTobaccoType;
+import com.nextime.user.domain.UserTobaccoTypeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,17 +34,20 @@ public class OnboardingService {
     private final UserProfileRepository userProfileRepository;
     private final SmokingContextRepository smokingContextRepository;
     private final UserSmokingContextRepository userSmokingContextRepository;
+    private final UserTobaccoTypeRepository userTobaccoTypeRepository;
 
     public OnboardingService(
             UserRepository userRepository,
             UserProfileRepository userProfileRepository,
             SmokingContextRepository smokingContextRepository,
-            UserSmokingContextRepository userSmokingContextRepository
+            UserSmokingContextRepository userSmokingContextRepository,
+            UserTobaccoTypeRepository userTobaccoTypeRepository
     ) {
         this.userRepository = userRepository;
         this.userProfileRepository = userProfileRepository;
         this.smokingContextRepository = smokingContextRepository;
         this.userSmokingContextRepository = userSmokingContextRepository;
+        this.userTobaccoTypeRepository = userTobaccoTypeRepository;
     }
 
     @Transactional
@@ -53,12 +58,23 @@ public class OnboardingService {
 
         List<String> requestedCodes = baseline.smokingContextCodes();
         validateDuplicateCodes(requestedCodes);
+        validateDuplicateTobaccoTypes(request);
         String customText = validateAndNormalizeOtherContext(requestedCodes, baseline.otherContext());
+        String difficultMoment = normalizeOptionalText(request.difficultMoment());
         Map<String, SmokingContext> contexts = loadActiveContexts(requestedCodes);
 
         UserProfile profile = userProfileRepository.findById(userId)
-                .orElseGet(() -> new UserProfile(userId, baseline.smokingFrequency()));
-        profile.updateSmokingFrequency(baseline.smokingFrequency());
+                .orElseGet(() -> new UserProfile(
+                        userId,
+                        baseline.smokingFrequency(),
+                        request.changeGoal(),
+                        difficultMoment
+                ));
+        profile.updateOnboarding(
+                baseline.smokingFrequency(),
+                request.changeGoal(),
+                difficultMoment
+        );
         userProfileRepository.save(profile);
 
         userSmokingContextRepository.deleteAllByUserId(userId);
@@ -71,6 +87,12 @@ public class OnboardingService {
                 .toList();
         userSmokingContextRepository.saveAll(selections);
 
+        userTobaccoTypeRepository.deleteAllByUserId(userId);
+        List<UserTobaccoType> tobaccoTypes = request.tobaccoTypes().stream()
+                .map(type -> new UserTobaccoType(userId, type))
+                .toList();
+        userTobaccoTypeRepository.saveAll(tobaccoTypes);
+
         user.completeOnboarding();
         return user;
     }
@@ -80,6 +102,21 @@ public class OnboardingService {
         if (uniqueCodes.size() != codes.size()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "같은 흡연 상황을 중복 선택할 수 없습니다.");
         }
+    }
+
+    private void validateDuplicateTobaccoTypes(OnboardingRequest request) {
+        Set<?> uniqueTypes = new HashSet<>(request.tobaccoTypes());
+        if (uniqueTypes.size() != request.tobaccoTypes().size()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "같은 담배 종류를 중복 선택할 수 없습니다.");
+        }
+    }
+
+    private String normalizeOptionalText(String text) {
+        if (text == null) {
+            return null;
+        }
+        String normalized = text.trim();
+        return normalized.isEmpty() ? null : normalized;
     }
 
     private String validateAndNormalizeOtherContext(List<String> codes, String otherContext) {
