@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.nextime.ai.client.MockAiClientTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-08-11T08:19:22.109Z" hostname="choeinhaui-MacBookPro.local" time="0.02">
+  <properties/>
+  <testcase name="returnsDeterministicMissionRecommendation()" classname="com.nextime.ai.client.MockAiClientTest" time="0.019"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
