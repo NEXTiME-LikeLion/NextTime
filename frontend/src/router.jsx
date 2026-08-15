@@ -26,12 +26,15 @@ const router = createBrowserRouter([
     element: <DevicePage />,
   },
   {
+    path: "/pattern/records",
+    element: <PatternRecordPage />,
+  },
+  {
     path: "/",
     element: <TabLayout />,
     children: [
       { index: true, element: <HomePage /> },
       { path: "pattern", element: <PatternPage /> },
-      { path: "pattern/records", element: <PatternRecordPage /> },
       { path: "settings", element: <SettingsPage /> },
     ],
   },

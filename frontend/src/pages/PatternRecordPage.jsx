@@ -3,6 +3,7 @@ import { useToast } from "../contexts/ToastContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import BackHeader from "../components/common/BackHeader";
 import SmokingLogModal from "../components/common/SmokingLogModal";
+import RecordDetailSheet from "../components/common/RecordDetailSheet";
 import Toast from "../components/Toast/Toast";
 import {
   RecordList,
@@ -242,7 +243,11 @@ function PatternRecordPage() {
       <ScrollContent>
         <RecordList>
           {records.map((record) => (
-            <RecordPageItem key={record.id} type="button">
+            <RecordPageItem
+              key={record.id}
+              type="button"
+              onClick={() => handleItemClick(record)}
+            >
               <RecordTitle>{record.title}</RecordTitle>
               <RecordMeta>
                 {record.time} | {record.moment} |{" "}
@@ -269,6 +274,12 @@ function PatternRecordPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
+      />
+
+      <RecordDetailSheet
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+        record={selectedRecord}
       />
     </PageContainer>
   );

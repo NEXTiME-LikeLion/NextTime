@@ -13,7 +13,7 @@ function Modal({ isOpen, onClose, children }) {
 export default Modal;
 
 const Overlay = styled.div`
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
