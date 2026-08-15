@@ -71,11 +71,10 @@ export const Divider = styled.hr`
 export const NextMeCard = styled.div`
   position: relative;
   width: 357px;
-  height: 244px;
+  min-height: 244px;
   background-color: ${({ theme }) => theme.colors.primary};
   border-radius: 20px;
   padding: 20px;
-  overflow: hidden;
   box-shadow: 0px 4px 8px 4px rgba(0, 0, 0, 0.12);
 `;
 
@@ -94,6 +93,7 @@ export const NextMeText = styled.p`
   color: #ffffff;
   margin-bottom: 16px;
   max-width: 60%;
+  word-break: break-all;
 `;
 
 export const NextMeSubLabel = styled.p`
