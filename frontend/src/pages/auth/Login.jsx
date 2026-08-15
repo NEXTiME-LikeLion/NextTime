@@ -44,8 +44,7 @@ const Login = () => {
         아직 계정이 없으신가요?
         <S.StyledLink to="/signup">회원가입 하기</S.StyledLink>
       </S.BottomText>
-
-      {toast && <Toast message={toast.message} marginTop={130} />}
+      {toast && <Toast message={toast.message} />}
     </S.FormContainer>
   );
 };

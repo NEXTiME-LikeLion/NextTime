@@ -6,8 +6,23 @@ import Signup from "./pages/auth/Signup";
 import HomePage from "./pages/HomePage";
 import PatternPage from "./pages/PatternPage";
 import SettingsPage from "./pages/SettingsPage";
+import GoalPage from "./pages/settings/GoalPage";
+import ExcludePage from "./pages/settings/ExcludePage";
+import DevicePage from "./pages/settings/DevicePage";
 
 const router = createBrowserRouter([
+  {
+    path: "/settings/goal",
+    element: <GoalPage />,
+  },
+  {
+    path: "/settings/exclude",
+    element: <ExcludePage />,
+  },
+  {
+    path: "/settings/device",
+    element: <DevicePage />,
+  },
   {
     path: "/",
     element: <TabLayout />,
