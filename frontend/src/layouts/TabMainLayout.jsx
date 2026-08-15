@@ -14,15 +14,17 @@ export default TabMainLayout;
 const ScreenContainer = styled.div`
   display: flex;
   flex-direction: column;
-  background-color: ${({ theme }) => theme.colors.primary.default};
-  padding: var(--safe-top) 1.25rem 0 1.25rem;
+  flex: 1;
+  background-color: ${({ theme }) => theme.colors.primary};
+  overflow-y: auto;
 `;
 
 const Header = styled.div`
-  padding-bottom: 1rem;
+  padding: var(--safe-top) 1.25rem 1rem 1.25rem;
 `;
 
 const Content = styled.div`
   border-radius: 1rem 1rem 0 0;
-  background-color: ${({ theme }) => theme.colors.bg.surface};
+  background-color: ${({ theme }) => theme.colors.bg0};
+  padding-inline: 1.25rem;
 `;
