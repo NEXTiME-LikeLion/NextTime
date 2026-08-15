@@ -164,7 +164,10 @@ class UserControllerSecurityTest {
                                     "smokingFrequency": "SIX_TO_TEN",
                                     "smokingContextCodes": ["STRESS", "AFTER_MEAL", "OTHER"],
                                     "otherContext": "야근할 때"
-                                  }
+                                  },
+                                  "tobaccoTypes": ["CIGARETTE"],
+                                  "changeGoal": "REDUCE",
+                                  "difficultMoment": "술자리"
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
@@ -216,7 +219,10 @@ class UserControllerSecurityTest {
                     "smokingFrequency": "SIX_TO_TEN",
                     "smokingContextCodes": ["STRESS", "OTHER"],
                     "otherContext": "야근할 때"
-                  }
+                  },
+                  "tobaccoTypes": ["CIGARETTE", "HEATED_TOBACCO"],
+                  "changeGoal": "REDUCE",
+                  "difficultMoment": "술자리나 회식이 끝난 뒤"
                 }
                 """;
     }
