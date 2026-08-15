@@ -1,25 +1,30 @@
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { SectionTitle } from "./RecentChangeSection";
+import { Section } from "./HelpfulActionSection";
 
 // TODO: API 연동 시 교체
 const mockRecentRecords = [
   {
     id: 1,
-    title: "퇴근 직후 흡연구역 앞",
-    time: "오늘 오후 6:12",
-    status: "흡연",
+    title: "흡연구역에서 벗어나 5분 걷기",
+    time: "오늘 18:24",
+    moment: "일·공부 끝난 뒤",
+    status: ["욕구 강함", "보통"],
   },
   {
     id: 2,
-    title: "점심시간 회의 직전",
-    time: "어제 오후 1:08",
-    status: "미룸",
+    title: "물 마시기",
+    time: "오늘 13:11",
+    moment: "식사 후",
+    status: ["11분 미룸", "이후 흡연"],
   },
   {
     id: 3,
-    title: "술자리 뒤 야외 흡연장",
-    time: "지난주 금요일 10:42",
-    status: "넘김",
+    title: "흡연구역에서 벗어나 5분 걷기",
+    time: "오늘 9:12",
+    moment: "일·공부 끝난 뒤",
+    status: ["바로 흡연"],
   },
 ];
 
@@ -34,23 +39,21 @@ function RecentRecordsSection() {
           type="button"
           onClick={() => navigate("/pattern/records")}
         >
-          전체보기
+          전체 보기
         </ViewAllButton>
       </SectionHeader>
 
       <RecordList>
         {mockRecentRecords.map((record) => (
-          <RecordItem
-            key={record.id}
-            type="button"
-            onClick={() =>
-              navigate("/pattern/records", { state: { selectedId: record.id } })
-            }
-          >
+          <RecordItem key={record.id} type="button">
             <RecordTitle>{record.title}</RecordTitle>
             <RecordMeta>
-              <span>{record.time}</span>
-              <Status $status={record.status}>{record.status}</Status>
+              {record.time} | {record.moment} |{" "}
+              <Status $status={record.status}>
+                {record.status.length === 2
+                  ? record.status.join(" → ")
+                  : record.status[0]}
+              </Status>
             </RecordMeta>
           </RecordItem>
         ))}
@@ -61,34 +64,20 @@ function RecentRecordsSection() {
 
 export default RecentRecordsSection;
 
-const Section = styled.section`
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-`;
-
 const SectionHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-`;
-
-const SectionTitle = styled.h3`
-  color: ${({ theme }) => theme.colors.bg1};
-  font-size: 1.125rem;
-  font-weight: 800;
-  line-height: 1.4;
 `;
 
 const ViewAllButton = styled.button`
   border: none;
   background: transparent;
-  color: ${({ theme }) => theme.colors.gray};
+  color: ${({ theme }) => theme.colors.light_gray};
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0;
+  line-height: 1.4;
 `;
 
 const RecordList = styled.div`
@@ -97,55 +86,28 @@ const RecordList = styled.div`
   gap: 0.75rem;
 `;
 
-const RecordItem = styled.button`
+const RecordItem = styled.div`
   width: 100%;
-  border: 1px solid rgba(178, 178, 178, 0.22);
-  border-radius: 1rem;
-  background: rgba(178, 178, 178, 0.04);
-  text-align: left;
-  padding: 0.875rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  cursor: pointer;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(178, 178, 178, 0.2);
 `;
 
 const RecordTitle = styled.p`
+  font-size: 0.875rem;
+  font-weight: 600;
   color: ${({ theme }) => theme.colors.bg1};
-  font-size: 1rem;
-  font-weight: 700;
   line-height: 1.4;
 `;
 
-const RecordMeta = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  color: ${({ theme }) => theme.colors.gray};
+const RecordMeta = styled.p`
+  color: #b2b2b2;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
 `;
 
-const Status = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.625rem;
-  font-weight: 700;
-  background: ${({ $status, theme }) =>
-    $status === "흡연"
-      ? "rgba(255, 104, 104, 0.12)"
-      : $status === "미룸"
-        ? "rgba(26, 136, 255, 0.12)"
-        : "rgba(0, 213, 121, 0.12)"};
-  color: ${({ $status, theme }) =>
-    $status === "흡연"
-      ? "#E34B4B"
-      : $status === "미룸"
-        ? "#1F6FE5"
-        : theme.colors.primary};
-`;
+const Status = styled.span``;
