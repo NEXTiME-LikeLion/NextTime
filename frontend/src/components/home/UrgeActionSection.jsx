@@ -1,9 +1,17 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../common/PrimaryButton";
+import SmokingLogModal from "../common/SmokingLogModal";
 import styled from "styled-components";
 
 function UrgeActionSection() {
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSubmit = (reason) => {
+    // TODO: API 연동 - reason 전송 코드 추가
+    setIsModalOpen(false);
+  };
 
   return (
     <Section>
@@ -18,10 +26,16 @@ function UrgeActionSection() {
 
       <QuickRecordRow>
         <QuickRecordLabel>방금 담배 피웠어요</QuickRecordLabel>
-        <QuickRecordLink type="button" onClick={() => navigate("/record")}>
+        <QuickRecordLink type="button" onClick={() => setIsModalOpen(true)}>
           빠르게 기록하기 →
         </QuickRecordLink>
       </QuickRecordRow>
+
+      <SmokingLogModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+      />
     </Section>
   );
 }

@@ -21,4 +21,8 @@ const Button = styled.button`
   font-weight: 600;
   line-height: 1.4;
   cursor: pointer;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
