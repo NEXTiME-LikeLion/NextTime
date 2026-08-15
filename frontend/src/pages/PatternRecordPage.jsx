@@ -225,7 +225,7 @@ function PatternRecordPage() {
 
   // 빠른 흡연 기록 모달
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { showToast } = useToast();
+  const { toast, showToast } = useToast();
 
   const handleSubmit = (selected) => {
     // TODO: API 연동 - reason 전송 코드 추가
@@ -281,6 +281,8 @@ function PatternRecordPage() {
         onClose={handleCloseSheet}
         record={selectedRecord}
       />
+
+      {toast && <Toast message={toast.message} />}
     </PageContainer>
   );
 }
