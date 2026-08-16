@@ -65,7 +65,6 @@ class PatternOverviewControllerTest {
                 .andExpect(jsonPath("$.data.period.value").value("7d"))
                 .andExpect(jsonPath("$.data.dataStatus").value("AVAILABLE"))
                 .andExpect(jsonPath("$.data.recentResultCount").value(3))
-                .andExpect(jsonPath("$.data.insight.recentResultCount").value(3))
                 .andExpect(jsonPath("$.data.insight.topTrigger.code").value("AFTER_WORK"))
                 .andExpect(jsonPath("$.data.insight.topLocation.code").value("NEAR_SMOKING_AREA"))
                 .andExpect(jsonPath("$.data.behaviorChange.change").value("INCREASED"))
@@ -101,7 +100,6 @@ class PatternOverviewControllerTest {
                 PatternOverviewResponse.DataStatus.AVAILABLE,
                 3,
                 new PatternOverviewResponse.Insight(
-                        3,
                         trigger,
                         location,
                         new PatternOverviewResponse.TimeSlot(18, 20, 4)

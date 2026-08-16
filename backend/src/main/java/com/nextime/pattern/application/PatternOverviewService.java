@@ -144,7 +144,7 @@ public class PatternOverviewService {
                 : null;
         TimeSlot topTimeSlot = calculateTopTimeSlot(recentThirtyDaySessions);
 
-        return new Insight(current.size(), topTrigger, topLocation, topTimeSlot);
+        return new Insight(topTrigger, topLocation, topTimeSlot);
     }
 
     private ContextCount firstOrNull(List<ContextCount> contexts) {

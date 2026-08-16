@@ -112,7 +112,6 @@ class PatternOverviewServiceTest {
 
         assertThat(response.dataStatus()).isEqualTo(DataStatus.AVAILABLE);
         assertThat(response.recentResultCount()).isEqualTo(3);
-        assertThat(response.insight().recentResultCount()).isEqualTo(3);
         assertThat(response.insight().topTrigger().code()).isEqualTo("AFTER_WORK");
         assertThat(response.insight().topTrigger().count()).isEqualTo(2);
         assertThat(response.insight().topLocation().code()).isEqualTo("NEAR_SMOKING_AREA");

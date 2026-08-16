@@ -35,7 +35,6 @@ public record PatternOverviewResponse(
     }
 
     public record Insight(
-            int recentResultCount,
             ContextCount topTrigger,
             ContextCount topLocation,
             TimeSlot topTimeSlot
