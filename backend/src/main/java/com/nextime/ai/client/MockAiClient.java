@@ -17,10 +17,7 @@ public class MockAiClient implements AiClient {
                     "reason", "지금 바로 짧게 실행할 수 있는 기본 미션입니다."
             );
             case "ONBOARDING_NEXT_ME", "NEXT_ME_REWRITE" -> Map.of(
-                    "candidates", java.util.List.of(
-                            "지금의 작은 선택이 내가 원하는 내일을 만듭니다.",
-                            "담배 대신 나를 돌보는 시간을 선택해요."
-                    )
+                    "message", "내가 바라는 미래를 향해 오늘의 변화를 선택하는 나"
             );
             case "COPING_PROFILE" -> Map.of("missionCodes", java.util.List.of());
             case "PATTERN_INSIGHT" -> Map.of(
