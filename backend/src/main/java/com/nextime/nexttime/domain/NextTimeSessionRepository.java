@@ -26,6 +26,13 @@ public interface NextTimeSessionRepository extends JpaRepository<NextTimeSession
             @Param("userId") UUID userId
     );
 
+    @EntityGraph(attributePaths = {"recommendedMission", "contexts"})
+    Optional<NextTimeSession> findByIdAndUser_IdAndStatus(
+            UUID sessionId,
+            UUID userId,
+            NextTimeSessionStatus status
+    );
+
     boolean existsByUser_IdAndStatusIn(
             UUID userId,
             Collection<NextTimeSessionStatus> statuses
