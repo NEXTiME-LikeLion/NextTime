@@ -4,8 +4,8 @@ import com.nextime.common.error.BusinessException;
 import com.nextime.common.error.ErrorCode;
 import com.nextime.user.api.BaselineRequest;
 import com.nextime.user.api.OnboardingRequest;
-import com.nextime.user.domain.SmokingContext;
-import com.nextime.user.domain.SmokingContextRepository;
+import com.nextime.smokingcontext.domain.SmokingContext;
+import com.nextime.user.domain.OnboardingSmokingContextRepository;
 import com.nextime.user.domain.SmokingFrequency;
 import com.nextime.user.domain.OnboardingGoal;
 import com.nextime.user.domain.TobaccoType;
@@ -46,7 +46,7 @@ class OnboardingServiceTest {
     @Mock
     private UserProfileRepository userProfileRepository;
     @Mock
-    private SmokingContextRepository smokingContextRepository;
+    private OnboardingSmokingContextRepository smokingContextRepository;
     @Mock
     private UserSmokingContextRepository userSmokingContextRepository;
     @Mock

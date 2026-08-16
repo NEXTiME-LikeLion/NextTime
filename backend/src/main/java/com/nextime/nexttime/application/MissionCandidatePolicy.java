@@ -61,6 +61,15 @@ public class MissionCandidatePolicy {
             CravingBefore craving,
             List<Mission> availableMissions
     ) {
+        return planCandidates(locationCode, triggerCode, craving, availableMissions).candidates();
+    }
+
+    public CandidatePlan planCandidates(
+            String locationCode,
+            String triggerCode,
+            CravingBefore craving,
+            List<Mission> availableMissions
+    ) {
         Map<String, Mission> availableByCode = new HashMap<>();
         for (Mission mission : availableMissions) {
             availableByCode.put(mission.getCode(), mission);
@@ -86,11 +95,13 @@ public class MissionCandidatePolicy {
         candidates = applyCravingOrder(candidates, craving);
 
         if (!candidates.isEmpty()) {
-            return candidates;
+            return new CandidatePlan(candidates, false);
         }
 
         Mission fallback = availableByCode.get(LOCATION_FALLBACK.get(locationCode));
-        return fallback == null ? List.of() : List.of(fallback);
+        return fallback == null
+                ? new CandidatePlan(List.of(), true)
+                : new CandidatePlan(List.of(fallback), true);
     }
 
     private List<Mission> applyCravingOrder(List<Mission> candidates, CravingBefore craving) {
@@ -110,5 +121,11 @@ public class MissionCandidatePolicy {
                 .filter(mission -> mission.getEffortType() != preferredEffort)
                 .forEach(ordered::add);
         return List.copyOf(ordered);
+    }
+
+    public record CandidatePlan(List<Mission> candidates, boolean fallback) {
+        public CandidatePlan {
+            candidates = List.copyOf(candidates);
+        }
     }
 }

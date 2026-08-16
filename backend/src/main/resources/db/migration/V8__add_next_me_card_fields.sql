@@ -1,3 +1,4 @@
+-- Next Me 카드 표시 필드 추가
 ALTER TABLE next_me_generations
     ADD COLUMN headline VARCHAR(36),
     ADD COLUMN start_reason VARCHAR(24),

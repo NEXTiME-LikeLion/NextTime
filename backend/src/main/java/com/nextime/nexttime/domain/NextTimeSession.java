@@ -1,6 +1,8 @@
 package com.nextime.nexttime.domain;
 
 import com.nextime.smokingcontext.domain.SmokingContext;
+import com.nextime.smokingcontext.domain.SmokingContextType;
+import com.nextime.mission.domain.Mission;
 import com.nextime.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -45,6 +47,38 @@ public class NextTimeSession {
     @Enumerated(EnumType.STRING)
     @Column(name = "recommendation_source", length = 20)
     private RecommendationSource recommendationSource;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recommended_mission_id")
+    private Mission recommendedMission;
+
+    @Column(name = "mission_code_snapshot", length = 50)
+    private String missionCodeSnapshot;
+
+    @Column(name = "mission_name_snapshot", length = 150)
+    private String missionNameSnapshot;
+
+    @Column(name = "mission_description_snapshot")
+    private String missionDescriptionSnapshot;
+
+    @Column(name = "completion_criteria_snapshot")
+    private String completionCriteriaSnapshot;
+
+    @Column(name = "estimated_seconds_snapshot")
+    private Integer estimatedSecondsSnapshot;
+
+    @Column(name = "recommendation_reason")
+    private String recommendationReason;
+
+    @Column(name = "recommended_at")
+    private Instant recommendedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private NextTimeResult result;
+
+    @Column(name = "result_recorded_at")
+    private Instant resultRecordedAt;
 
     @ManyToMany
     @JoinTable(
@@ -91,5 +125,35 @@ public class NextTimeSession {
         this.status = CONTEXT_SAVED;
         this.contextSavedAt = savedAt;
         this.updatedAt = savedAt;
+    }
+
+    public SmokingContext contextOf(SmokingContextType type) {
+        return contexts.stream()
+                .filter(context -> context.getContextType() == type)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("세션 Context가 완전하지 않습니다."));
+    }
+
+    public void recommend(
+            Mission mission,
+            String reason,
+            RecommendationSource source,
+            Instant recommendedAt
+    ) {
+        if (status != CONTEXT_SAVED) {
+            throw new IllegalStateException("Context 저장 상태에서만 미션을 추천할 수 있습니다.");
+        }
+
+        this.recommendedMission = mission;
+        this.missionCodeSnapshot = mission.getCode();
+        this.missionNameSnapshot = mission.getName();
+        this.missionDescriptionSnapshot = mission.getDescription();
+        this.completionCriteriaSnapshot = mission.getCompletionCriteria();
+        this.estimatedSecondsSnapshot = mission.getEstimatedSeconds();
+        this.recommendationReason = reason;
+        this.recommendationSource = source;
+        this.recommendedAt = recommendedAt;
+        this.status = NextTimeSessionStatus.MISSION_RECOMMENDED;
+        this.updatedAt = recommendedAt;
     }
 }

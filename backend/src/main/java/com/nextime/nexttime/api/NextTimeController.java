@@ -2,6 +2,7 @@ package com.nextime.nexttime.api;
 
 import com.nextime.common.api.ApiResponse;
 import com.nextime.nexttime.application.NextTimeService;
+import com.nextime.nexttime.application.MissionRecommendationService;
 import com.nextime.security.AuthenticatedUser;
 import com.nextime.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class NextTimeController {
 
     private final NextTimeService nextTimeService;
+    private final MissionRecommendationService missionRecommendationService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -42,5 +44,15 @@ public class NextTimeController {
         );
 
         return ApiResponse.success(response);
+    }
+
+    @PostMapping("/{sessionId}/recommendation")
+    public ApiResponse<MissionRecommendationResponse> recommendMission(
+            @CurrentUser AuthenticatedUser currentUser,
+            @PathVariable UUID sessionId
+    ) {
+        return ApiResponse.success(
+                missionRecommendationService.recommend(currentUser.userId(), sessionId)
+        );
     }
 }
