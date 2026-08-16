@@ -25,6 +25,10 @@ app:
       allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
   ai:
     provider: ${AI_PROVIDER:mock}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      model: ${OPENAI_MODEL:gpt-5.4-mini}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
 
 mqtt:
   broker-url: ${MQTT_BROKER_URL:tcp://localhost:1883}
