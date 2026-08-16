@@ -30,8 +30,21 @@ public class NextTimeSession {
     @Column(nullable = false, length = 30)
     private NextTimeSessionStatus status;
 
-    @Column(name = "craving_before")
-    private Short cravingBefore;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "craving_before", length = 10)
+    private CravingBefore cravingBefore;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "craving_after", length = 10)
+    private CravingAfter cravingAfter;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mission_helpfulness", length = 20)
+    private MissionHelpfulness missionHelpfulness;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recommendation_source", length = 20)
+    private RecommendationSource recommendationSource;
 
     @ManyToMany
     @JoinTable(
@@ -66,12 +79,12 @@ public class NextTimeSession {
     }
 
     public void saveContext(
-            int cravingBefore,
+            CravingBefore cravingBefore,
             SmokingContext location,
             SmokingContext trigger,
             Instant savedAt
     ) {
-        this.cravingBefore = (short) cravingBefore;
+        this.cravingBefore = cravingBefore;
         this.contexts.clear();
         this.contexts.add(location);
         this.contexts.add(trigger);

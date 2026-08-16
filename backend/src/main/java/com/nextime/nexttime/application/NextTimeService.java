@@ -10,6 +10,7 @@ import com.nextime.nexttime.api.SaveNextTimeContextRequest;
 import com.nextime.nexttime.domain.NextTimeSession;
 import com.nextime.nexttime.domain.NextTimeSessionRepository;
 
+import com.nextime.nexttime.domain.NextTimeSessionStatus;
 import com.nextime.smokingcontext.domain.SmokingContext;
 import com.nextime.smokingcontext.domain.SmokingContextRepository;
 import com.nextime.smokingcontext.domain.SmokingContextType;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.CREATED;
@@ -40,9 +42,34 @@ public class NextTimeService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_REGISTERED));
 
+        if (!user.isOnboardingCompleted()) {
+            throw new BusinessException(
+                    ErrorCode.CONFLICT,
+                    "온보딩을 완료한 후 NEXT TIME을 시작할 수 있습니다."
+            );
+        }
+
+        boolean hasActiveSession =
+                nextTimeSessionRepository.existsByUser_IdAndStatusIn(
+                        userId,
+                        List.of(
+                                NextTimeSessionStatus.CREATED,
+                                NextTimeSessionStatus.CONTEXT_SAVED,
+                                NextTimeSessionStatus.MISSION_RECOMMENDED,
+                                NextTimeSessionStatus.MISSION_STARTED,
+                                NextTimeSessionStatus.MISSION_COMPLETED
+                        )
+                );
+
+        if (hasActiveSession) {
+            throw new BusinessException(
+                    ErrorCode.CONFLICT,
+                    "이미 진행 중인 NEXT TIME 세션이 있습니다."
+            );
+        }
+
         NextTimeSession session = new NextTimeSession(user);
         NextTimeSession savedSession = nextTimeSessionRepository.save(session);
-
         return new NextTimeSessionResponse(savedSession);
     }
 
