@@ -6,6 +6,7 @@ import com.nextime.nexttime.application.MissionExecutionService;
 import com.nextime.nexttime.application.MissionRecommendationService;
 import com.nextime.nexttime.application.NextTimeService;
 import com.nextime.nexttime.application.ResultRecordingService;
+import com.nextime.nexttime.application.FutureVoiceService;
 import com.nextime.nexttime.domain.CravingAfter;
 import com.nextime.nexttime.domain.CravingBefore;
 import com.nextime.nexttime.domain.CravingChange;
@@ -59,6 +60,8 @@ class ResultRecordingControllerTest {
     private MissionExecutionService missionExecutionService;
     @MockitoBean
     private ResultRecordingService resultRecordingService;
+    @MockitoBean
+    private FutureVoiceService futureVoiceService;
     @MockitoBean
     private UserRepository userRepository;
     @MockitoBean

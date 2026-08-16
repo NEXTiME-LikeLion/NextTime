@@ -81,4 +81,8 @@ public class UserProfile {
     public OnboardingGoal getGoal() {
         return goal;
     }
+
+    public String getDifficultMoment() {
+        return difficultMoment;
+    }
 }
