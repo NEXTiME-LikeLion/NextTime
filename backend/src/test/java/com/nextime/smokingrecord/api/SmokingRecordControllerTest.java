@@ -6,6 +6,7 @@ import com.nextime.security.CurrentUserArgumentResolver;
 import com.nextime.security.RestAuthenticationEntryPoint;
 import com.nextime.security.SecurityConfig;
 import com.nextime.smokingrecord.application.RecordDetailService;
+import com.nextime.smokingrecord.application.RecordListService;
 import com.nextime.smokingrecord.application.SmokingRecordService;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
@@ -47,6 +48,8 @@ class SmokingRecordControllerTest {
     private SmokingRecordService smokingRecordService;
     @MockitoBean
     private RecordDetailService recordDetailService;
+    @MockitoBean
+    private RecordListService recordListService;
     @MockitoBean
     private UserRepository userRepository;
     @MockitoBean
