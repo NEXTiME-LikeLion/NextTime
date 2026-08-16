@@ -11,7 +11,7 @@ export const HeaderWrapper = styled.header`
   align-items: center;
   gap: 12px;
   justify-content: center;
-  position: relative; 
+  position: relative;
 `;
 
 export const BackButton = styled.button`
@@ -24,7 +24,7 @@ export const BackButton = styled.button`
   background: none;
   padding: 0;
   cursor: pointer;
-  position: absolute;  
+  position: absolute;
   left: 20px;
 `;
 
@@ -39,7 +39,9 @@ export const ArrowIcon = styled.svg`
 `;
 
 export const Title = styled.h1`
-  font-size: 18px;
-  font-weight: 700;
+  color: ${({ theme }) => theme.colors.bg1};
+  font-size: 1.25rem;
+  font-weight: 800;
   color: #252843;
+  line-height: 1.4;
 `;
