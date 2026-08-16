@@ -89,6 +89,16 @@ public class NextTimeSession {
     @Column(name = "result_recorded_at")
     private Instant resultRecordedAt;
 
+    @Column(name = "result_feedback", length = 500)
+    private String resultFeedback;
+
+    @Column(name = "result_memory_summary", length = 500)
+    private String resultMemorySummary;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "result_memory_source", length = 20)
+    private ResultMemorySource resultMemorySource;
+
     @ManyToMany
     @JoinTable(
             name = "next_time_session_contexts",
@@ -194,5 +204,29 @@ public class NextTimeSession {
         this.status = NextTimeSessionStatus.CANCELLED;
         this.missionSkippedAt = skippedAt;
         this.updatedAt = skippedAt;
+    }
+
+    public void recordResult(
+            NextTimeResult result,
+            CravingAfter cravingAfter,
+            MissionHelpfulness missionHelpfulness,
+            String feedback,
+            String memorySummary,
+            ResultMemorySource memorySource,
+            Instant recordedAt
+    ) {
+        if (status != NextTimeSessionStatus.MISSION_COMPLETED) {
+            throw new IllegalStateException("완료한 미션에만 결과를 기록할 수 있습니다.");
+        }
+
+        this.result = result;
+        this.cravingAfter = cravingAfter;
+        this.missionHelpfulness = missionHelpfulness;
+        this.resultFeedback = feedback;
+        this.resultMemorySummary = memorySummary;
+        this.resultMemorySource = memorySource;
+        this.resultRecordedAt = recordedAt;
+        this.status = NextTimeSessionStatus.RESULT_RECORDED;
+        this.updatedAt = recordedAt;
     }
 }

@@ -4,6 +4,7 @@ import com.nextime.common.api.ApiResponse;
 import com.nextime.nexttime.application.NextTimeService;
 import com.nextime.nexttime.application.MissionExecutionService;
 import com.nextime.nexttime.application.MissionRecommendationService;
+import com.nextime.nexttime.application.ResultRecordingService;
 import com.nextime.security.AuthenticatedUser;
 import com.nextime.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class NextTimeController {
     private final NextTimeService nextTimeService;
     private final MissionRecommendationService missionRecommendationService;
     private final MissionExecutionService missionExecutionService;
+    private final ResultRecordingService resultRecordingService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -80,5 +82,14 @@ public class NextTimeController {
             @PathVariable UUID sessionId
     ) {
         return ApiResponse.success(missionExecutionService.skip(currentUser.userId(), sessionId));
+    }
+
+    @PostMapping("/{sessionId}/result")
+    public ApiResponse<NextTimeResultResponse> recordResult(
+            @CurrentUser AuthenticatedUser currentUser,
+            @PathVariable UUID sessionId,
+            @Valid @RequestBody RecordNextTimeResultRequest request
+    ) {
+        return ApiResponse.success(resultRecordingService.record(currentUser.userId(), sessionId, request));
     }
 }

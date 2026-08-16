@@ -5,6 +5,7 @@ import com.nextime.common.error.GlobalExceptionHandler;
 import com.nextime.nexttime.application.MissionExecutionService;
 import com.nextime.nexttime.application.MissionRecommendationService;
 import com.nextime.nexttime.application.NextTimeService;
+import com.nextime.nexttime.application.ResultRecordingService;
 import com.nextime.nexttime.domain.NextTimeSessionStatus;
 import com.nextime.security.CurrentUserArgumentResolver;
 import com.nextime.security.RestAuthenticationEntryPoint;
@@ -49,6 +50,8 @@ class MissionExecutionControllerTest {
     private MissionRecommendationService missionRecommendationService;
     @MockitoBean
     private MissionExecutionService missionExecutionService;
+    @MockitoBean
+    private ResultRecordingService resultRecordingService;
     @MockitoBean
     private UserRepository userRepository;
     @MockitoBean
