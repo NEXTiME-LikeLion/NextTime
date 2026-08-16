@@ -1,8 +1,8 @@
-package com.nextime.nexttime.service;
+package com.nextime.nexttime.application;
 
-import com.nextime.nexttime.dto.NextTimeSessionResponse;
-import com.nextime.nexttime.entity.NextTimeSession;
-import com.nextime.nexttime.repository.NextTimeSessionRepository;
+import com.nextime.nexttime.api.NextTimeSessionResponse;
+import com.nextime.nexttime.domain.NextTimeSession;
+import com.nextime.nexttime.domain.NextTimeSessionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

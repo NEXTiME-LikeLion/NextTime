@@ -1,6 +1,6 @@
-package com.nextime.nexttime.dto;
+package com.nextime.nexttime.api;
 
-import com.nextime.nexttime.entity.NextTimeSession;
+import com.nextime.nexttime.domain.NextTimeSession;
 import lombok.Getter;
 
 import java.time.Instant;

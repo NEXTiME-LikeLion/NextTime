@@ -1,4 +1,4 @@
-package com.nextime.nexttime.entity;
+package com.nextime.nexttime.domain;
 
 import jakarta.persistence.*;
 import lombok.*;

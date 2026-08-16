@@ -1,8 +1,7 @@
-package com.nextime.nexttime.controller;
+package com.nextime.nexttime.api;
 
 import com.nextime.common.api.ApiResponse;
-import com.nextime.nexttime.dto.NextTimeSessionResponse;
-import com.nextime.nexttime.service.NextTimeService;
+import com.nextime.nexttime.application.NextTimeService;
 import com.nextime.security.AuthenticatedUser;
 import com.nextime.security.CurrentUser;
 import lombok.RequiredArgsConstructor;

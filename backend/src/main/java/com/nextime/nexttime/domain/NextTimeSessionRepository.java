@@ -1,6 +1,5 @@
-package com.nextime.nexttime.repository;
+package com.nextime.nexttime.domain;
 
-import com.nextime.nexttime.entity.NextTimeSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
