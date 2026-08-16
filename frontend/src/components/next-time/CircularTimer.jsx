@@ -88,9 +88,8 @@ const TimeText = styled.p`
 `;
 
 const RemainingLabel = styled.p`
-  color: ${({ theme }) => theme.colors.white};
-  font-size: 0.875rem;
+  color: ${({ theme }) => theme.colors.light_gray};
+  font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.4;
-  margin-top: 0.25rem;
 `;

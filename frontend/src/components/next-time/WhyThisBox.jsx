@@ -12,10 +12,14 @@ function WhyThisBox({ text }) {
 export default WhyThisBox;
 
 const Box = styled.div`
+  width: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
   gap: 0.25rem;
   padding: 1rem 1.25rem;
+
   border-radius: 1.25rem;
   border: 1px solid ${({ theme }) => theme.colors.gray};
   background: rgba(247, 247, 250, 0.1);

@@ -7,7 +7,7 @@ import CircularTimer from "../../components/next-time/CircularTimer";
 import WhyThisBox from "../../components/next-time/WhyThisBox";
 
 function splitMissionTitle(title) {
-  const splitIndex = title.indexOf("5분");
+  const splitIndex = title.search(/\d+분/);
   if (splitIndex > 0) {
     return [title.slice(0, splitIndex).trim(), title.slice(splitIndex).trim()];
   }
@@ -56,31 +56,31 @@ function MissionPage() {
     <PageContainer>
       <Header title="NEXT TIME" onBack={handleBack} />
 
-      <Content>
-        <StatusLabel>미션 진행 중</StatusLabel>
+      <Box>
+        <Content>
+          <StatusLabel>미션 진행 중</StatusLabel>
 
-        <MissionTitle>
-          {titleLines.map((line) => <p key={line}>{line}</p>)}
-        </MissionTitle>
+          <MissionTitle>
+            {titleLines.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </MissionTitle>
 
-        <CircularTimer
-          totalSeconds={durationSeconds}
-          remainingSeconds={Math.max(0, remainingSeconds)}
-          showRemainingLabel
-        />
+          <CircularTimer
+            totalSeconds={durationSeconds}
+            remainingSeconds={Math.max(0, remainingSeconds)}
+            showRemainingLabel
+          />
 
-        <Description>
-          {missionDescriptionLines.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
-        </Description>
-      </Content>
+          <Description>
+            {missionDescriptionLines.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </Description>
+        </Content>
 
-      {whyThisText && (
-        <WhyThisWrap>
-          <WhyThisBox text={whyThisText} />
-        </WhyThisWrap>
-      )}
+        {whyThisText && <WhyThisBox text={whyThisText} />}
+      </Box>
 
       <BottomArea>
         <SkipButton type="button" onClick={handleSkip}>
@@ -98,6 +98,14 @@ const PageContainer = styled.div`
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  padding-inline: 1.25rem;
+`;
+
+const Box = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 `;
 
 const Content = styled.div`
@@ -105,7 +113,10 @@ const Content = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.25rem;
+  padding-block: 1.25rem;
+  min-height: 0;
+  overflow-y: auto;
+  margin-top: 2.44rem;
 `;
 
 const StatusLabel = styled.p`
@@ -142,16 +153,12 @@ const Description = styled.div`
   }
 `;
 
-const WhyThisWrap = styled.div`
-  padding: 0 1.25rem;
-  margin-bottom: 1rem;
-`;
-
 const BottomArea = styled.div`
   flex-shrink: 0;
   display: flex;
   justify-content: center;
-  padding: 0 2.1875rem 2.25rem;
+  margin-bottom: 2.06rem;
+  padding-inline: 0.94rem;
 `;
 
 const SkipButton = styled.button`
