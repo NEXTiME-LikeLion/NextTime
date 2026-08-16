@@ -1,5 +1,6 @@
 package com.nextime.ai.nextme.client;
 
+import com.nextime.common.config.openai.OpenAiProperties;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
