@@ -3,6 +3,7 @@ package com.nextime.ai.nextme.api;
 import com.nextime.ai.nextme.application.NextMeService;
 import com.nextime.ai.nextme.domain.GenerationSource;
 import com.nextime.ai.nextme.domain.NextMeGeneration;
+import com.nextime.ai.nextme.domain.NextBudTheme;
 import com.nextime.common.config.WebConfig;
 import com.nextime.common.error.GlobalExceptionHandler;
 import com.nextime.security.CurrentUserArgumentResolver;
@@ -63,7 +64,7 @@ class NextMeControllerTest {
     }
 
     @Test
-    void postGeneratesOneMessage() throws Exception {
+    void postGeneratesCard() throws Exception {
         User user = authenticatedUser();
         NextMeGeneration generation = generation();
         when(nextMeService.generate(eq(USER_ID), any(NextMeGenerateRequest.class)))
@@ -74,12 +75,15 @@ class NextMeControllerTest {
                         .contentType(APPLICATION_JSON)
                         .content(validBody()))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.message").value("건강한 일상을 선택하는 나"))
+                .andExpect(jsonPath("$.data.message").doesNotExist())
+                .andExpect(jsonPath("$.data.headline").value("건강하고 자유로운 나"))
+                .andExpect(jsonPath("$.data.start_reason").value("숨이 차서 시작한 변화"))
+                .andExpect(jsonPath("$.data.nextbud_theme").value("NEXTBUD_HEALTH_01"))
                 .andExpect(jsonPath("$.data.source").value("AI"));
     }
 
     @Test
-    void getReturnsLatestMessage() throws Exception {
+    void getReturnsLatestCard() throws Exception {
         authenticatedUser();
         NextMeGeneration generation = generation();
         when(nextMeService.getLatest(USER_ID)).thenReturn(generation);
@@ -87,7 +91,10 @@ class NextMeControllerTest {
         mockMvc.perform(get("/ai/onboarding/next-me")
                         .with(jwt().jwt(token -> token.subject("cognito-sub"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.message").value("건강한 일상을 선택하는 나"));
+                .andExpect(jsonPath("$.data.message").doesNotExist())
+                .andExpect(jsonPath("$.data.headline").value("건강하고 자유로운 나"))
+                .andExpect(jsonPath("$.data.start_reason").value("숨이 차서 시작한 변화"))
+                .andExpect(jsonPath("$.data.nextbud_theme").value("NEXTBUD_HEALTH_01"));
     }
 
     @Test
@@ -121,7 +128,9 @@ class NextMeControllerTest {
     private NextMeGeneration generation() {
         NextMeGeneration generation = mock(NextMeGeneration.class);
         when(generation.getId()).thenReturn(UUID.fromString("70000000-0000-0000-0000-000000000001"));
-        when(generation.getGeneratedMessage()).thenReturn("건강한 일상을 선택하는 나");
+        when(generation.getHeadline()).thenReturn("건강하고 자유로운 나");
+        when(generation.getStartReason()).thenReturn("숨이 차서 시작한 변화");
+        when(generation.getNextBudTheme()).thenReturn(NextBudTheme.NEXTBUD_HEALTH_01);
         when(generation.getSource()).thenReturn(GenerationSource.AI);
         when(generation.getCreatedAt()).thenReturn(Instant.parse("2026-08-16T00:00:00Z"));
         return generation;

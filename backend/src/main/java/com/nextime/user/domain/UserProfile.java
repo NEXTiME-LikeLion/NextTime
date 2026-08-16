@@ -77,4 +77,8 @@ public class UserProfile {
     public SmokingFrequency getSmokingFrequency() {
         return smokingFrequency;
     }
+
+    public OnboardingGoal getGoal() {
+        return goal;
+    }
 }

@@ -5,6 +5,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.ObjectMapper;
+import com.nextime.ai.nextme.domain.NextBudTheme;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class OpenAiNextMeClientTest {
 
     @Test
-    void parsesStructuredResponseMessage() {
+    void parsesStructuredCardResponse() {
         RestClient.Builder builder = RestClient.builder()
                 .baseUrl("https://api.openai.com")
                 .defaultHeader("Authorization", "Bearer test-key");
@@ -37,7 +38,7 @@ class OpenAiNextMeClientTest {
                               "content": [
                                 {
                                   "type": "output_text",
-                                  "text": "{\\\"message\\\":\\\"건강한 미래를 선택하는 나\\\"}"
+                                  "text": "{\\\"headline\\\":\\\"건강한 미래의 나\\\",\\\"start_reason\\\":\\\"숨이 차서 시작한 변화\\\",\\\"nextbud_theme\\\":\\\"NEXTBUD_HEALTH_01\\\"}"
                                 }
                               ]
                             }
@@ -47,12 +48,15 @@ class OpenAiNextMeClientTest {
 
         NextMeClientResult result = client.generate(new NextMePromptInput(
                 List.of("체력·건강"),
+                "REDUCE",
                 "계단을 오를 때 숨이 찼어요.",
                 "건강하게 사는 사람",
                 "오늘의 선택을 기억하자."
         ));
 
-        assertThat(result.message()).isEqualTo("건강한 미래를 선택하는 나");
+        assertThat(result.headline()).isEqualTo("건강한 미래의 나");
+        assertThat(result.startReason()).isEqualTo("숨이 차서 시작한 변화");
+        assertThat(result.nextBudTheme()).isEqualTo(NextBudTheme.NEXTBUD_HEALTH_01);
         assertThat(result.fallbackUsed()).isFalse();
         server.verify();
     }
