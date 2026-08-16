@@ -1,14 +1,26 @@
 package com.nextime.ai.nextme.client;
 
+import com.nextime.ai.nextme.domain.NextBudTheme;
+
 public record NextMeClientResult(
-        String message,
+        String headline,
+        String startReason,
+        NextBudTheme nextBudTheme,
         boolean fallbackUsed
 ) {
-    public static NextMeClientResult ai(String message) {
-        return new NextMeClientResult(message, false);
+    public static NextMeClientResult ai(
+            String headline,
+            String startReason,
+            NextBudTheme nextBudTheme
+    ) {
+        return new NextMeClientResult(headline, startReason, nextBudTheme, false);
     }
 
-    public static NextMeClientResult fallback(String message) {
-        return new NextMeClientResult(message, true);
+    public static NextMeClientResult fallback(
+            String headline,
+            String startReason,
+            NextBudTheme nextBudTheme
+    ) {
+        return new NextMeClientResult(headline, startReason, nextBudTheme, true);
     }
 }

@@ -8,6 +8,7 @@ import com.nextime.ai.nextme.domain.ChangeReason;
 import com.nextime.ai.nextme.domain.GenerationSource;
 import com.nextime.ai.nextme.domain.NextMeGeneration;
 import com.nextime.ai.nextme.domain.NextMeGenerationRepository;
+import com.nextime.ai.nextme.domain.NextBudTheme;
 import com.nextime.common.error.BusinessException;
 import com.nextime.common.error.ErrorCode;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.nextime.user.domain.UserProfileRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,19 +39,27 @@ class NextMeServiceTest {
     private NextMeAiClient aiClient;
     @Mock
     private NextMeGenerationRepository generationRepository;
+    @Mock
+    private UserProfileRepository userProfileRepository;
     @InjectMocks
     private NextMeService service;
 
     @Test
-    void generatesOneAiMessageEndingWithRequiredPhrase() {
+    void generatesAiCardFields() {
         when(aiClient.generate(any(NextMePromptInput.class)))
-                .thenReturn(NextMeClientResult.ai("건강한 일상을 스스로 선택하는 나"));
+                .thenReturn(NextMeClientResult.ai(
+                        "건강하고 자유로운 나",
+                        "숨이 차서 시작한 변화",
+                        NextBudTheme.NEXTBUD_HEALTH_01
+                ));
         when(generationRepository.save(any(NextMeGeneration.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         NextMeGeneration result = service.generate(USER_ID, validRequest());
 
-        assertThat(result.getGeneratedMessage()).isEqualTo("건강한 일상을 스스로 선택하는 나");
+        assertThat(result.getHeadline()).isEqualTo("건강하고 자유로운 나");
+        assertThat(result.getStartReason()).isEqualTo("숨이 차서 시작한 변화");
+        assertThat(result.getNextBudTheme()).isEqualTo(NextBudTheme.NEXTBUD_HEALTH_01);
         assertThat(result.getSource()).isEqualTo(GenerationSource.AI);
         ArgumentCaptor<NextMePromptInput> input = ArgumentCaptor.forClass(NextMePromptInput.class);
         verify(aiClient).generate(input.capture());
@@ -57,16 +67,38 @@ class NextMeServiceTest {
     }
 
     @Test
-    void usesFallbackWhenAiMessageHasWrongEnding() {
+    void usesFallbackWhenAiThemeDoesNotMatchSelectedReasons() {
         when(aiClient.generate(any(NextMePromptInput.class)))
-                .thenReturn(NextMeClientResult.ai("건강한 미래를 만들겠습니다."));
+                .thenReturn(NextMeClientResult.ai(
+                        "건강하고 자유로운 나",
+                        "숨이 차서 시작한 변화",
+                        NextBudTheme.NEXTBUD_ECONOMY_01
+                ));
         when(generationRepository.save(any(NextMeGeneration.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         NextMeGeneration result = service.generate(USER_ID, validRequest());
 
-        assertThat(result.getGeneratedMessage()).endsWith("는 나");
         assertThat(result.getSource()).isEqualTo(GenerationSource.FALLBACK);
+        assertThat(result.getNextBudTheme()).isEqualTo(NextBudTheme.NEXTBUD_HEALTH_01);
+    }
+
+    @Test
+    void truncatesCardText() {
+        when(aiClient.generate(any(NextMePromptInput.class)))
+                .thenReturn(NextMeClientResult.ai(
+                        "건강하고 자유로운 일상을 오랫동안 꾸준하게 살아가는 미래의 나",
+                        "계단을 오를 때 숨이 차서 변화를 시작해야겠다고 느낀 순간",
+                        NextBudTheme.NEXTBUD_HEALTH_01
+                ));
+        when(generationRepository.save(any(NextMeGeneration.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        NextMeGeneration result = service.generate(USER_ID, validRequest());
+
+        assertThat(result.getSource()).isEqualTo(GenerationSource.AI);
+        assertThat(result.getHeadline().codePointCount(0, result.getHeadline().length())).isLessThanOrEqualTo(36);
+        assertThat(result.getStartReason().codePointCount(0, result.getStartReason().length())).isLessThanOrEqualTo(24);
     }
 
     @Test

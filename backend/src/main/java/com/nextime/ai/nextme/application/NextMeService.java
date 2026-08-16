@@ -8,8 +8,10 @@ import com.nextime.ai.nextme.domain.ChangeReason;
 import com.nextime.ai.nextme.domain.GenerationSource;
 import com.nextime.ai.nextme.domain.NextMeGeneration;
 import com.nextime.ai.nextme.domain.NextMeGenerationRepository;
+import com.nextime.ai.nextme.domain.NextBudTheme;
 import com.nextime.common.error.BusinessException;
 import com.nextime.common.error.ErrorCode;
+import com.nextime.user.domain.UserProfileRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -23,17 +25,18 @@ import java.util.UUID;
 public class NextMeService {
 
     private static final Logger log = LoggerFactory.getLogger(NextMeService.class);
-    private static final String REQUIRED_ENDING = "는 나";
-
     private final NextMeAiClient aiClient;
     private final NextMeGenerationRepository generationRepository;
+    private final UserProfileRepository userProfileRepository;
 
     public NextMeService(
             NextMeAiClient aiClient,
-            NextMeGenerationRepository generationRepository
+            NextMeGenerationRepository generationRepository,
+            UserProfileRepository userProfileRepository
     ) {
         this.aiClient = aiClient;
         this.generationRepository = generationRepository;
+        this.userProfileRepository = userProfileRepository;
     }
 
     @Transactional
@@ -44,10 +47,14 @@ public class NextMeService {
 
         GenerationResult result = generateWithFallback(new NextMePromptInput(
                 reasonTexts,
+                userProfileRepository.findById(userId)
+                        .map(profile -> profile.getGoal())
+                        .map(Enum::name)
+                        .orElse(null),
                 request.decisionTrigger().trim(),
                 request.futureSelf().trim(),
                 request.messageToFutureSelf().trim()
-        ), request.changeReasons().getFirst(), customReason);
+        ), request.changeReasons());
 
         NextMeGeneration generation = new NextMeGeneration(
                 userId,
@@ -56,7 +63,9 @@ public class NextMeService {
                 request.decisionTrigger().trim(),
                 request.futureSelf().trim(),
                 request.messageToFutureSelf().trim(),
-                result.message(),
+                result.headline(),
+                result.startReason(),
+                result.nextBudTheme(),
                 result.source()
         );
         return generationRepository.save(generation);
@@ -94,36 +103,74 @@ public class NextMeService {
 
     private GenerationResult generateWithFallback(
             NextMePromptInput input,
-            ChangeReason primaryReason,
-            String customReason
+            List<ChangeReason> selectedReasons
     ) {
         try {
             NextMeClientResult clientResult = aiClient.generate(input);
-            String message = clientResult.message().trim();
-            if (message.length() > 300 || !message.endsWith(REQUIRED_ENDING)) {
-                throw new IllegalStateException("NEXT ME 메시지 형식이 올바르지 않습니다.");
+            if (clientResult.fallbackUsed()) {
+                return fallbackResult(input, selectedReasons.getFirst());
             }
-            GenerationSource source = clientResult.fallbackUsed()
-                    ? GenerationSource.FALLBACK
-                    : GenerationSource.AI;
-            return new GenerationResult(message, source);
+            String headline = truncate(normalizeGeneratedText(clientResult.headline()), 36);
+            String startReason = truncate(normalizeGeneratedText(clientResult.startReason()), 24);
+            if (headline.isEmpty()) {
+                throw new IllegalStateException("headline이 비어 있습니다.");
+            }
+            if (startReason.isEmpty()) {
+                throw new IllegalStateException("start_reason이 비어 있습니다.");
+            }
+            if (clientResult.nextBudTheme() == null
+                    || !isThemeCompatible(clientResult.nextBudTheme(), selectedReasons)) {
+                throw new IllegalStateException("nextbud_theme이 선택한 변화 이유와 일치하지 않습니다.");
+            }
+            return new GenerationResult(
+                    headline,
+                    startReason,
+                    clientResult.nextBudTheme(),
+                    GenerationSource.AI
+            );
         } catch (RuntimeException exception) {
             log.warn("NEXT ME AI 생성 실패. 기본 문구를 사용합니다: {}", exception.getMessage());
-            return new GenerationResult(fallbackMessage(primaryReason, customReason), GenerationSource.FALLBACK);
+            return fallbackResult(input, selectedReasons.getFirst());
         }
     }
 
-    private String fallbackMessage(ChangeReason reason, String customReason) {
+    private boolean isThemeCompatible(NextBudTheme theme, List<ChangeReason> reasons) {
+        return reasons.stream().map(this::fallbackTheme).anyMatch(theme::equals);
+    }
+
+    private GenerationResult fallbackResult(
+            NextMePromptInput input,
+            ChangeReason primaryReason
+    ) {
+        return new GenerationResult(
+                truncate(input.futureSelf(), 36),
+                truncate(input.decisionTrigger(), 24),
+                fallbackTheme(primaryReason),
+                GenerationSource.FALLBACK
+        );
+    }
+
+    private NextBudTheme fallbackTheme(ChangeReason reason) {
         return switch (reason) {
-            case HEALTH_FITNESS -> "더 건강한 몸과 가벼운 일상을 선택하는 나";
-            case FAMILY_PEOPLE -> "소중한 사람들과 건강한 시간을 이어가는 나";
-            case COST -> "담배 대신 나를 위해 여유를 사용하는 나";
-            case FREEDOM -> "담배에 끌려가지 않고 자유롭게 선택하는 나";
-            case SMELL_APPEARANCE -> "상쾌한 냄새와 건강한 모습을 지켜가는 나";
-            case PREGNANCY_CHILD -> "아이와 나를 위해 건강한 환경을 만드는 나";
-            case HOBBY_DAILY -> "좋아하는 일과 일상을 더 온전히 즐기는 나";
-            case OTHER -> customReason + "을 기억하며 원하는 변화를 선택하는 나";
+            case HEALTH_FITNESS -> NextBudTheme.NEXTBUD_HEALTH_01;
+            case FAMILY_PEOPLE, PREGNANCY_CHILD -> NextBudTheme.NEXTBUD_RELATIONSHIP_01;
+            case COST -> NextBudTheme.NEXTBUD_ECONOMY_01;
+            case FREEDOM, SMELL_APPEARANCE -> NextBudTheme.NEXTBUD_SELF_EFFICACY_01;
+            case HOBBY_DAILY -> NextBudTheme.NEXTBUD_GROWTH_01;
+            case OTHER -> NextBudTheme.NEXTBUD_DEFAULT_01;
         };
+    }
+
+    private String truncate(String value, int maxLength) {
+        int codePointCount = value.codePointCount(0, value.length());
+        if (codePointCount <= maxLength) {
+            return value;
+        }
+        return value.substring(0, value.offsetByCodePoints(0, maxLength));
+    }
+
+    private String normalizeGeneratedText(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private String normalizeOptional(String value) {
@@ -134,6 +181,11 @@ public class NextMeService {
         return normalized.isEmpty() ? null : normalized;
     }
 
-    private record GenerationResult(String message, GenerationSource source) {
+    private record GenerationResult(
+            String headline,
+            String startReason,
+            NextBudTheme nextBudTheme,
+            GenerationSource source
+    ) {
     }
 }

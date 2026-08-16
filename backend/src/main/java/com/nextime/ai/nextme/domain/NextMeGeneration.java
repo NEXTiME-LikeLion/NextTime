@@ -45,8 +45,15 @@ public class NextMeGeneration {
     @Column(name = "message_to_future_self", nullable = false, length = 500)
     private String messageToFutureSelf;
 
-    @Column(name = "generated_message", nullable = false, length = 300)
-    private String generatedMessage;
+    @Column(nullable = false, length = 36)
+    private String headline;
+
+    @Column(name = "start_reason", nullable = false, length = 24)
+    private String startReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "nextbud_theme", nullable = false, length = 40)
+    private NextBudTheme nextBudTheme;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -65,7 +72,9 @@ public class NextMeGeneration {
             String decisionTrigger,
             String futureSelf,
             String messageToFutureSelf,
-            String generatedMessage,
+            String headline,
+            String startReason,
+            NextBudTheme nextBudTheme,
             GenerationSource source
     ) {
         this.userId = userId;
@@ -75,7 +84,9 @@ public class NextMeGeneration {
         this.decisionTrigger = decisionTrigger;
         this.futureSelf = futureSelf;
         this.messageToFutureSelf = messageToFutureSelf;
-        this.generatedMessage = generatedMessage;
+        this.headline = headline;
+        this.startReason = startReason;
+        this.nextBudTheme = nextBudTheme;
         this.source = source;
     }
 
@@ -88,12 +99,20 @@ public class NextMeGeneration {
         return id;
     }
 
-    public String getGeneratedMessage() {
-        return generatedMessage;
-    }
-
     public GenerationSource getSource() {
         return source;
+    }
+
+    public String getHeadline() {
+        return headline;
+    }
+
+    public String getStartReason() {
+        return startReason;
+    }
+
+    public NextBudTheme getNextBudTheme() {
+        return nextBudTheme;
     }
 
     public Instant getCreatedAt() {
