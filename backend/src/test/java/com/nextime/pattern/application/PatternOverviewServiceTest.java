@@ -82,6 +82,14 @@ class PatternOverviewServiceTest {
                 3, stress, home, breathing,
                 NextTimeResult.SMOKED, MissionHelpfulness.NEUTRAL
         );
+        NextTimeSession current4 = session(
+                4, afterWork, smokingArea, walk,
+                NextTimeResult.NOT_SMOKED, MissionHelpfulness.HELPFUL
+        );
+        NextTimeSession current5 = session(
+                5, stress, home, breathing,
+                NextTimeResult.DELAYED, MissionHelpfulness.NEUTRAL
+        );
         NextTimeSession previous1 = session(
                 8, stress, home, breathing,
                 NextTimeResult.SMOKED, MissionHelpfulness.HELPFUL
@@ -96,7 +104,8 @@ class PatternOverviewServiceTest {
         );
 
         List<NextTimeSession> thirtyDayResults = List.of(
-                current1, current2, current3, previous1, previous2, oldBreathing
+                current1, current2, current3, current4, current5,
+                previous1, previous2, oldBreathing
         );
         when(sessionRepository
                 .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
@@ -104,22 +113,22 @@ class PatternOverviewServiceTest {
                 ))
                 .thenReturn(thirtyDayResults);
         when(sessionRepository.findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(eq(USER_ID), any()))
-                .thenReturn(List.of(current1, current2, current3));
+                .thenReturn(List.of(current1, current2, current3, current4, current5));
         when(sessionRepository.findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(USER_ID, RESULT_RECORDED))
                 .thenReturn(List.of(current1, current2, current3));
 
         var response = service.getOverview(USER_ID);
 
         assertThat(response.dataStatus()).isEqualTo(DataStatus.AVAILABLE);
-        assertThat(response.recentResultCount()).isEqualTo(3);
+        assertThat(response.recentResultCount()).isEqualTo(5);
         assertThat(response.insight().topTrigger().code()).isEqualTo("AFTER_WORK");
-        assertThat(response.insight().topTrigger().count()).isEqualTo(2);
+        assertThat(response.insight().topTrigger().count()).isEqualTo(3);
         assertThat(response.insight().topLocation().code()).isEqualTo("NEAR_SMOKING_AREA");
         assertThat(response.insight().topTimeSlot().startHour()).isEqualTo(12);
-        assertThat(response.insight().topTimeSlot().count()).isEqualTo(3);
+        assertThat(response.insight().topTimeSlot().count()).isEqualTo(5);
 
-        assertThat(response.behaviorChange().currentPeriod().totalCount()).isEqualTo(3);
-        assertThat(response.behaviorChange().currentPeriod().avoidedImmediateSmokingCount()).isEqualTo(2);
+        assertThat(response.behaviorChange().currentPeriod().totalCount()).isEqualTo(5);
+        assertThat(response.behaviorChange().currentPeriod().avoidedImmediateSmokingCount()).isEqualTo(4);
         assertThat(response.behaviorChange().previousPeriod().totalCount()).isEqualTo(2);
         assertThat(response.behaviorChange().change()).isEqualTo(ChangeDirection.INCREASED);
 
@@ -173,7 +182,17 @@ class PatternOverviewServiceTest {
                 3, stress, home, walk,
                 NextTimeResult.NOT_SMOKED, MissionHelpfulness.HELPFUL
         );
-        List<NextTimeSession> results = List.of(helpful, notFit, singleWalk);
+        NextTimeSession walkNotFit1 = session(
+                4, stress, home, walk,
+                NextTimeResult.SMOKED, MissionHelpfulness.NOT_FIT
+        );
+        NextTimeSession walkNotFit2 = session(
+                5, stress, home, walk,
+                NextTimeResult.SMOKED, MissionHelpfulness.NOT_FIT
+        );
+        List<NextTimeSession> results = List.of(
+                helpful, notFit, singleWalk, walkNotFit1, walkNotFit2
+        );
 
         when(sessionRepository
                 .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
@@ -191,7 +210,7 @@ class PatternOverviewServiceTest {
     }
 
     @Test
-    void returnsInsufficientPayloadWhenRecentRecordsAreFewerThanThree() {
+    void returnsInsufficientPayloadWhenRecentRecordsAreFewerThanFive() {
         authenticate(true);
         NextTimeSession first = session(
                 1, afterWork, smokingArea, walk,
@@ -201,7 +220,15 @@ class PatternOverviewServiceTest {
                 2, stress, home, breathing,
                 NextTimeResult.DELAYED, MissionHelpfulness.HELPFUL
         );
-        List<NextTimeSession> results = List.of(first, second);
+        NextTimeSession third = session(
+                3, afterWork, smokingArea, walk,
+                NextTimeResult.NOT_SMOKED, MissionHelpfulness.HELPFUL
+        );
+        NextTimeSession fourth = session(
+                4, stress, home, breathing,
+                NextTimeResult.SMOKED, MissionHelpfulness.NEUTRAL
+        );
+        List<NextTimeSession> results = List.of(first, second, third, fourth);
 
         when(sessionRepository
                 .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
@@ -214,7 +241,7 @@ class PatternOverviewServiceTest {
         var response = service.getOverview(USER_ID);
 
         assertThat(response.dataStatus()).isEqualTo(DataStatus.INSUFFICIENT);
-        assertThat(response.recentResultCount()).isEqualTo(2);
+        assertThat(response.recentResultCount()).isEqualTo(4);
         assertThat(response.insight()).isNull();
         assertThat(response.behaviorChange()).isNull();
         assertThat(response.effectiveActions()).isEmpty();
