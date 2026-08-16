@@ -17,6 +17,7 @@ const SIZE_MAP = {
   sm: { width: "6.5rem", height: "7.5rem" },
   md: { width: "8.125rem", height: "9.375rem" },
   lg: { width: "10rem", height: "11.375rem" },
+  llg: { width: "10rem", height: "13.75rem" },
 };
 
 function MascotCharacter({ mood = "neutral", size = "md", alt = "" }) {

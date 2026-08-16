@@ -7,6 +7,14 @@ import MascotCharacter from "../../components/next-time/MascotCharacter";
 import PrimaryButton from "../../components/next-time/PrimaryButton";
 
 function CompletePage() {
+  const COMPLETE_CONTENT = {
+    title: "방금의 기록 기억해둘게요",
+    subtitle: "다음에 비슷한 순간이 오면\n오늘의 기록을 먼저 참고할게요",
+    insightTitle: "💡 다음에는 이렇게 기억할게요",
+    insightText:
+      "퇴근 후 욕구가 강할 때, 일단 흡연구역에서 벗어나면 흡연 욕구 강함에서 보통으로 낮아졌어요.",
+  };
+
   const navigate = useNavigate();
   const { resetFlow } = useNextTime();
 
@@ -35,7 +43,7 @@ function CompletePage() {
           <Subtitle>{COMPLETE_CONTENT.subtitle}</Subtitle>
         </TextBlock>
 
-        <MascotCharacter mood="success" size="lg" />
+        <MascotCharacter mood="success" size="llg" />
 
         <InsightBox>
           <InsightTitle>{COMPLETE_CONTENT.insightTitle}</InsightTitle>
@@ -62,6 +70,7 @@ const PageContainer = styled.div`
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  padding-inline: 1.25rem;
 `;
 
 const Content = styled.div`
@@ -70,9 +79,10 @@ const Content = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 1.75rem;
-  padding: 1.25rem;
+  padding-block: 1.25rem;
   min-height: 0;
   overflow-y: auto;
+  margin-top: 2.87rem;
 `;
 
 const TextBlock = styled.div`
@@ -80,7 +90,6 @@ const TextBlock = styled.div`
   flex-direction: column;
   gap: 0.5rem;
   text-align: center;
-  word-break: keep-all;
 `;
 
 const Title = styled.h1`
@@ -129,7 +138,8 @@ const BottomArea = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 0.125rem;
-  padding: 0 2.1875rem 2.25rem;
+  padding-inline: 0.94rem;
+  padding-bottom: 2.25rem;
 `;
 
 const SkipButton = styled.button`
