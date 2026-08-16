@@ -38,4 +38,14 @@ public interface NextTimeSessionRepository extends JpaRepository<NextTimeSession
             Instant since
     );
 
+    List<NextTimeSession> findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(
+            UUID userId,
+            NextTimeSessionStatus status
+    );
+
+    List<NextTimeSession> findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
+            UUID userId,
+            Instant since
+    );
+
 }
