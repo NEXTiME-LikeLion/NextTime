@@ -23,20 +23,11 @@ export const Content = styled.div`
   padding: 0 20px;
 `;
 
-export const IconWrapper = styled.div`
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 16px;
-  border: 1px solid ${({ theme }) => theme.colors.light_gray};
-  margin-bottom: 24px;
-`;
-
 export const DeviceIcon = styled.img`
-  width: 32px;
-  height: 32px;
+  width: 96px;
+  height: 96px;
+  margin-top: 159px;
+  margin-bottom: 16px;
 `;
 
 export const Title = styled.h1`
@@ -49,10 +40,18 @@ export const Title = styled.h1`
 
 export const Description = styled.p`
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.4;
   text-align: center;
-  color: ${({ theme }) => theme.colors.bg1};
-  margin-bottom: 40px;
+  color: #68686D;
+  margin-bottom: 8px;
+`;
+
+export const SubDescription = styled.p`
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+  color: #68686D; 
+  margin-bottom: 148px;
 `;
 
 export const ConnectButton = styled.button`
@@ -70,6 +69,7 @@ export const ConnectButton = styled.button`
 
 export const SkipText = styled.p`
   margin-top: 16px;
+  margin-bottom: 52.5px;
   font-size: 14px;
   color: ${({ theme }) => theme.colors.gray};
   cursor: pointer;
