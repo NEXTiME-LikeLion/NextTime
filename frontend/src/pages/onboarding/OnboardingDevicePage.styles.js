@@ -63,7 +63,7 @@ export const ConnectButton = styled.button`
   background-color: ${({ theme }) => theme.colors.primary};
   color: #ffffff;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 `;
 

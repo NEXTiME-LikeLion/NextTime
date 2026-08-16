@@ -2,7 +2,6 @@ import styled from "styled-components";
 
 export const Wrapper = styled.div`
   width: 100%;
-  min-height: 100%;
   background-color: ${({ theme }) => theme.colors.white};
   overflow-y: auto;
 `;
@@ -38,25 +37,25 @@ export const NextMeCard = styled.div`
   min-height: 244px;
   background-color: #00d579;
   border-radius: 24px;
-  padding: 20px;
+  padding: 36px 20px 20px;
   box-sizing: border-box;
   box-shadow: 0px 4px 8px 4px rgba(0, 0, 0, 0.12);
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 `;
 
 export const NextMeLabel = styled.p`
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  color: #ffffff;
   margin-bottom: 8px;
+  color: #ffffff;
 `;
 
 export const NextMeText = styled.p`
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1.4;
   color: #ffffff;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   max-width: 65%;
   word-break: break-all;
   overflow-wrap: break-word;
@@ -71,7 +70,7 @@ export const NextMeSubLabel = styled.p`
 
 export const NextMeSubText = styled.p`
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.4;
   color: #fefefe;
   max-width: 55%;
   word-break: break-all;
@@ -88,7 +87,7 @@ export const MascotImage = styled.img`
 `;
 
 export const SectionTitle = styled.h2`
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.bg1};
   margin-bottom: 16px;
@@ -99,34 +98,36 @@ export const MemoryItem = styled.div`
 `;
 
 export const MemoryLabel = styled.p`
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.primary};
   margin-bottom: 4px;
 `;
 
 export const MemoryText = styled.p`
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 400;
   color: ${({ theme }) => theme.colors.bg1};
 `;
 
 export const StartButton = styled.button`
   width: 100%;
+  max-width: 363px;
   height: 56px;
   border: none;
   border-radius: 16px;
   background-color: ${({ theme }) => theme.colors.primary};
   color: #ffffff;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   margin-top: 24px;
 `;
 
 export const EditLink = styled.p`
   text-align: center;
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.gray};
-  margin-top: 16px;
+  font-size: 12px;
+  color: #68686D;
+  margin-top: 19.5px;
   cursor: pointer;
 `;
