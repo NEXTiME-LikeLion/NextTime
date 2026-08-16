@@ -1,19 +1,16 @@
 import styled from "styled-components";
-import statusBarImg from "../../assets/statusbar.svg";
+import backArrow from "../../assets/back-arrow.svg";
 
 function Header({ title, subtitle, onBack }) {
   return (
     <Wrapper>
-      <StatusBarImage src={statusBarImg} alt="" />
       <NavRow>
         <BackButton type="button" onClick={onBack} aria-label="뒤로가기">
-          <ArrowIcon viewBox="0 0 24 24">
-            <path d="M15 6l-6 6 6 6" />
-          </ArrowIcon>
+          <ArrowIcon src={backArrow} alt="뒤로가기 아이콘" />
         </BackButton>
         <TitleBlock>
           {title && <Title>{title}</Title>}
-          {subtitle && <Subtitle>{subtitle}</Subtitle>}
+          {subtitle && <Title>{subtitle}</Title>}
         </TitleBlock>
       </NavRow>
     </Wrapper>
@@ -24,28 +21,22 @@ export default Header;
 
 const Wrapper = styled.div`
   flex-shrink: 0;
+  position: relative;
 `;
 
-const StatusBarImage = styled.img`
-  width: 100%;
-  height: auto;
-  display: block;
-`;
-
-const NavRow = styled.header`
-  display: flex;
-  align-items: flex-start;
-  gap: 8.125rem;
+const NavRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
   padding: 0 1.25rem 1.25rem;
 `;
 
 const BackButton = styled.button`
+  grid-column: 1;
+  justify-self: start;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 0.734rem;
-  height: 1.25rem;
-  margin-top: 0;
   border: none;
   background: none;
   padding: 0;
@@ -53,21 +44,19 @@ const BackButton = styled.button`
   flex-shrink: 0;
 `;
 
-const ArrowIcon = styled.svg`
-  width: 0.734rem;
-  height: 1.25rem;
-  fill: none;
-  stroke: ${({ theme }) => theme.colors.bg0};
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-`;
-
 const TitleBlock = styled.div`
+  grid-column: 2;
   display: flex;
   flex-direction: column;
+  align-items: center; /* 타이틀만 있을 때도 가운데 정렬 */
   gap: 0.25rem;
   min-width: 0;
+`;
+
+const ArrowIcon = styled.img`
+  width: 0.73594rem;
+  height: 1.25rem;
+  flex-shrink: 0;
 `;
 
 const Title = styled.p`
@@ -75,12 +64,4 @@ const Title = styled.p`
   font-size: 0.875rem;
   font-weight: 700;
   line-height: 1.4;
-`;
-
-const Subtitle = styled.p`
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.75rem;
-  font-weight: 400;
-  line-height: 1.4;
-  word-break: keep-all;
 `;

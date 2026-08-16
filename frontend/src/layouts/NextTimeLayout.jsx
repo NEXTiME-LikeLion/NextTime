@@ -20,5 +20,5 @@ const LayoutContainer = styled.div`
   flex-direction: column;
   height: 100%;
   background: ${({ theme }) => theme.colors.bg_black};
-  overflow: hidden;
+  padding-top: var(--safe-top);
 `;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useNextTime } from "../../contexts/NextTimeContext";
-import { CONTEXT_STEPS } from "../../data/nextTimeMock";
+import { CONTEXT_STEPS } from "../../data/nextTimeSteps";
 import Header from "../../components/next-time/Header";
 import ProgressBar from "../../components/next-time/ProgressBar";
 import OptionGrid from "../../components/next-time/OptionGrid";
