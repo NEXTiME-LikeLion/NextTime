@@ -2,6 +2,7 @@ package com.nextime.nexttime.api;
 
 import com.nextime.common.api.ApiResponse;
 import com.nextime.nexttime.application.NextTimeService;
+import com.nextime.nexttime.application.MissionExecutionService;
 import com.nextime.nexttime.application.MissionRecommendationService;
 import com.nextime.security.AuthenticatedUser;
 import com.nextime.security.CurrentUser;
@@ -19,6 +20,7 @@ public class NextTimeController {
 
     private final NextTimeService nextTimeService;
     private final MissionRecommendationService missionRecommendationService;
+    private final MissionExecutionService missionExecutionService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -54,5 +56,29 @@ public class NextTimeController {
         return ApiResponse.success(
                 missionRecommendationService.recommend(currentUser.userId(), sessionId)
         );
+    }
+
+    @PostMapping("/{sessionId}/mission/start")
+    public ApiResponse<MissionStartResponse> startMission(
+            @CurrentUser AuthenticatedUser currentUser,
+            @PathVariable UUID sessionId
+    ) {
+        return ApiResponse.success(missionExecutionService.start(currentUser.userId(), sessionId));
+    }
+
+    @PostMapping("/{sessionId}/mission/complete")
+    public ApiResponse<MissionCompletionResponse> completeMission(
+            @CurrentUser AuthenticatedUser currentUser,
+            @PathVariable UUID sessionId
+    ) {
+        return ApiResponse.success(missionExecutionService.complete(currentUser.userId(), sessionId));
+    }
+
+    @PostMapping("/{sessionId}/mission/skip")
+    public ApiResponse<MissionSkipResponse> skipMission(
+            @CurrentUser AuthenticatedUser currentUser,
+            @PathVariable UUID sessionId
+    ) {
+        return ApiResponse.success(missionExecutionService.skip(currentUser.userId(), sessionId));
     }
 }

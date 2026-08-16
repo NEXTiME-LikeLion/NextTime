@@ -73,6 +73,15 @@ public class NextTimeSession {
     @Column(name = "recommended_at")
     private Instant recommendedAt;
 
+    @Column(name = "mission_started_at")
+    private Instant missionStartedAt;
+
+    @Column(name = "mission_completed_at")
+    private Instant missionCompletedAt;
+
+    @Column(name = "mission_skipped_at")
+    private Instant missionSkippedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private NextTimeResult result;
@@ -155,5 +164,35 @@ public class NextTimeSession {
         this.recommendedAt = recommendedAt;
         this.status = NextTimeSessionStatus.MISSION_RECOMMENDED;
         this.updatedAt = recommendedAt;
+    }
+
+    public void startMission(Instant startedAt) {
+        if (status != NextTimeSessionStatus.MISSION_RECOMMENDED) {
+            throw new IllegalStateException("추천 완료 상태에서만 미션을 시작할 수 있습니다.");
+        }
+
+        this.status = NextTimeSessionStatus.MISSION_STARTED;
+        this.missionStartedAt = startedAt;
+        this.updatedAt = startedAt;
+    }
+
+    public void completeMission(Instant completedAt) {
+        if (status != NextTimeSessionStatus.MISSION_STARTED) {
+            throw new IllegalStateException("시작한 미션만 완료할 수 있습니다.");
+        }
+
+        this.status = NextTimeSessionStatus.MISSION_COMPLETED;
+        this.missionCompletedAt = completedAt;
+        this.updatedAt = completedAt;
+    }
+
+    public void skipMission(Instant skippedAt) {
+        if (status != NextTimeSessionStatus.MISSION_RECOMMENDED) {
+            throw new IllegalStateException("추천 완료 상태에서만 미션을 건너뛸 수 있습니다.");
+        }
+
+        this.status = NextTimeSessionStatus.CANCELLED;
+        this.missionSkippedAt = skippedAt;
+        this.updatedAt = skippedAt;
     }
 }
