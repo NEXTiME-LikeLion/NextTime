@@ -6,7 +6,7 @@ import CircularTimer from "../../components/next-time/CircularTimer";
 import PrimaryButton from "../../components/next-time/PrimaryButton";
 
 function splitMissionTitle(title) {
-  const splitIndex = title.indexOf("5분");
+  const splitIndex = title.search(/\d+분/);
   if (splitIndex > 0) {
     return [title.slice(0, splitIndex).trim(), title.slice(splitIndex).trim()];
   }
@@ -37,7 +37,9 @@ function RecommendPage() {
 
       <Content>
         <MissionTitle>
-          {titleLines.map((line) => <p key={line}>{line}</p>)}
+          {titleLines.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
         </MissionTitle>
 
         <CircularTimer
@@ -67,6 +69,7 @@ const PageContainer = styled.div`
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  padding-inline: 1.25rem;
 `;
 
 const Content = styled.div`
@@ -75,9 +78,10 @@ const Content = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.25rem;
+  padding-block: 1.25rem;
   min-height: 0;
   overflow-y: auto;
+  margin-top: 2.44rem;
 `;
 
 const MissionTitle = styled.h1`
@@ -87,6 +91,7 @@ const MissionTitle = styled.h1`
   line-height: 1.4;
   text-align: center;
   word-break: keep-all;
+  padding-top: 3.06rem;
 
   p {
     margin: 0;
@@ -100,6 +105,7 @@ const Description = styled.p`
   line-height: 1.4;
   text-align: center;
   word-break: keep-all;
+  white-space: pre-line;
 `;
 
 const BottomArea = styled.div`
@@ -107,8 +113,8 @@ const BottomArea = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.125rem;
-  padding: 0 2.1875rem 2.25rem;
+  margin-bottom: 2.06rem;
+  padding-inline: 0.94rem;
 `;
 
 const SkipButton = styled.button`

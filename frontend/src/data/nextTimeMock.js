@@ -12,7 +12,7 @@ export const MOCK_RECOMMENDATIONS = {
   smokingArea: {
     id: "walk-away",
     title: "흡연구역에서 벗어나 5분만 걸어보기",
-    description: "지금은 참으려고 애쓰기보다 먼저 흡연구역에서 멀어져볼게요",
+    description: "지금은 참으려고 애쓰기보다\n먼저 흡연구역에서 멀어져볼게요",
     missionDescription: "반대 방향으로 걸으면 돼요\n지금은 걷는 것만 생각해요",
     durationSeconds: 300,
     whyThisText:
@@ -21,7 +21,7 @@ export const MOCK_RECOMMENDATIONS = {
   home: {
     id: "window-distance",
     title: "창가에서 잠시 멀어지기",
-    description: "집에서는 잠깐 자리만 옮겨도 생각이 덜 올라왔어요",
+    description: "집에서는 잠깐 자리만 옮겨도\n생각이 덜 올라왔어요",
     missionDescription:
       "창가나 발코니 근처만 피하면 돼요\n지금은 숨 고르는 것만 생각해요",
     durationSeconds: 180,
@@ -31,7 +31,7 @@ export const MOCK_RECOMMENDATIONS = {
   stress: {
     id: "deep-breath",
     title: "심호흡 3번 천천히 해보기",
-    description: "스트레스가 올라올 때는 먼저 호흡부터 정리해볼게요",
+    description: "스트레스가 올라올 때는\n먼저 호흡부터 정리해볼게요",
     missionDescription:
       "어깨를 내리고 천천히 숨을 들이마셔요\n지금은 호흡에만 집중해요",
     durationSeconds: 120,

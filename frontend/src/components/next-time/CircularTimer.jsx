@@ -12,14 +12,11 @@ function CircularTimer({
   showRemainingLabel = false,
 }) {
   const size = 200;
-  const strokeWidth = 8;
+  const strokeWidth = 10;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const safeTotal = Math.max(totalSeconds, 1);
-  const progress = Math.min(
-    1,
-    Math.max(0, remainingSeconds / safeTotal),
-  );
+  const progress = Math.min(1, Math.max(0, remainingSeconds / safeTotal));
   const dashOffset = circumference * (1 - progress);
 
   return (
@@ -63,7 +60,7 @@ const Svg = styled.svg`
 
 const CircleTrack = styled.circle`
   fill: none;
-  stroke: rgba(178, 178, 178, 0.2);
+  stroke: #1d1d20;
 `;
 
 const CircleProgress = styled.circle`
