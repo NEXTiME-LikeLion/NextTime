@@ -15,7 +15,15 @@ const RECORD_FIELD_LAYOUT = {
 
 function RecordPage() {
   const navigate = useNavigate();
-  const { recordAnswers, updateRecordAnswer } = useNextTime();
+  const {
+    situationIntensity,
+    location,
+    moment,
+    recommendedMission,
+    recordAnswers,
+    setRecordAnswers,
+    updateRecordAnswer,
+  } = useNextTime();
   const { howDidYouDo, currentIntensity, missionFeedback, additionalNote } =
     recordAnswers;
 
@@ -29,8 +37,22 @@ function RecordPage() {
   const handleSubmit = () => {
     if (!isFormValid) return;
 
+    const fullRecord = {
+      howDidYouDo,
+      currentIntensity,
+      missionFeedback,
+      additionalNote,
+      situationIntensity,
+      location,
+      moment,
+      recommendedMissionId: recommendedMission.id,
+      recommendedMissionTitle: recommendedMission.title,
+    };
+
+    setRecordAnswers(fullRecord);
+
     // TODO: 기록 저장 API 연동 시
-    // await saveRecord({ ...recordAnswers, missionId: recommendedMission.id });
+    // await saveRecord({ ...fullRecord, missionId: recommendedMission.id });
 
     navigate("/next-time/complete");
   };

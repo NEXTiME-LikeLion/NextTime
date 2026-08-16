@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { useNextTime } from "../../contexts/NextTimeContext";
 import Header from "../../components/next-time/Header";
 import CircularTimer from "../../components/next-time/CircularTimer";
-import WhyThisBox from "../../components/next-time/WhyThisBox";
 import PrimaryButton from "../../components/next-time/PrimaryButton";
 
 function splitMissionTitle(title) {
@@ -17,8 +16,7 @@ function splitMissionTitle(title) {
 function RecommendPage() {
   const navigate = useNavigate();
   const { recommendedMission } = useNextTime();
-  const { title, description, durationSeconds, whyThisText } =
-    recommendedMission;
+  const { title, description, durationSeconds } = recommendedMission;
   const titleLines = splitMissionTitle(title);
 
   const handleBack = () => {
@@ -48,8 +46,6 @@ function RecommendPage() {
         />
 
         <Description>{description}</Description>
-
-        {whyThisText && <WhyThisBox text={whyThisText} />}
       </Content>
 
       <BottomArea>

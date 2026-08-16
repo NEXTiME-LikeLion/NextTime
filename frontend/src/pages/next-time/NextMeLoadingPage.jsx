@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
-import { NEXT_ME_LOADING } from "../../data/nextTimeMock";
+import { useNextTime } from "../../contexts/NextTimeContext";
+import { getMockRecommendation, NEXT_ME_LOADING } from "../../data/nextTimeMock";
 import Header from "../../components/next-time/Header";
 import MascotCharacter from "../../components/next-time/MascotCharacter";
 
@@ -9,22 +10,41 @@ const LOADING_DURATION_MS = 2500;
 
 function NextMeLoadingPage() {
   const navigate = useNavigate();
+  const {
+    situationIntensity,
+    location,
+    moment,
+    setRecommendedMission,
+  } = useNextTime();
 
   // TODO: 실제 추천 API 연동 시
   // useEffect(() => {
-  //   fetchRecommendation(contextValues).then((res) => {
+  //   fetchRecommendation({ situationIntensity, location, moment }).then((res) => {
   //     setRecommendedMission(res);
   //     navigate('/next-time/recommend');
   //   });
   // }, []);
 
   useEffect(() => {
+    const recommendation = getMockRecommendation({
+      situationIntensity,
+      location,
+      moment,
+    });
+    setRecommendedMission(recommendation);
+
     const timer = setTimeout(() => {
       navigate("/next-time/recommend");
     }, LOADING_DURATION_MS);
 
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [
+    navigate,
+    setRecommendedMission,
+    situationIntensity,
+    location,
+    moment,
+  ]);
 
   const handleBack = () => {
     navigate("/next-time/context");

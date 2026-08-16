@@ -56,15 +56,15 @@
 - `situationIntensity` — `'생각만 나는 정도' | '꽤 당김' | '당장 피우고 싶음' | null`
 - `location` — `'집' | '직장/학교' | '이동 중' | '흡연구역 근처' | '술자리' | null`
 - `moment` — 순간 문자열 | null
-- `recommendedMission` — `{ title, description, durationSeconds, whyThisText? }`
-- `recordAnswers` — `{ howDidYouDo, currentIntensity, missionFeedback, additionalNote }`
+- `recommendedMission` — `{ id, title, description, missionDescription, durationSeconds, whyThisText? }`
+- `recordAnswers` — `{ howDidYouDo, currentIntensity, missionFeedback, additionalNote, situationIntensity?, location?, moment?, recommendedMissionId?, recommendedMissionTitle? }` (submit 시 context 스냅샷 포함)
 - setters: `setSituationIntensity`, `setLocation`, `setMoment`, `setRecommendedMission`, `setRecordAnswers`, `updateRecordAnswer`, `resetFlow`
 - hook: `useNextTime()` — Provider 밖 사용 시 에러
 
 ## Mock Data (`src/data/nextTimeMock.js`)
 - `CONTEXT_STEPS` — 3단계(상황/장소/순간) 질문·옵션 배열
-- `MOCK_RECOMMENDATION` — 추천 미션 1건 (durationSeconds: 300)
-- `RECORD_OPTIONS` — 기록하기 3개 라디오 그룹 + additionalNote 필드는 Context에서 관리
+- `MOCK_RECOMMENDATIONS` — 상황별 추천 미션 3건 (smokingArea/home/stress), `getMockRecommendation()` 분기
+- `RECORD_OPTIONS` — 기록하기 3개 라디오 그룹 (Figma NT-RESULT-001 문구)
 
 ## 에셋
 - 사용 경로: `src/assets/mascot-neutral.svg`, `mascot-craving.svg`, `mascot-urgent.svg`, `mascot-run.svg`, `mascot-success.svg`
@@ -157,3 +157,13 @@
 - 라우팅 분기 연결 완료 (context→next-me→recommend→mission/record→record→complete, recommend 건너뛰기→record)
 - ContextFlow ProgressBar 단계별 33%/66%/100% — Figma 1/3·2/3·3/3와 일치
 - 마스코트 mood 매핑: Context 카드 neutral/craving/urgent, NEXT ME run, Complete success — 에셋 경로 정상
+
+## 1차 수정 완료
+
+### 데이터 흐름
+- ContextFlow 선택값 → NextMeLoadingPage에서 `getMockRecommendation()` → `setRecommendedMission` → Recommend/Mission/Record에서 context 참조, Record submit 시 `recordAnswers`에 context+미션 스냅샷 저장
+
+### 수정 내용
+- `getMockRecommendation()` + `MOCK_RECOMMENDATIONS` 3건 추가, NextMeLoadingPage에서 상황별 추천 분기
+- Record submit 시 context 스냅샷 `recordAnswers`에 병합
+- Recommend/Record Figma 외 UI 제거 — context 칩 요약·「입력하신 상황」 섹션 삭제 (데이터 연결은 NextMeLoading/submit 로직에만 유지)

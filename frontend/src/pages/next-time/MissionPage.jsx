@@ -17,9 +17,10 @@ function splitMissionTitle(title) {
 function MissionPage() {
   const navigate = useNavigate();
   const { recommendedMission } = useNextTime();
-  const { title, description, durationSeconds, whyThisText } =
+  const { title, missionDescription, durationSeconds, whyThisText } =
     recommendedMission;
   const titleLines = splitMissionTitle(title);
+  const missionDescriptionLines = missionDescription?.split("\n") ?? [];
 
   const [remainingSeconds, setRemainingSeconds] = useState(durationSeconds);
 
@@ -68,7 +69,11 @@ function MissionPage() {
           showRemainingLabel
         />
 
-        <Description>{description}</Description>
+        <Description>
+          {missionDescriptionLines.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </Description>
       </Content>
 
       {whyThisText && (
@@ -124,13 +129,17 @@ const MissionTitle = styled.h1`
   }
 `;
 
-const Description = styled.p`
+const Description = styled.div`
   color: ${({ theme }) => theme.colors.white};
   font-size: 1rem;
   font-weight: 500;
   line-height: 1.4;
   text-align: center;
   word-break: keep-all;
+
+  p {
+    margin: 0;
+  }
 `;
 
 const WhyThisWrap = styled.div`
