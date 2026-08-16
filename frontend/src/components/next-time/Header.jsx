@@ -20,6 +20,7 @@ function Header({ title, subtitle, onBack }) {
 export default Header;
 
 const Wrapper = styled.div`
+  width: 100%;
   flex-shrink: 0;
   position: relative;
 `;
@@ -28,7 +29,7 @@ const NavRow = styled.div`
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 0 1.25rem 1.25rem;
+  padding-bottom: 1.25rem;
 `;
 
 const BackButton = styled.button`

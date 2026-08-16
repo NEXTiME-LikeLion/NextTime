@@ -82,7 +82,6 @@ const CardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-  padding: 0 1.25rem;
 `;
 
 const CardCell = styled.div`
@@ -90,7 +89,7 @@ const CardCell = styled.div`
 
   & > button {
     width: 100%;
-    height: 10.75rem;
+    aspect-ratio: 1 / 1;
   }
 `;
 
@@ -98,19 +97,16 @@ const ChipGrid3 = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
-  padding: 0 1.25rem;
 `;
 
 const ChipGrid2 = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
-  padding: 0 1.25rem;
 `;
 
 const ChipList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
-  padding: 0 1.25rem;
 `;

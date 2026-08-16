@@ -7,12 +7,14 @@ function PrimaryButton({
   disabled = false,
   variant = "primary",
 }) {
+  const activeVariant = disabled ? "ghost" : variant;
+  
   return (
     <Button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      $variant={variant}
+      $variant={activeVariant}
       $disabled={disabled}
     >
       {children}
@@ -27,40 +29,25 @@ const Button = styled.button`
   height: 3.5rem;
   border: none;
   border-radius: 1rem;
+  color: ${({ theme }) => theme.colors.white};
+  text-align: center;
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.4;
+
   cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
+
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: opacity 0.2s ease;
 
-  ${({ $variant, $disabled, theme }) => {
-    if ($disabled) {
-      return `
-        background: rgba(247, 247, 250, 0.1);
-        color: rgba(255, 255, 255, 0.4);
-      `;
+  background: ${({ $variant, $disabled, theme }) => {
+    if ($disabled || $variant === "ghost") {
+      return `rgba(247, 247, 250, 0.1)`;
     }
-
     if ($variant === "primary") {
-      return `
-        background: ${theme.colors.primary};
-        color: ${theme.colors.white};
-      `;
+      return theme.colors.primary;
     }
-
-    if ($variant === "ghost") {
-      return `
-        background: rgba(247, 247, 250, 0.1);
-        color: ${theme.colors.white};
-      `;
-    }
-
-    return `
-      background: rgba(247, 247, 250, 0.1);
-      color: ${theme.colors.white};
-    `;
-  }}
+    return `rgba(247, 247, 250, 0.1)`;
+  }};
 `;
