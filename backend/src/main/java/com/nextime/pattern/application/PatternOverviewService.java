@@ -37,9 +37,9 @@ public class PatternOverviewService {
 
     private static final String SUPPORTED_PERIOD = "7d";
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
-    private static final int MINIMUM_PATTERN_RECORD_COUNT = 3;
+    private static final int MINIMUM_PATTERN_RECORD_COUNT = 5;
     private static final int EFFECTIVE_ACTION_LIMIT = 2;
-    private static final int FREQUENT_TRIGGER_LIMIT = 5;
+    private static final int FREQUENT_TRIGGER_LIMIT = 3;
 
     private final UserRepository userRepository;
     private final NextTimeSessionRepository sessionRepository;
