@@ -111,6 +111,7 @@ class PatternOverviewServiceTest {
         var response = service.getOverview(USER_ID);
 
         assertThat(response.dataStatus()).isEqualTo(DataStatus.AVAILABLE);
+        assertThat(response.recentResultCount()).isEqualTo(3);
         assertThat(response.insight().recentResultCount()).isEqualTo(3);
         assertThat(response.insight().topTrigger().code()).isEqualTo("AFTER_WORK");
         assertThat(response.insight().topTrigger().count()).isEqualTo(2);
@@ -133,21 +134,24 @@ class PatternOverviewServiceTest {
     }
 
     @Test
-    void returnsEmptyPayloadInsteadOfErrorWhenThereAreNoRecentRecords() {
+    void returnsInsufficientPayloadWhenOnlyOlderRecordsExist() {
         authenticate(true);
+        NextTimeSession olderRecord = session(
+                8, afterWork, smokingArea, walk,
+                NextTimeResult.NOT_SMOKED, MissionHelpfulness.HELPFUL
+        );
         when(sessionRepository
                 .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
                         eq(USER_ID), eq(RESULT_RECORDED), any()
                 ))
-                .thenReturn(List.of());
+                .thenReturn(List.of(olderRecord));
         when(sessionRepository.findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(eq(USER_ID), any()))
-                .thenReturn(List.of());
-        when(sessionRepository.findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(USER_ID, RESULT_RECORDED))
-                .thenReturn(List.of());
+                .thenReturn(List.of(olderRecord));
 
         var response = service.getOverview(USER_ID);
 
-        assertThat(response.dataStatus()).isEqualTo(DataStatus.EMPTY);
+        assertThat(response.dataStatus()).isEqualTo(DataStatus.INSUFFICIENT);
+        assertThat(response.recentResultCount()).isZero();
         assertThat(response.insight()).isNull();
         assertThat(response.behaviorChange()).isNull();
         assertThat(response.effectiveActions()).isEmpty();
@@ -166,7 +170,11 @@ class PatternOverviewServiceTest {
                 2, afterWork, smokingArea, breathing,
                 NextTimeResult.SMOKED, MissionHelpfulness.NOT_FIT
         );
-        List<NextTimeSession> results = List.of(helpful, notFit);
+        NextTimeSession singleWalk = session(
+                3, stress, home, walk,
+                NextTimeResult.NOT_SMOKED, MissionHelpfulness.HELPFUL
+        );
+        List<NextTimeSession> results = List.of(helpful, notFit, singleWalk);
 
         when(sessionRepository
                 .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
@@ -181,6 +189,38 @@ class PatternOverviewServiceTest {
         var response = service.getOverview(USER_ID);
 
         assertThat(response.effectiveActions()).isEmpty();
+    }
+
+    @Test
+    void returnsInsufficientPayloadWhenRecentRecordsAreFewerThanThree() {
+        authenticate(true);
+        NextTimeSession first = session(
+                1, afterWork, smokingArea, walk,
+                NextTimeResult.NOT_SMOKED, MissionHelpfulness.HELPFUL
+        );
+        NextTimeSession second = session(
+                2, stress, home, breathing,
+                NextTimeResult.DELAYED, MissionHelpfulness.HELPFUL
+        );
+        List<NextTimeSession> results = List.of(first, second);
+
+        when(sessionRepository
+                .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
+                        eq(USER_ID), eq(RESULT_RECORDED), any()
+                ))
+                .thenReturn(results);
+        when(sessionRepository.findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(eq(USER_ID), any()))
+                .thenReturn(results);
+
+        var response = service.getOverview(USER_ID);
+
+        assertThat(response.dataStatus()).isEqualTo(DataStatus.INSUFFICIENT);
+        assertThat(response.recentResultCount()).isEqualTo(2);
+        assertThat(response.insight()).isNull();
+        assertThat(response.behaviorChange()).isNull();
+        assertThat(response.effectiveActions()).isEmpty();
+        assertThat(response.frequentTriggers()).isEmpty();
+        assertThat(response.recentRecords()).isEmpty();
     }
 
     @Test

@@ -64,6 +64,7 @@ class PatternOverviewControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.period.value").value("7d"))
                 .andExpect(jsonPath("$.data.dataStatus").value("AVAILABLE"))
+                .andExpect(jsonPath("$.data.recentResultCount").value(3))
                 .andExpect(jsonPath("$.data.insight.recentResultCount").value(3))
                 .andExpect(jsonPath("$.data.insight.topTrigger.code").value("AFTER_WORK"))
                 .andExpect(jsonPath("$.data.insight.topLocation.code").value("NEAR_SMOKING_AREA"))
@@ -98,6 +99,7 @@ class PatternOverviewControllerTest {
                         Instant.parse("2026-08-17T15:00:00Z")
                 ),
                 PatternOverviewResponse.DataStatus.AVAILABLE,
+                3,
                 new PatternOverviewResponse.Insight(
                         3,
                         trigger,

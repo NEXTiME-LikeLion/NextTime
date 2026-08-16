@@ -37,6 +37,7 @@ public class PatternOverviewService {
 
     private static final String SUPPORTED_PERIOD = "7d";
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
+    private static final int MINIMUM_PATTERN_RECORD_COUNT = 3;
     private static final int EFFECTIVE_ACTION_LIMIT = 2;
     private static final int FREQUENT_TRIGGER_LIMIT = 3;
 
@@ -59,9 +60,6 @@ public class PatternOverviewService {
                         userId,
                         windows.thirtyDayStart()
                 );
-        List<NextTimeSession> recentRecords =
-                sessionRepository.findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(userId, RESULT_RECORDED);
-
         List<NextTimeSession> current = inResultWindow(
                 recentThirtyDayResults,
                 windows.currentStart(),
@@ -73,16 +71,35 @@ public class PatternOverviewService {
                 windows.currentStart()
         );
 
-        DataStatus dataStatus = current.isEmpty() ? DataStatus.EMPTY : DataStatus.AVAILABLE;
+        if (current.size() < MINIMUM_PATTERN_RECORD_COUNT) {
+            return insufficientOverview(windows, current.size());
+        }
+
+        List<NextTimeSession> recentRecords =
+                sessionRepository.findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(userId, RESULT_RECORDED);
 
         return new PatternOverviewResponse(
                 new Period(SUPPORTED_PERIOD, windows.currentStart(), windows.currentEnd()),
-                dataStatus,
+                DataStatus.AVAILABLE,
+                current.size(),
                 buildInsight(current, recentThirtyDaySessions),
                 buildBehaviorChange(current, previous),
                 buildEffectiveActions(recentThirtyDayResults),
                 rankContexts(current, SmokingContextType.TRIGGER, FREQUENT_TRIGGER_LIMIT),
                 recentRecords.stream().map(this::toRecentRecord).toList()
+        );
+    }
+
+    private PatternOverviewResponse insufficientOverview(PeriodWindows windows, int recentResultCount) {
+        return new PatternOverviewResponse(
+                new Period(SUPPORTED_PERIOD, windows.currentStart(), windows.currentEnd()),
+                DataStatus.INSUFFICIENT,
+                recentResultCount,
+                null,
+                null,
+                List.of(),
+                List.of(),
+                List.of()
         );
     }
 

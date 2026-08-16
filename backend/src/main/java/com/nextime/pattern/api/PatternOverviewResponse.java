@@ -12,6 +12,7 @@ import java.util.UUID;
 public record PatternOverviewResponse(
         Period period,
         DataStatus dataStatus,
+        int recentResultCount,
         Insight insight,
         BehaviorChange behaviorChange,
         List<EffectiveAction> effectiveActions,
@@ -20,7 +21,7 @@ public record PatternOverviewResponse(
 ) {
     public enum DataStatus {
         AVAILABLE,
-        EMPTY
+        INSUFFICIENT
     }
 
     public enum ChangeDirection {
