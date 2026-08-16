@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
 import OnboardingPage from "./pages/onboarding/OnboardingPage";
 import OnboardingLoadingPage from "./pages/onboarding/OnboardingLoadingPage";
+import OnboardingCompletePage from "./pages/onboarding/OnboardingCompletePage";
+import OnboardingDevicePage from "./pages/onboarding/OnboardingDevicePage";
 import TabLayout from "./layouts/TabLayout";
 import AuthLayout from "./layouts/AuthLayout";
 import Login from "./pages/auth/Login";
@@ -21,6 +23,14 @@ const router = createBrowserRouter([
   {
     path: "/onboarding/loading",
     element: <OnboardingLoadingPage />,
+  },
+  {
+    path: "/onboarding/complete",
+    element: <OnboardingCompletePage />,
+  },
+  {
+    path: "/onboarding/device",
+    element: <OnboardingDevicePage />,
   },
   {
     path: "/settings/goal",

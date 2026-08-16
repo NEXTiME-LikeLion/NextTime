@@ -11,7 +11,7 @@ const OnboardingLoadingPage = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate("/");
+      navigate("/onboarding/complete");
     }, LOADING_DURATION);
     return () => clearTimeout(timer);
   }, [navigate]);
