@@ -4,8 +4,8 @@ import com.nextime.common.error.BusinessException;
 import com.nextime.common.error.ErrorCode;
 import com.nextime.user.api.BaselineRequest;
 import com.nextime.user.api.OnboardingRequest;
-import com.nextime.user.domain.SmokingContext;
-import com.nextime.user.domain.SmokingContextRepository;
+import com.nextime.smokingcontext.domain.SmokingContext;
+import com.nextime.user.domain.OnboardingSmokingContextRepository;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserProfile;
 import com.nextime.user.domain.UserProfileRepository;
@@ -32,14 +32,14 @@ public class OnboardingService {
 
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
-    private final SmokingContextRepository smokingContextRepository;
+    private final OnboardingSmokingContextRepository smokingContextRepository;
     private final UserSmokingContextRepository userSmokingContextRepository;
     private final UserTobaccoTypeRepository userTobaccoTypeRepository;
 
     public OnboardingService(
             UserRepository userRepository,
             UserProfileRepository userProfileRepository,
-            SmokingContextRepository smokingContextRepository,
+            OnboardingSmokingContextRepository smokingContextRepository,
             UserSmokingContextRepository userSmokingContextRepository,
             UserTobaccoTypeRepository userTobaccoTypeRepository
     ) {

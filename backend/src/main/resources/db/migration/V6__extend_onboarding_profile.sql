@@ -1,3 +1,4 @@
+-- 온보딩 프로필 확장
 ALTER TABLE user_profiles
     ADD COLUMN difficult_moment VARCHAR(500);
 

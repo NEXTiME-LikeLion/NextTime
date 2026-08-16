@@ -62,6 +62,10 @@ public class CopingProfile {
         return id;
     }
 
+    public UUID getUserId() {
+        return userId;
+    }
+
     public List<CopingAction> getActions() {
         return List.copyOf(actions);
     }

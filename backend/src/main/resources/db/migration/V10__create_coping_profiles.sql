@@ -1,3 +1,4 @@
+-- 온보딩 대처 행동 프로필 저장
 CREATE TABLE coping_profiles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

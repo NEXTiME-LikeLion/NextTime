@@ -1,3 +1,4 @@
+-- Next Me 생성 결과 저장
 CREATE TABLE next_me_generations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

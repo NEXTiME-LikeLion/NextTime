@@ -18,4 +18,12 @@ public interface MissionRepository extends JpaRepository<Mission, UUID> {
             order by mission.displayOrder
             """)
     List<Mission> findActiveAvailableAt(@Param("locationId") UUID locationId);
+
+    @Query(value = """
+            select mission_id
+            from user_mission_preferences
+            where user_id = :userId
+              and preference_type = 'EXCLUDED'
+            """, nativeQuery = true)
+    List<UUID> findExcludedMissionIds(@Param("userId") UUID userId);
 }
