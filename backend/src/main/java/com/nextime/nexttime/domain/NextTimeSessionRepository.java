@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 import java.util.Optional;
@@ -48,6 +49,13 @@ public interface NextTimeSessionRepository extends JpaRepository<NextTimeSession
     List<NextTimeSession> findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(
             UUID userId,
             NextTimeSessionStatus status
+    );
+
+    @EntityGraph(attributePaths = {"recommendedMission", "contexts"})
+    List<NextTimeSession> findByUser_IdAndStatusOrderByResultRecordedAtDesc(
+            UUID userId,
+            NextTimeSessionStatus status,
+            Pageable pageable
     );
 
     List<NextTimeSession> findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
