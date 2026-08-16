@@ -99,6 +99,25 @@ public class NextTimeSession {
     @Column(name = "result_memory_source", length = 20)
     private ResultMemorySource resultMemorySource;
 
+    @Column(name = "future_voice_hook", length = 200)
+    private String futureVoiceHook;
+
+    @Column(name = "future_voice_acknowledge", length = 200)
+    private String futureVoiceAcknowledge;
+
+    @Column(name = "future_voice_reason", length = 200)
+    private String futureVoiceReason;
+
+    @Column(name = "future_voice_closing", length = 200)
+    private String futureVoiceClosing;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "future_voice_source", length = 20)
+    private FutureVoiceSource futureVoiceSource;
+
+    @Column(name = "future_voice_generated_at")
+    private Instant futureVoiceGeneratedAt;
+
     @ManyToMany
     @JoinTable(
             name = "next_time_session_contexts",
@@ -237,6 +256,44 @@ public class NextTimeSession {
 
         this.resultMemorySummary = memorySummary;
         this.resultMemorySource = memorySource;
+        this.updatedAt = Instant.now();
+    }
+
+    public void saveFutureVoice(
+            String hook,
+            String acknowledge,
+            String reason,
+            String closing,
+            FutureVoiceSource source,
+            Instant generatedAt
+    ) {
+        if (status != CONTEXT_SAVED) {
+            throw new IllegalStateException("현재 상황 저장 완료 상태에서만 미래의 목소리를 생성할 수 있습니다.");
+        }
+        this.futureVoiceHook = hook;
+        this.futureVoiceAcknowledge = acknowledge;
+        this.futureVoiceReason = reason;
+        this.futureVoiceClosing = closing;
+        this.futureVoiceSource = source;
+        this.futureVoiceGeneratedAt = generatedAt;
+        this.updatedAt = generatedAt;
+    }
+
+    public void replaceFutureVoice(
+            String hook,
+            String acknowledge,
+            String reason,
+            String closing,
+            FutureVoiceSource source
+    ) {
+        if (futureVoiceSource == null) {
+            throw new IllegalStateException("생성된 미래의 목소리가 없습니다.");
+        }
+        this.futureVoiceHook = hook;
+        this.futureVoiceAcknowledge = acknowledge;
+        this.futureVoiceReason = reason;
+        this.futureVoiceClosing = closing;
+        this.futureVoiceSource = source;
         this.updatedAt = Instant.now();
     }
 }

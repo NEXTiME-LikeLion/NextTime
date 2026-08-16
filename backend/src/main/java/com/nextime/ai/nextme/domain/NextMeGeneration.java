@@ -107,6 +107,18 @@ public class NextMeGeneration {
         return headline;
     }
 
+    public String getDecisionTrigger() {
+        return decisionTrigger;
+    }
+
+    public String getFutureSelf() {
+        return futureSelf;
+    }
+
+    public String getMessageToFutureSelf() {
+        return messageToFutureSelf;
+    }
+
     public String getStartReason() {
         return startReason;
     }

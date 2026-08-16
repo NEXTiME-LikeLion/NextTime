@@ -5,6 +5,7 @@ import com.nextime.nexttime.application.NextTimeService;
 import com.nextime.nexttime.application.MissionExecutionService;
 import com.nextime.nexttime.application.MissionRecommendationService;
 import com.nextime.nexttime.application.ResultRecordingService;
+import com.nextime.nexttime.application.FutureVoiceService;
 import com.nextime.security.AuthenticatedUser;
 import com.nextime.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class NextTimeController {
     private final MissionRecommendationService missionRecommendationService;
     private final MissionExecutionService missionExecutionService;
     private final ResultRecordingService resultRecordingService;
+    private final FutureVoiceService futureVoiceService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -48,6 +50,14 @@ public class NextTimeController {
         );
 
         return ApiResponse.success(response);
+    }
+
+    @PostMapping("/{sessionId}/future-voice")
+    public ApiResponse<FutureVoiceResponse> generateFutureVoice(
+            @CurrentUser AuthenticatedUser currentUser,
+            @PathVariable UUID sessionId
+    ) {
+        return ApiResponse.success(futureVoiceService.generate(currentUser.userId(), sessionId));
     }
 
     @PostMapping("/{sessionId}/recommendation")
