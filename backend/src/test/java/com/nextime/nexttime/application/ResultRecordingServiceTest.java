@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
@@ -52,7 +53,10 @@ class ResultRecordingServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ResultRecordingService(sessionRepository, resultMemoryAiClient);
+        service = new ResultRecordingService(
+                new ResultPersistenceService(sessionRepository),
+                resultMemoryAiClient
+        );
     }
 
     @Test
@@ -72,6 +76,13 @@ class ResultRecordingServiceTest {
         assertThat(response.memorySource()).isEqualTo(ResultMemorySource.AI);
         assertThat(response.memorySummary()).contains("피우지 않고 넘겼어요");
         assertThat(response.resultRecordedAt()).isNotNull();
+        ArgumentCaptor<com.nextime.ai.resultmemory.client.ResultMemoryPromptInput> captor =
+                ArgumentCaptor.forClass(com.nextime.ai.resultmemory.client.ResultMemoryPromptInput.class);
+        verify(resultMemoryAiClient).generate(captor.capture());
+        assertThat(captor.getValue().missionStatus()).isEqualTo("완료");
+        assertThat(captor.getValue().result()).isEqualTo("피우지 않았어요");
+        assertThat(captor.getValue().cravingAfter()).isEqualTo("이제 괜찮아요");
+        assertThat(captor.getValue().missionHelpfulness()).isEqualTo("도움이 됐어요");
     }
 
     @Test
@@ -84,7 +95,7 @@ class ResultRecordingServiceTest {
 
         assertThat(response.memorySource()).isEqualTo(ResultMemorySource.FALLBACK);
         assertThat(response.memorySummary())
-                .isEqualTo("밥을 먹고 나서에서 잠깐 걷기 행동을 했고, 결과는 피우지 않았어요, 미션 평가는 도움이 됐어요로 기록했어요.");
+                .isEqualTo("밥을 먹고 나서 잠깐 걷기를 했고, 결과는 피우지 않았어요. 이번 미션은 도움이 됐다고 기록했어요.");
     }
 
     @Test

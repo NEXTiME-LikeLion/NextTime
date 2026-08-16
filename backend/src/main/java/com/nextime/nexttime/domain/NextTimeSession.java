@@ -229,4 +229,14 @@ public class NextTimeSession {
         this.status = NextTimeSessionStatus.RESULT_RECORDED;
         this.updatedAt = recordedAt;
     }
+
+    public void replaceResultMemory(String memorySummary, ResultMemorySource memorySource) {
+        if (status != NextTimeSessionStatus.RESULT_RECORDED) {
+            throw new IllegalStateException("결과 기록 완료 상태에서만 기억 문구를 변경할 수 있습니다.");
+        }
+
+        this.resultMemorySummary = memorySummary;
+        this.resultMemorySource = memorySource;
+        this.updatedAt = Instant.now();
+    }
 }

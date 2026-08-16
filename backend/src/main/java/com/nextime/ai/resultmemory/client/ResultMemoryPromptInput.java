@@ -5,6 +5,7 @@ public record ResultMemoryPromptInput(
         String location,
         String cravingBefore,
         String action,
+        String missionStatus,
         String result,
         String cravingAfter,
         String missionHelpfulness,
