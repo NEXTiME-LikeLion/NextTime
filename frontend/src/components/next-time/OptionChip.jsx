@@ -1,9 +1,16 @@
 import styled from "styled-components";
 
-function OptionChip({ label, selected = false, onClick, fullWidth = false }) {
+function OptionChip({
+  label,
+  layout,
+  selected = false,
+  onClick,
+  fullWidth = false,
+}) {
   return (
     <Chip
       type="button"
+      layout={layout}
       $selected={selected}
       $fullWidth={fullWidth}
       onClick={onClick}
@@ -19,11 +26,12 @@ export default OptionChip;
 const Chip = styled.button`
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: ${({ layout }) =>
+    layout === "list-start" ? `flex-start` : `center`};
   height: 3.25rem;
   min-height: 2.75rem;
   min-width: 2.75rem;
-  padding: 0.75rem;
+  padding: 0.94rem 0.69rem;
 
   border-radius: 0.75rem;
   border: ${({ $selected, theme }) =>
@@ -39,7 +47,8 @@ const Chip = styled.button`
   line-height: 1.4;
 
   cursor: pointer;
-  word-break: keep-all;
+  /* word-break: keep-all; */
+  white-space: nowrap
   width: ${({ $fullWidth }) => ($fullWidth ? "100%" : "auto")};
 
   &:focus-visible {

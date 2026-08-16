@@ -8,6 +8,7 @@ function OptionGrid({
   layout = "list",
   selectedValue,
   onChange,
+  gap = "0.75rem",
 }) {
   const handleSelect = (value) => {
     onChange?.(value);
@@ -32,7 +33,7 @@ function OptionGrid({
 
   if (layout === "grid-3") {
     return (
-      <ChipGrid3>
+      <ChipGrid3 $gap={gap}>
         {options.map((option) => (
           <OptionChip
             key={option.value}
@@ -67,6 +68,7 @@ function OptionGrid({
         <OptionChip
           key={option.value}
           label={option.label}
+          layout={layout}
           selected={selectedValue === option.value}
           onClick={() => handleSelect(option.value)}
           fullWidth
@@ -96,7 +98,7 @@ const CardCell = styled.div`
 const ChipGrid3 = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
+  gap: ${({ $gap }) => $gap};
 `;
 
 const ChipGrid2 = styled.div`
