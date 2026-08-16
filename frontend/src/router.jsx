@@ -9,6 +9,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import HomePage from "./pages/HomePage";
 import PatternPage from "./pages/PatternPage";
+import PatternRecordPage from "./pages/PatternRecordPage";
 import SettingsPage from "./pages/SettingsPage";
 import GoalPage from "./pages/settings/GoalPage";
 import ExcludePage from "./pages/settings/ExcludePage";
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
   {
     path: "/settings/device",
     element: <DevicePage />,
+  },
+  {
+    path: "/pattern/records",
+    element: <PatternRecordPage />,
   },
   {
     path: "/",
