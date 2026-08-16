@@ -2,20 +2,19 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { useNextTime } from "../../contexts/NextTimeContext";
-import { getMockRecommendation, NEXT_ME_LOADING } from "../../data/nextTimeMock";
+import {
+  getMockRecommendation,
+  NEXT_ME_LOADING,
+} from "../../data/nextTimeMock";
 import Header from "../../components/next-time/Header";
 import MascotCharacter from "../../components/next-time/MascotCharacter";
 
-const LOADING_DURATION_MS = 2500;
+const LOADING_DURATION_MS = 4000;
 
 function NextMeLoadingPage() {
   const navigate = useNavigate();
-  const {
-    situationIntensity,
-    location,
-    moment,
-    setRecommendedMission,
-  } = useNextTime();
+  const { situationIntensity, location, moment, setRecommendedMission } =
+    useNextTime();
 
   // TODO: 실제 추천 API 연동 시
   // useEffect(() => {
@@ -38,13 +37,7 @@ function NextMeLoadingPage() {
     }, LOADING_DURATION_MS);
 
     return () => clearTimeout(timer);
-  }, [
-    navigate,
-    setRecommendedMission,
-    situationIntensity,
-    location,
-    moment,
-  ]);
+  }, [navigate, setRecommendedMission, situationIntensity, location, moment]);
 
   const handleBack = () => {
     navigate("/next-time/context");
@@ -52,21 +45,15 @@ function NextMeLoadingPage() {
 
   return (
     <PageContainer>
-      <Header
-        title="NEXT ME"
-        subtitle="미래의 목소리"
-        onBack={handleBack}
-      />
+      <Header title="NEXT ME" subtitle="미래의 목소리" onBack={handleBack} />
 
       <Content>
         <TextGroup>
-          <HighlightLine $delay={0}>{NEXT_ME_LOADING.lines[0]}</HighlightLine>
-          <BodyLine $delay={0.4}>{NEXT_ME_LOADING.lines[1]}</BodyLine>
-          <BoldLine $delay={0.8}>
-            {NEXT_ME_LOADING.lines[2]}
-            <br />
-            {NEXT_ME_LOADING.lines[3]}
-          </BoldLine>
+          <HighlightLine $delay={0}>
+            {NEXT_ME_LOADING.highlightLine}
+          </HighlightLine>
+          <BodyLine $delay={0.4}>{NEXT_ME_LOADING.bodyLine}</BodyLine>
+          <BoldLine $delay={0.8}>{NEXT_ME_LOADING.boldLine}</BoldLine>
         </TextGroup>
 
         <MascotWrap $delay={1.2}>
@@ -134,6 +121,7 @@ const PageContainer = styled.div`
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  padding-inline: 1.25rem;
 `;
 
 const Content = styled.div`
@@ -143,7 +131,7 @@ const Content = styled.div`
   align-items: center;
   justify-content: center;
   gap: 2rem;
-  padding: 1.25rem;
+  padding-block: 1.25rem;
   text-align: center;
 `;
 
@@ -152,13 +140,13 @@ const TextGroup = styled.div`
   flex-direction: column;
   gap: 0.75rem;
   align-items: center;
+  word-break: keep-all;
 `;
 
 const FadeLine = styled.p`
   opacity: 0;
   animation: ${fadeInUp} 0.6s ease forwards;
   animation-delay: ${({ $delay }) => $delay}s;
-  word-break: keep-all;
 `;
 
 const HighlightLine = styled(FadeLine)`
@@ -202,13 +190,13 @@ const BottomArea = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 0 1.1875rem 2.25rem;
+  margin-bottom: 3.56rem;
 `;
 
 const LoadingBarTrack = styled.div`
   position: relative;
   width: 100%;
-  height: 0.375rem;
+  height: 0.125rem;
 `;
 
 const LoadingBarBg = styled.div`

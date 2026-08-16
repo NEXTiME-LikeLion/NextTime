@@ -1,12 +1,9 @@
 /** NEXT TIME 플로우 mock data — API 연동 전 UI 구현용 */
 
 export const NEXT_ME_LOADING = {
-  lines: [
-    "나 오늘 저녁에도 달릴 거잖아",
-    "지금 한 대가 너무 당기는 거 알아",
-    "근데 몇 시간 뒤의 나는",
-    "또 숨이 차서 멈추고 싶지 않아.",
-  ],
+  highlightLine: "나 오늘 저녁에도 달릴 거잖아",
+  bodyLine: "지금 한 대가 너무 당기는 거 알아",
+  boldLine: "근데 몇 시간 뒤의 나는 또 숨이 차서 멈추고 싶지 않아.",
   closingLine: "이번 한 번만, 나를 먼저 선택해줘",
   statusText: "지금 할 수 있는 행동을 찾고 있어요…",
 };
