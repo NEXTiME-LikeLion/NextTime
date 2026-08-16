@@ -40,6 +40,20 @@ public interface NextTimeSessionRepository extends JpaRepository<NextTimeSession
     );
 
     @EntityGraph(attributePaths = {"recommendedMission", "contexts"})
+    Optional<NextTimeSession> findFirstByUser_IdAndStatusInOrderByUpdatedAtDesc(
+            UUID userId,
+            Collection<NextTimeSessionStatus> statuses
+    );
+
+    @EntityGraph(attributePaths = {"recommendedMission", "contexts"})
+    List<NextTimeSession> findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualAndResultRecordedAtLessThanOrderByResultRecordedAtDesc(
+            UUID userId,
+            NextTimeSessionStatus status,
+            Instant fromInclusive,
+            Instant toExclusive
+    );
+
+    @EntityGraph(attributePaths = {"recommendedMission", "contexts"})
     List<NextTimeSession> findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
             UUID userId,
             NextTimeSessionStatus status,
