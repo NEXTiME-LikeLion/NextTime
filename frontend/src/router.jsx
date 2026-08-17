@@ -1,6 +1,7 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import TabLayout from "./layouts/TabLayout";
 import AuthLayout from "./layouts/AuthLayout";
+import NextTimeLayout from "./layouts/NextTimeLayout";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import HomePage from "./pages/HomePage";
@@ -10,7 +11,12 @@ import SettingsPage from "./pages/SettingsPage";
 import GoalPage from "./pages/settings/GoalPage";
 import ExcludePage from "./pages/settings/ExcludePage";
 import DevicePage from "./pages/settings/DevicePage";
-import NextTimePage from "./pages/next-time/NextTimePage";
+import ContextFlowPage from "./pages/next-time/ContextFlowPage";
+import NextMeLoadingPage from "./pages/next-time/NextMeLoadingPage";
+import RecommendPage from "./pages/next-time/RecommendPage";
+import MissionPage from "./pages/next-time/MissionPage";
+import RecordPage from "./pages/next-time/RecordPage";
+import CompletePage from "./pages/next-time/CompletePage";
 
 const router = createBrowserRouter([
   {
@@ -50,7 +56,16 @@ const router = createBrowserRouter([
   },
   {
     path: "/next-time",
-    element: <NextTimePage />,
+    element: <NextTimeLayout />,
+    children: [
+      { index: true, element: <Navigate to="context" replace /> },
+      { path: "context", element: <ContextFlowPage /> },
+      { path: "next-me", element: <NextMeLoadingPage /> },
+      { path: "recommend", element: <RecommendPage /> },
+      { path: "mission", element: <MissionPage /> },
+      { path: "record", element: <RecordPage /> },
+      { path: "complete", element: <CompletePage /> },
+    ],
   },
 ]);
 
