@@ -11,7 +11,7 @@ function Splash() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate("/");
+      navigate("/login");
     }, SPLASH_DURATION);
 
     return () => clearTimeout(timer);
