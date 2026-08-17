@@ -5,14 +5,13 @@ import * as S from "./OnboardingCompletePage.styles";
 const OnboardingCompletePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { nextMeData } = location.state || {};
+  const { nextMeData, answers } = location.state || {};
 
   const handleStart = () => {
     navigate("/onboarding/device");
   };
 
-  if (!nextMeData) {
-    // 데이터 없이 직접 접근한 경우, 온보딩 처음으로 되돌림
+  if (!nextMeData || !answers) {
     navigate("/onboarding");
     return null;
   }
@@ -32,16 +31,32 @@ const OnboardingCompletePage = () => {
             <S.NextMeLabel>NEXT ME</S.NextMeLabel>
             <S.NextMeText>{nextMeData.headline}</S.NextMeText>
 
-            <S.NextMeSubLabel>시작한 이유</S.NextMeSubLabel>
-            <S.NextMeSubText>{nextMeData.start_reason}</S.NextMeSubText>
+            <S.NextMeSubLabel>내가 남긴 말</S.NextMeSubLabel>
+            <S.NextMeSubText>{answers.leftMessage}</S.NextMeSubText>
 
             <S.MascotImage src={mascotRunImg} alt="" />
           </S.NextMeCard>
 
+          <S.SectionTitle>NEXT ME가 기억해둘 것들</S.SectionTitle>
+
+          <S.MemoryItem>
+            <S.MemoryLabel>원하는 미래</S.MemoryLabel>
+            <S.MemoryText>{answers.nextMe}</S.MemoryText>
+          </S.MemoryItem>
+
+          <S.MemoryItem>
+            <S.MemoryLabel>시작한 이유</S.MemoryLabel>
+            <S.MemoryText>{answers.motivation}</S.MemoryText>
+          </S.MemoryItem>
+
+          <S.MemoryItem>
+            <S.MemoryLabel>내가 남긴 말</S.MemoryLabel>
+            <S.MemoryText>"{answers.leftMessage}"</S.MemoryText>
+          </S.MemoryItem>
+
           <S.StartButton onClick={handleStart}>
             이 모습으로 시작하기
           </S.StartButton>
-          <S.EditLink>NEXT ME 수정하기</S.EditLink>
         </S.Content>
       </S.Wrapper>
     </>
