@@ -25,7 +25,7 @@ const Login = () => {
       if (!userData.onboardingCompleted) {
         navigate("/onboarding");
       } else {
-        navigate("/");
+        navigate("/main");
       }
     } catch (error) {
       setErrorMessage("이메일 또는 비밀번호가 올바르지 않습니다.");
