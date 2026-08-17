@@ -1,16 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BackHeader from "../../components/common/BackHeader";
 import * as S from "./DevicePage.styles";
 import deviceImg from "../../assets/device.svg";
 import device2Img from "../../assets/device2.svg";
+import { getMqttStatus } from "../../api/mqttStatus";
+import { connectButtonEvents } from "../../api/buttonEvents";
 
 const DevicePage = () => {
   const [isConnected, setIsConnected] = useState(false);
-  const [device] = useState({
-    name: "NEXTiME Button 01",
-    battery: 82,
-    lastConnected: "오늘 18:24",
-  });
+  const [lastEvent, setLastEvent] = useState(null);
+
+  // 페이지 진입 시 현재 연결 상태 확인
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const status = await getMqttStatus();
+        setIsConnected(status.connected);
+        if (status.lastEvent && typeof status.lastEvent === "object") {
+          setLastEvent(status.lastEvent);
+        }
+      } catch (error) {
+        console.error("기기 상태 조회 실패:", error);
+      }
+    };
+
+    checkStatus();
+  }, []);
+
+  // 실시간 버튼 신호 구독
+  useEffect(() => {
+    let disconnect;
+
+    connectButtonEvents((event) => {
+      console.log("버튼 신호 수신:", event);
+      setLastEvent(event);
+      setIsConnected(true);
+    }).then((cleanup) => {
+      disconnect = cleanup;
+    });
+
+    return () => {
+      if (disconnect) disconnect();
+    };
+  }, []);
 
   return (
     <S.Wrapper>
@@ -30,8 +62,13 @@ const DevicePage = () => {
               </S.DeviceIconWrapper>
 
               <S.DeviceInfo>
-                <S.DeviceName>{device.name}</S.DeviceName>
-                <S.DeviceBattery>배터리 {device.battery}%</S.DeviceBattery>
+                <S.DeviceName>NEXTiME Button 01</S.DeviceName>
+                {lastEvent && (
+                  <S.DeviceBattery>
+                    마지막 신호:{" "}
+                    {new Date(lastEvent.receivedAt).toLocaleTimeString()}
+                  </S.DeviceBattery>
+                )}
               </S.DeviceInfo>
             </S.DeviceRow>
 
@@ -39,7 +76,11 @@ const DevicePage = () => {
 
             <S.LastConnectedRow>
               <S.LastConnectedLabel>마지막 연결</S.LastConnectedLabel>
-              <S.LastConnectedTime>{device.lastConnected}</S.LastConnectedTime>
+              <S.LastConnectedTime>
+                {lastEvent
+                  ? new Date(lastEvent.receivedAt).toLocaleString()
+                  : "-"}
+              </S.LastConnectedTime>
             </S.LastConnectedRow>
           </S.DeviceCard>
         </S.Content>
@@ -57,10 +98,6 @@ const DevicePage = () => {
             <br />
             흡연 욕구를 줄이는 데에 도움을 받을 수 있어요
           </S.EmptyDescription>
-
-          <S.ConnectButton onClick={() => setIsConnected(true)}>
-            기기 연결하기
-          </S.ConnectButton>
 
           <S.FooterNote>
             기기가 없어도 NEXTiME의 모든 앱 기능을 사용할 수 있어요.

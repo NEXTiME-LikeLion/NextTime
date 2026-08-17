@@ -1,23 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BackHeader from "../../components/common/BackHeader";
 import Toast from "../../components/Toast/Toast";
 import { useToast } from "../../contexts/ToastContext";
 import CheckImg from "../../assets/check.svg";
+import {
+  getExcludedMissions,
+  restoreMission,
+} from "../../api/excludedMissions";
 import * as S from "./ExcludePage.styles";
 
-const INITIAL_EXCLUDED = [
-  { id: 1, label: "호흡 가다듬기" },
-  { id: 2, label: "누군가와 이야기하기" },
-];
-
 const ExcludePage = () => {
-  const [excludedList, setExcludedList] = useState(INITIAL_EXCLUDED);
+  const [excludedList, setExcludedList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast, showToast } = useToast();
 
-  const handleRestore = (item) => {
-    setExcludedList((prev) => prev.filter((i) => i.id !== item.id));
-    showToast(`'${item.label}' 추천이 다시 포함됐어요`);
+  useEffect(() => {
+    const fetchExcluded = async () => {
+      try {
+        const data = await getExcludedMissions();
+        setExcludedList(data.excludedMissions);
+      } catch (error) {
+        console.error("추천 제외 목록 조회 실패:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExcluded();
+  }, []);
+
+  const handleRestore = async (mission) => {
+    try {
+      await restoreMission(mission.missionId);
+      setExcludedList((prev) =>
+        prev.filter((m) => m.missionId !== mission.missionId),
+      );
+      showToast(`'${mission.name}' 추천이 다시 포함됐어요`);
+    } catch (error) {
+      console.error("복구 실패:", error);
+    }
   };
+
+  if (isLoading) return null; // TODO: 로딩 스피너로 교체 가능
 
   return (
     <S.Wrapper>
@@ -28,11 +52,11 @@ const ExcludePage = () => {
 
         {excludedList.length > 0 ? (
           <S.ItemList>
-            {excludedList.map((item, index) => (
-              <div key={item.id}>
+            {excludedList.map((mission) => (
+              <div key={mission.missionId}>
                 <S.Item>
-                  <S.ItemLabel>{item.label}</S.ItemLabel>
-                  <S.RestoreButton onClick={() => handleRestore(item)}>
+                  <S.ItemLabel>{mission.name}</S.ItemLabel>
+                  <S.RestoreButton onClick={() => handleRestore(mission)}>
                     다시 추천받기
                   </S.RestoreButton>
                 </S.Item>
@@ -46,7 +70,6 @@ const ExcludePage = () => {
               <S.EmptyIconWrapper>
                 <S.EmptyImage src={CheckImg} alt="" />
               </S.EmptyIconWrapper>
-
               <S.EmptyTitle>아직 제외한 행동이 없어요</S.EmptyTitle>
               <S.EmptyDescription>
                 사용하면서 나와 맞지 않는 행동을
@@ -54,9 +77,7 @@ const ExcludePage = () => {
                 하나씩 알아갈게요
               </S.EmptyDescription>
             </S.EmptyCenterBlock>
-
             <S.FooterDivider />
-
             <S.FooterNote>
               NEXT TIME를 사용하면서 나와 맞지 않는 행동은
               <br />
