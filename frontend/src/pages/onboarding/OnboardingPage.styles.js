@@ -1,11 +1,5 @@
 import styled from "styled-components";
 
-export const StatusBarImage = styled.img`
-  width: 100%;
-  height: auto;
-  display: block;
-  margin-bottom: 12px;
-`;
 
 export const ProgressBarTrack = styled.div`
   width: 100%;

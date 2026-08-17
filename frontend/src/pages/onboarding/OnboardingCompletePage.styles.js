@@ -6,13 +6,6 @@ export const Wrapper = styled.div`
   overflow-y: auto;
 `;
 
-export const StatusBarImage = styled.img`
-  width: 100%;
-  height: auto;
-  display: block;
-  margin-bottom: 27;
-`;
-
 export const Content = styled.div`
   padding: 40px 20px 40px;
 `;

@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import mascotImg from "../../assets/mascot-loading.svg";
-import statusBarImg from "../../assets/statusbar.svg";
 import * as S from "./OnboardingLoadingPage.styles";
 
 const LOADING_DURATION = 3000;
@@ -18,8 +17,6 @@ const OnboardingLoadingPage = () => {
 
   return (
     <S.Wrapper>
-      <S.StatusBarImage src={statusBarImg} alt="" />
-
       <S.Content>
         <S.MascotWrapper>
           <S.MascotImage src={mascotImg} alt="" />

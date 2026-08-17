@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import mascotRunImg from "../../assets/mascot-run.svg";
-import statusBarImg from "../../assets/statusbar.svg";
 import * as S from "./OnboardingCompletePage.styles";
 
 const OnboardingCompletePage = () => {
@@ -15,7 +14,6 @@ const OnboardingCompletePage = () => {
 
   return (
     <>
-      <S.StatusBarImage src={statusBarImg} alt="" />
       <S.Wrapper>
         <S.Content>
           <S.Title>당신의 NEXT ME가 만들어졌어요</S.Title>

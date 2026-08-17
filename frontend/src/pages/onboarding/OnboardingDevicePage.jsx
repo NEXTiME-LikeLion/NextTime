@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import deviceIconImg from "../../assets/device.svg";
-import statusBarImg from "../../assets/statusbar.svg";
 import * as S from "./OnboardingDevicePage.styles";
 
 const OnboardingDevicePage = () => {
@@ -16,7 +15,6 @@ const OnboardingDevicePage = () => {
 
   return (
     <S.Wrapper>
-      <S.StatusBarImage src={statusBarImg} alt="" />
       <S.Content>
         <S.DeviceIcon src={deviceIconImg} alt="" />
 

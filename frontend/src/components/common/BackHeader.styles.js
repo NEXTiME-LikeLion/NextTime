@@ -1,12 +1,5 @@
 import styled from "styled-components";
 
-export const StatusBarImage = styled.img`
-  width: 100%;
-  height: auto;
-  aspect-ratio: 375 / 57.828;
-  display: block;
-`;
-
 export const HeaderWrapper = styled.header`
   display: flex;
   align-items: center;
