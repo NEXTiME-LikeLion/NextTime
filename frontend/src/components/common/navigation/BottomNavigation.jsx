@@ -5,9 +5,9 @@ import PatternIcon from "./icons/PatternIcon";
 import SettingIcon from "./icons/SettingIcon";
 
 const menus = [
-  { to: "/", text: "홈", Icon: HomeIcon, end: true },
-  { to: "/pattern", text: "패턴", Icon: PatternIcon },
-  { to: "/settings", text: "설정", Icon: SettingIcon },
+  { to: "/main", text: "홈", Icon: HomeIcon, end: true },
+  { to: "/main/pattern", text: "패턴", Icon: PatternIcon },
+  { to: "/main/settings", text: "설정", Icon: SettingIcon },
 ];
 
 function BottomNavigation() {
