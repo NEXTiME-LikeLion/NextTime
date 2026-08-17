@@ -2,6 +2,7 @@ package com.nextime.user.api;
 
 import com.nextime.common.config.WebConfig;
 import com.nextime.common.error.GlobalExceptionHandler;
+import com.nextime.mission.application.ExcludedMissionService;
 import com.nextime.security.CurrentUserArgumentResolver;
 import com.nextime.security.RestAuthenticationEntryPoint;
 import com.nextime.security.SecurityConfig;
@@ -55,6 +56,9 @@ class UserControllerSecurityTest {
 
     @MockitoBean
     private OnboardingService onboardingService;
+
+    @MockitoBean
+    private ExcludedMissionService excludedMissionService;
 
     @MockitoBean
     private JwtDecoder jwtDecoder;

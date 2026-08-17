@@ -8,6 +8,7 @@ import com.nextime.nexttime.domain.MissionHelpfulness;
 import com.nextime.nexttime.domain.NextTimeResult;
 import com.nextime.nexttime.domain.NextTimeSession;
 import com.nextime.nexttime.domain.NextTimeSessionRepository;
+import com.nextime.nexttime.recommendation.application.MissionRecommendationService;
 import com.nextime.pattern.api.PatternOverviewResponse.ChangeDirection;
 import com.nextime.pattern.api.PatternOverviewResponse.DataStatus;
 import com.nextime.smokingcontext.domain.SmokingContext;
@@ -46,6 +47,8 @@ class PatternOverviewServiceTest {
     private UserRepository userRepository;
     @Mock
     private NextTimeSessionRepository sessionRepository;
+    @Mock
+    private MissionRecommendationService recommendationService;
 
     private PatternOverviewService service;
     private SmokingContext afterWork;
@@ -57,13 +60,19 @@ class PatternOverviewServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new PatternOverviewService(userRepository, sessionRepository);
         afterWork = context("10000000-0000-0000-0000-000000000001", "AFTER_WORK", "일·공부가 끝난 뒤");
         stress = context("10000000-0000-0000-0000-000000000002", "STRESS", "스트레스");
         smokingArea = context("11000000-0000-0000-0000-000000000001", "NEAR_SMOKING_AREA", "흡연구역 근처");
         home = context("11000000-0000-0000-0000-000000000002", "HOME", "집");
         walk = mission("20000000-0000-0000-0000-000000000003", "SHORT_WALK", "잠깐 걷기");
         breathing = mission("20000000-0000-0000-0000-000000000002", "STEADY_BREATHING", "호흡 가다듬기");
+        lenient().when(recommendationService.preview(eq(USER_ID), any(), any(), any()))
+                .thenReturn(new MissionRecommendationService.RecommendationPreview(
+                        walk,
+                        "정책 추천",
+                        com.nextime.nexttime.domain.RecommendationSource.RULE
+                ));
+        service = new PatternOverviewService(userRepository, sessionRepository, recommendationService);
     }
 
     @Test
@@ -114,9 +123,6 @@ class PatternOverviewServiceTest {
                 .thenReturn(thirtyDayResults);
         when(sessionRepository.findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(eq(USER_ID), any()))
                 .thenReturn(List.of(current1, current2, current3, current4, current5));
-        when(sessionRepository.findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(USER_ID, RESULT_RECORDED))
-                .thenReturn(List.of(current1, current2, current3));
-
         var response = service.getOverview(USER_ID);
 
         assertThat(response.dataStatus()).isEqualTo(DataStatus.AVAILABLE);
@@ -124,6 +130,19 @@ class PatternOverviewServiceTest {
         assertThat(response.insight().topTrigger().code()).isEqualTo("AFTER_WORK");
         assertThat(response.insight().topTrigger().count()).isEqualTo(3);
         assertThat(response.insight().topLocation().code()).isEqualTo("NEAR_SMOKING_AREA");
+        assertThat(response.insight().patternReady()).isTrue();
+        assertThat(response.insight().periodLabel()).isEqualTo("최근 7일");
+        assertThat(response.insight().representativeCraving()).isEqualTo(CravingBefore.HIGH);
+        assertThat(response.insight().recommendedAction().code()).isEqualTo("SHORT_WALK");
+        assertThat(response.insight().messages().mainPattern())
+                .isEqualTo("일·공부가 끝난 뒤에 가장 흔들렸어요");
+        assertThat(response.insight().messages().frequency())
+                .isEqualTo("기록한 욕구 5번 중 3번");
+        assertThat(response.insight().messages().representativeLocation())
+                .isEqualTo("특히 흡연구역 근처에서 강했어요");
+        assertThat(response.insight().messages().nextAction())
+                .isEqualTo("이럴 때 잠깐 걷기 해보세요!");
+        assertThat(response.insight().actionEvidence()).isNull();
         assertThat(response.insight().topTimeSlot().startHour()).isEqualTo(12);
         assertThat(response.insight().topTimeSlot().count()).isEqualTo(5);
 
@@ -159,7 +178,7 @@ class PatternOverviewServiceTest {
         var response = service.getOverview(USER_ID);
 
         assertThat(response.dataStatus()).isEqualTo(DataStatus.INSUFFICIENT);
-        assertThat(response.recentResultCount()).isZero();
+        assertThat(response.recentResultCount()).isEqualTo(1);
         assertThat(response.insight()).isNull();
         assertThat(response.behaviorChange()).isNull();
         assertThat(response.effectiveActions()).isEmpty();
@@ -201,9 +220,6 @@ class PatternOverviewServiceTest {
                 .thenReturn(results);
         when(sessionRepository.findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(eq(USER_ID), any()))
                 .thenReturn(results);
-        when(sessionRepository.findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(USER_ID, RESULT_RECORDED))
-                .thenReturn(results);
-
         var response = service.getOverview(USER_ID);
 
         assertThat(response.effectiveActions()).isEmpty();

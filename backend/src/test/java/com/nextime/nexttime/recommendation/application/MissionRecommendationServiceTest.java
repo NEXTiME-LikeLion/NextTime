@@ -25,6 +25,8 @@ import static com.nextime.mission.domain.MissionEffortType.ACTIVE;
 import static com.nextime.mission.domain.MissionEffortType.LOW_EFFORT;
 import static com.nextime.nexttime.domain.CravingBefore.MEDIUM;
 import static com.nextime.nexttime.domain.MissionHelpfulness.HELPFUL;
+import static com.nextime.nexttime.domain.MissionHelpfulness.NOT_FIT;
+import static com.nextime.nexttime.domain.NextTimeResult.SMOKED;
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.MISSION_RECOMMENDED;
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.RESULT_RECORDED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,6 +100,106 @@ class MissionRecommendationServiceTest {
     }
 
     @Test
+    void automaticallyExcludesMissionWhenLatestThreeSessionScoresAreAllMinusTwo() {
+        UUID userId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        SmokingContext home = context("HOME", "집", SmokingContextType.LOCATION);
+        SmokingContext meal = context("AFTER_MEAL", "밥을 먹고 나서", SmokingContextType.TRIGGER);
+        NextTimeSession session = contextSavedSession(home, meal);
+        Mission brush = mission("BRUSH_OR_RINSE", "양치", LOW_EFFORT);
+        Mission gum = mission("GUM_OR_CANDY", "껌이나 사탕", LOW_EFFORT);
+        List<NextTimeSession> history = List.of(
+                history(brush, home, meal, NOT_FIT, SMOKED),
+                history(brush, home, meal, NOT_FIT, SMOKED),
+                history(brush, home, meal, NOT_FIT, SMOKED)
+        );
+        stubRequest(userId, sessionId, session, home, List.of(brush, gum), history);
+
+        var response = service.recommend(userId, sessionId);
+
+        assertThat(response.mission().code()).isEqualTo("GUM_OR_CANDY");
+        verify(missionRepository).saveAutomaticExclusion(userId, brush.getId());
+    }
+
+    @Test
+    void doesNotAutomaticallyExcludeMissionWithOnlyTwoMinusTwoScores() {
+        UUID userId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        SmokingContext home = context("HOME", "집", SmokingContextType.LOCATION);
+        SmokingContext meal = context("AFTER_MEAL", "밥을 먹고 나서", SmokingContextType.TRIGGER);
+        NextTimeSession session = contextSavedSession(home, meal);
+        Mission brush = mission("BRUSH_OR_RINSE", "양치", LOW_EFFORT);
+        List<NextTimeSession> history = List.of(
+                history(brush, home, meal, NOT_FIT, SMOKED),
+                history(brush, home, meal, NOT_FIT, SMOKED)
+        );
+        stubRequest(userId, sessionId, session, home, List.of(brush), history);
+
+        service.recommend(userId, sessionId);
+
+        verify(missionRepository, never()).saveAutomaticExclusion(any(), any());
+    }
+
+    @Test
+    void restoredMissionIgnoresResultsRecordedBeforeRestore() {
+        UUID userId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        SmokingContext home = context("HOME", "집", SmokingContextType.LOCATION);
+        SmokingContext meal = context("AFTER_MEAL", "밥을 먹고 나서", SmokingContextType.TRIGGER);
+        NextTimeSession session = contextSavedSession(home, meal);
+        Mission brush = mission("BRUSH_OR_RINSE", "양치", LOW_EFFORT);
+        UUID brushId = brush.getId();
+        List<NextTimeSession> history = List.of(
+                history(brush, home, meal, NOT_FIT, SMOKED),
+                history(brush, home, meal, NOT_FIT, SMOKED),
+                history(brush, home, meal, NOT_FIT, SMOKED)
+        );
+        stubRequest(userId, sessionId, session, home, List.of(brush), history);
+        Instant restoredAt = Instant.parse("2026-08-17T03:00:00Z");
+        history.forEach(past -> when(past.getResultRecordedAt())
+                .thenReturn(Instant.parse("2026-08-17T02:00:00Z")));
+        MissionRepository.RestoredMissionView restored = mock(MissionRepository.RestoredMissionView.class);
+        when(restored.getMissionId()).thenReturn(brushId);
+        when(restored.getRestoredAt()).thenReturn(restoredAt);
+        when(missionRepository.findRestoredMissions(userId)).thenReturn(List.of(restored));
+
+        var response = service.recommend(userId, sessionId);
+
+        assertThat(response.mission().code()).isEqualTo("BRUSH_OR_RINSE");
+        verify(missionRepository, never()).saveAutomaticExclusion(any(), any());
+    }
+
+    @Test
+    void excludesRestoredMissionAgainAfterThreeNewMinimumScores() {
+        UUID userId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        SmokingContext home = context("HOME", "집", SmokingContextType.LOCATION);
+        SmokingContext meal = context("AFTER_MEAL", "밥을 먹고 나서", SmokingContextType.TRIGGER);
+        NextTimeSession session = contextSavedSession(home, meal);
+        Mission brush = mission("BRUSH_OR_RINSE", "양치", LOW_EFFORT);
+        Mission gum = mission("GUM_OR_CANDY", "껌이나 사탕", LOW_EFFORT);
+        Instant restoredAt = Instant.parse("2026-08-17T03:00:00Z");
+        List<NextTimeSession> history = List.of(
+                history(brush, home, meal, NOT_FIT, SMOKED),
+                history(brush, home, meal, NOT_FIT, SMOKED),
+                history(brush, home, meal, NOT_FIT, SMOKED)
+        );
+        history.forEach(past -> when(past.getResultRecordedAt())
+                .thenReturn(Instant.parse("2026-08-17T04:00:00Z")));
+        stubRequest(userId, sessionId, session, home, List.of(brush, gum), history);
+        UUID brushId = brush.getId();
+        MissionRepository.RestoredMissionView restored = mock(MissionRepository.RestoredMissionView.class);
+        when(restored.getMissionId()).thenReturn(brushId);
+        when(restored.getRestoredAt()).thenReturn(restoredAt);
+        when(missionRepository.findRestoredMissions(userId)).thenReturn(List.of(restored));
+
+        var response = service.recommend(userId, sessionId);
+
+        assertThat(response.mission().code()).isEqualTo("GUM_OR_CANDY");
+        verify(missionRepository).saveAutomaticExclusion(userId, brushId);
+    }
+
+    @Test
     void returnsSavedRecommendationWithoutRecalculating() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -139,6 +241,7 @@ class MissionRecommendationServiceTest {
         when(sessionRepository.findWithRecommendationByIdAndUser_Id(sessionId, userId))
                 .thenReturn(Optional.of(session));
         when(missionRepository.findExcludedMissionIds(userId)).thenReturn(List.of());
+        when(missionRepository.findRestoredMissions(userId)).thenReturn(List.of());
         when(missionRepository.findActiveAvailableAt(location.getId())).thenReturn(missions);
         when(copingProfileRepository.findFirstByUserIdOrderByCreatedAtDesc(userId))
                 .thenReturn(Optional.empty());
@@ -163,7 +266,7 @@ class MissionRecommendationServiceTest {
     ) {
         NextTimeSession session = mock(NextTimeSession.class);
         when(session.getRecommendedMission()).thenReturn(mission);
-        when(session.getContexts()).thenReturn(java.util.Set.of(location, trigger));
+        lenient().when(session.getContexts()).thenReturn(java.util.Set.of(location, trigger));
         when(session.getMissionHelpfulness()).thenReturn(helpfulness);
         when(session.getResult()).thenReturn(result);
         return session;

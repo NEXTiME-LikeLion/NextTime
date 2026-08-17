@@ -31,6 +31,8 @@ import java.util.UUID;
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.CONTEXT_SAVED;
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.MISSION_RECOMMENDED;
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.RESULT_RECORDED;
+import static com.nextime.nexttime.domain.MissionHelpfulness.NOT_FIT;
+import static com.nextime.nexttime.domain.NextTimeResult.SMOKED;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +81,25 @@ public class MissionRecommendationService {
         SmokingContext location = session.contextOf(SmokingContextType.LOCATION);
         SmokingContext trigger = session.contextOf(SmokingContextType.TRIGGER);
 
+        List<NextTimeSession> history = sessionRepository
+                .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
+                        userId,
+                        RESULT_RECORDED,
+                        Instant.now().minus(30, ChronoUnit.DAYS)
+                );
+
         Set<UUID> excludedIds = new HashSet<>(missionRepository.findExcludedMissionIds(userId));
+        Map<UUID, Instant> restoredAtByMission = missionRepository.findRestoredMissions(userId).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        MissionRepository.RestoredMissionView::getMissionId,
+                        MissionRepository.RestoredMissionView::getRestoredAt
+                ));
+        Set<UUID> automaticallyExcludedIds = automaticallyExcludedMissionIds(history, restoredAtByMission);
+        automaticallyExcludedIds.stream()
+                .filter(missionId -> !excludedIds.contains(missionId))
+                .forEach(missionId -> missionRepository.saveAutomaticExclusion(userId, missionId));
+        excludedIds.addAll(automaticallyExcludedIds);
+
         List<Mission> available = missionRepository.findActiveAvailableAt(location.getId()).stream()
                 .filter(mission -> !excludedIds.contains(mission.getId()))
                 .toList();
@@ -98,13 +118,6 @@ public class MissionRecommendationService {
         }
 
         Set<String> preferredCodes = preferredMissionCodes(userId);
-        List<NextTimeSession> history = sessionRepository
-                .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
-                        userId,
-                        RESULT_RECORDED,
-                        Instant.now().minus(30, ChronoUnit.DAYS)
-                );
-
         Selection selection = select(
                 plan.candidates(),
                 history,
@@ -119,6 +132,88 @@ public class MissionRecommendationService {
         Instant now = Instant.now();
         session.recommend(selection.mission(), selection.reason(), selection.source(), now);
         return MissionRecommendationResponse.from(session);
+    }
+
+    @Transactional
+    public RecommendationPreview preview(
+            UUID userId,
+            SmokingContext location,
+            SmokingContext trigger,
+            com.nextime.nexttime.domain.CravingBefore craving
+    ) {
+        List<NextTimeSession> history = sessionRepository
+                .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
+                        userId,
+                        RESULT_RECORDED,
+                        Instant.now().minus(30, ChronoUnit.DAYS)
+                );
+
+        Set<UUID> excludedIds = new HashSet<>(missionRepository.findExcludedMissionIds(userId));
+        Map<UUID, Instant> restoredAtByMission = missionRepository.findRestoredMissions(userId).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        MissionRepository.RestoredMissionView::getMissionId,
+                        MissionRepository.RestoredMissionView::getRestoredAt
+                ));
+        excludedIds.addAll(automaticallyExcludedMissionIds(history, restoredAtByMission));
+
+        List<Mission> available = missionRepository.findActiveAvailableAt(location.getId()).stream()
+                .filter(mission -> !excludedIds.contains(mission.getId()))
+                .toList();
+        MissionCandidatePolicy.CandidatePlan plan = candidatePolicy.planCandidates(
+                location.getCode(),
+                trigger.getCode(),
+                craving,
+                available
+        );
+        if (plan.candidates().isEmpty()) {
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "행동 미션을 추천할 수 없습니다.");
+        }
+
+        Selection selection = select(
+                plan.candidates(),
+                history,
+                trigger.getCode(),
+                location.getCode(),
+                trigger.getName(),
+                location.getName(),
+                preferredMissionCodes(userId),
+                plan.fallback()
+        );
+        return new RecommendationPreview(selection.mission(), selection.reason(), selection.source());
+    }
+
+    private Set<UUID> automaticallyExcludedMissionIds(
+            List<NextTimeSession> history,
+            Map<UUID, Instant> restoredAtByMission
+    ) {
+        Map<UUID, List<NextTimeSession>> recentByMission = new LinkedHashMap<>();
+        for (NextTimeSession past : history) {
+            if (past.getRecommendedMission() == null) {
+                continue;
+            }
+            Instant restoredAt = restoredAtByMission.get(past.getRecommendedMission().getId());
+            if (restoredAt != null
+                    && (past.getResultRecordedAt() == null || !past.getResultRecordedAt().isAfter(restoredAt))) {
+                continue;
+            }
+            List<NextTimeSession> recent = recentByMission.computeIfAbsent(
+                    past.getRecommendedMission().getId(),
+                    ignored -> new ArrayList<>()
+            );
+            if (recent.size() < 3) {
+                recent.add(past);
+            }
+        }
+
+        return recentByMission.entrySet().stream()
+                .filter(entry -> entry.getValue().size() == 3)
+                .filter(entry -> entry.getValue().stream().allMatch(this::hasMinimumSessionScore))
+                .map(Map.Entry::getKey)
+                .collect(java.util.stream.Collectors.toSet());
+    }
+
+    private boolean hasMinimumSessionScore(NextTimeSession session) {
+        return session.getMissionHelpfulness() == NOT_FIT && session.getResult() == SMOKED;
     }
 
     private Selection select(
@@ -264,5 +359,12 @@ public class MissionRecommendationService {
     }
 
     private record Selection(Mission mission, String reason, RecommendationSource source) {
+    }
+
+    public record RecommendationPreview(
+            Mission mission,
+            String reason,
+            RecommendationSource source
+    ) {
     }
 }
