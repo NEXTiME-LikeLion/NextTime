@@ -29,6 +29,21 @@ jobs:
     name: Test and build
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: nextime_test
+          POSTGRES_USER: nextime
+          POSTGRES_PASSWORD: nextime_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nextime -d nextime_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     defaults:
       run:
         working-directory: backend
@@ -51,6 +66,13 @@ jobs:
         run: chmod +x gradlew
 
       - name: Test backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/nextime_test
+          SPRING_DATASOURCE_USERNAME: nextime
+          SPRING_DATASOURCE_PASSWORD: nextime_test_password
+          SPRING_FLYWAY_URL: jdbc:postgresql://localhost:5432/nextime_test
+          SPRING_FLYWAY_USER: nextime
+          SPRING_FLYWAY_PASSWORD: nextime_test_password
         run: ./gradlew test --no-daemon
 
       - name: Build Spring Boot JAR
