@@ -14,3 +14,23 @@ spring:
 
   flyway:
     enabled: true
+
+app:
+  security:
+    cognito:
+      issuer-uri: ${COGNITO_ISSUER_URI:https://cognito-idp.ap-northeast-2.amazonaws.com/ap-northeast-2_bOOYBSeMP}
+      jwk-set-uri: ${COGNITO_JWK_SET_URI:https://cognito-idp.ap-northeast-2.amazonaws.com/ap-northeast-2_bOOYBSeMP/.well-known/jwks.json}
+      app-client-id: ${COGNITO_APP_CLIENT_ID:local-app-client}
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+  ai:
+    provider: ${AI_PROVIDER:mock}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      model: ${OPENAI_MODEL:gpt-5.4-mini}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+
+mqtt:
+  broker-url: ${MQTT_BROKER_URL:tcp://localhost:1883}
+  client-id: ${MQTT_CLIENT_ID:nextime-backend-demo}
+  topic: ${MQTT_TOPIC:esp32/button}
