@@ -79,8 +79,10 @@ public class PatternOverviewService {
             return insufficientOverview(windows, patternTarget.sessions().size());
         }
 
-        List<NextTimeSession> recentRecords =
-                sessionRepository.findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(userId, RESULT_RECORDED);
+        List<NextTimeSession> recentRecords = recentThirtyDayResults.stream()
+                .filter(this::hasPatternContext)
+                .limit(3)
+                .toList();
 
         return new PatternOverviewResponse(
                 new Period(SUPPORTED_PERIOD, windows.currentStart(), windows.currentEnd()),

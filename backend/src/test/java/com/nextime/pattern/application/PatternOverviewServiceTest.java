@@ -123,9 +123,6 @@ class PatternOverviewServiceTest {
                 .thenReturn(thirtyDayResults);
         when(sessionRepository.findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(eq(USER_ID), any()))
                 .thenReturn(List.of(current1, current2, current3, current4, current5));
-        when(sessionRepository.findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(USER_ID, RESULT_RECORDED))
-                .thenReturn(List.of(current1, current2, current3));
-
         var response = service.getOverview(USER_ID);
 
         assertThat(response.dataStatus()).isEqualTo(DataStatus.AVAILABLE);
@@ -223,9 +220,6 @@ class PatternOverviewServiceTest {
                 .thenReturn(results);
         when(sessionRepository.findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(eq(USER_ID), any()))
                 .thenReturn(results);
-        when(sessionRepository.findTop3ByUser_IdAndStatusOrderByResultRecordedAtDesc(USER_ID, RESULT_RECORDED))
-                .thenReturn(results);
-
         var response = service.getOverview(USER_ID);
 
         assertThat(response.effectiveActions()).isEmpty();
