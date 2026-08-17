@@ -24,7 +24,9 @@ function PatternPage() {
 
   return (
     <TabMainLayout
-      header={<PatternHeader pattern={pattern} />}
+      // TODO: API 연동 후 패턴 전달
+      // header={<PatternHeader pattern={pattern} />}
+      header={<PatternHeader />}
       content={<PatternContent />}
     />
   );

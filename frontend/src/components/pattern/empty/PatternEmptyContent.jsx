@@ -1,10 +1,10 @@
 import styled from "styled-components";
-import mascotPattern from "../../../assets/mascot-pattern.svg";
+import mascot from "../../../assets/mascot.svg";
 
 function PatternEmptyContent({ recordCount, requiredCount }) {
   return (
     <Container>
-      <Mascot src={mascotPattern} alt="" />
+      <Mascot src={mascot} alt="" />
       <Message>
         기록이 5번 이상 누적되면
         <br />
