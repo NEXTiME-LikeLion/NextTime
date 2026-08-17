@@ -40,7 +40,7 @@ function ContextFlowPage() {
       setCurrentStepIndex((prev) => prev - 1);
       return;
     }
-    navigate(-1);
+    navigate("/", { replace: true });
   };
 
   const handleSelect = (value) => {
@@ -51,7 +51,7 @@ function ContextFlowPage() {
     if (!selectedValue) return;
 
     if (isLastStep) {
-      navigate("/next-time/next-me");
+      navigate("/next-time/next-me", { replace: true });
       return;
     }
 

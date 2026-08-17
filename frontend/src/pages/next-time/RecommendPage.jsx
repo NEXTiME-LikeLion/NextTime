@@ -20,7 +20,7 @@ function RecommendPage() {
   const titleLines = splitMissionTitle(title);
 
   const handleStart = () => {
-    navigate("/next-time/mission");
+    navigate("/next-time/mission", { replace: true });
   };
 
   const handleSkip = () => {
@@ -28,7 +28,7 @@ function RecommendPage() {
   };
 
   const handleBack = () => {
-    navigate(-1);
+    navigate("/next-time/context", { replace: true });
   };
 
   return (

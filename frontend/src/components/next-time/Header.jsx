@@ -1,13 +1,15 @@
 import styled from "styled-components";
 import backArrow from "../../assets/back-arrow.svg";
 
-function Header({ title, subtitle, onBack }) {
+function Header({ title, subtitle, onBack, back = true }) {
   return (
     <Wrapper>
       <NavRow>
-        <BackButton type="button" onClick={onBack} aria-label="뒤로가기">
-          <ArrowIcon src={backArrow} alt="뒤로가기 아이콘" />
-        </BackButton>
+        {back && (
+          <BackButton type="button" onClick={onBack} aria-label="뒤로가기">
+            <ArrowIcon src={backArrow} alt="뒤로가기 아이콘" />
+          </BackButton>
+        )}
         <TitleBlock>
           {title && <Title>{title}</Title>}
           {subtitle && <Title>{subtitle}</Title>}

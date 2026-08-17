@@ -30,11 +30,6 @@ function RecordPage() {
 
   const isFormValid = howDidYouDo && currentIntensity && missionFeedback;
 
-  // TODO: 뒤로가기 버튼 삭제 예정
-  const handleBack = () => {
-    // navigate(-1);
-  };
-
   const handleSubmit = () => {
     if (!isFormValid) return;
 
@@ -61,7 +56,7 @@ function RecordPage() {
 
   return (
     <PageContainer>
-      <Header title="기록하기" onBack={handleBack} />
+      <Header title="기록하기" back={false} />
 
       <IntroBlock>
         <MainTitle>지금은 어떠신가요?</MainTitle>

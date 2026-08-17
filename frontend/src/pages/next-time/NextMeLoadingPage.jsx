@@ -40,7 +40,7 @@ function NextMeLoadingPage() {
   }, [navigate, setRecommendedMission, situationIntensity, location, moment]);
 
   const handleBack = () => {
-    navigate(-1);
+    navigate("/next-time/context", { replace: true });
   };
 
   return (

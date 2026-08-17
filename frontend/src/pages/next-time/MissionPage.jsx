@@ -40,16 +40,16 @@ function MissionPage() {
 
   useEffect(() => {
     if (remainingSeconds <= 0) {
-      navigate("/next-time/record");
+      navigate("/next-time/record", { replace: true });
     }
   }, [remainingSeconds, navigate]);
 
   const handleBack = () => {
-    navigate(-1);
+    navigate("/next-time/recommend", { replace: true });
   };
 
   const handleSkip = () => {
-    navigate("/next-time/record");
+    navigate("/next-time/record", { replace: true });
   };
 
   return (

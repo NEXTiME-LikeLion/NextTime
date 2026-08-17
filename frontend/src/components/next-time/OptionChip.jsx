@@ -31,7 +31,8 @@ const Chip = styled.button`
   height: 3.25rem;
   min-height: 2.75rem;
   min-width: 2.75rem;
-  padding: 0.94rem 0.69rem;
+  padding: ${({ layout }) =>
+    layout === "list-start" ? `0.75rem 1.25rem` : `0.94rem 0.69rem`};
 
   border-radius: 0.75rem;
   border: ${({ $selected, theme }) =>
