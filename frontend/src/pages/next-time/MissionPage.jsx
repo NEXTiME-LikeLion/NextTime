@@ -96,6 +96,7 @@ function MissionPage() {
 export default MissionPage;
 
 const PageContainer = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -104,6 +105,7 @@ const PageContainer = styled.div`
 `;
 
 const AllContent = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
