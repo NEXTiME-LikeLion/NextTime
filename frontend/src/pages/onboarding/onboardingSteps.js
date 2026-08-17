@@ -43,6 +43,7 @@ export const ONBOARDING_STEPS = [
                 label: "특히 끊기 어려운 순간이 있나요?",
                 note: "* 자유 입력",
                 type: "text",
+                required: false,
                 textareaHeight: 140,
                 placeholder: "예) 퇴근하고 회사 건물 밖으로 나오면 항상 피워요.", // TODO: placeholder 문구 확인 필요
             },
@@ -65,6 +66,7 @@ export const ONBOARDING_STEPS = [
                 key: "motivation",
                 label: "결심이 선 계기를 알려주세요.",
                 note: "* 자유 입력",
+                required: true,
                 type: "text",
                 placeholder: "예) 러닝을 꾸준히 하는데 항상 숨이 먼저 차서 더 이상 기록이 늘지 않았어요.",
             },
@@ -72,6 +74,7 @@ export const ONBOARDING_STEPS = [
                 key: "nextMe",
                 label: "앞으로 어떤 내가 되고 싶나요?",
                 note: "* 자유 입력",
+                required: true,
                 type: "text",
                 placeholder: "예) 러닝할 때 숨이 차서 먼저 멈추지 않는 나",
             },
@@ -79,6 +82,7 @@ export const ONBOARDING_STEPS = [
                 key: "leftMessage",
                 label: "그때의 나에게 남겨두고 싶은 말이 있나요?",
                 note: "* 자유 입력",
+                required: true,
                 type: "text",
                 placeholder: "예) 러닝도 수영도, 내 체력 때문에 포기하고 싶지 않아. 할 수 있다. 해보자.", // TODO: 정확한 문구 확인 필요
             },

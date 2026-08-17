@@ -1,16 +1,20 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import mascotRunImg from "../../assets/mascot-run.svg";
 import * as S from "./OnboardingCompletePage.styles";
 
 const OnboardingCompletePage = () => {
   const navigate = useNavigate();
-  const nextMe = "러닝할 때 숨이 차서 먼저 멈추지 않는 나";
-  const motivation = "건강을 위해서";
-  const leftMessage = "러닝도 수영도, 체력 때문에 포기하고 싶지 않아";
+  const location = useLocation();
+  const { nextMeData, answers } = location.state || {};
 
   const handleStart = () => {
     navigate("/onboarding/device");
   };
+
+  if (!nextMeData || !answers) {
+    navigate("/onboarding");
+    return null;
+  }
 
   return (
     <>
@@ -25,10 +29,10 @@ const OnboardingCompletePage = () => {
 
           <S.NextMeCard>
             <S.NextMeLabel>NEXT ME</S.NextMeLabel>
-            <S.NextMeText>{nextMe}</S.NextMeText>
+            <S.NextMeText>{nextMeData.headline}</S.NextMeText>
 
             <S.NextMeSubLabel>내가 남긴 말</S.NextMeSubLabel>
-            <S.NextMeSubText>{leftMessage}</S.NextMeSubText>
+            <S.NextMeSubText>{answers.leftMessage}</S.NextMeSubText>
 
             <S.MascotImage src={mascotRunImg} alt="" />
           </S.NextMeCard>
@@ -37,17 +41,17 @@ const OnboardingCompletePage = () => {
 
           <S.MemoryItem>
             <S.MemoryLabel>원하는 미래</S.MemoryLabel>
-            <S.MemoryText>{nextMe}</S.MemoryText>
+            <S.MemoryText>{answers.nextMe}</S.MemoryText>
           </S.MemoryItem>
 
           <S.MemoryItem>
             <S.MemoryLabel>시작한 이유</S.MemoryLabel>
-            <S.MemoryText>{motivation}</S.MemoryText>
+            <S.MemoryText>{answers.motivation}</S.MemoryText>
           </S.MemoryItem>
 
           <S.MemoryItem>
             <S.MemoryLabel>내가 남긴 말</S.MemoryLabel>
-            <S.MemoryText>"{leftMessage}"</S.MemoryText>
+            <S.MemoryText>"{answers.leftMessage}"</S.MemoryText>
           </S.MemoryItem>
 
           <S.StartButton onClick={handleStart}>
