@@ -1,0 +1,152 @@
+name: Backend CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci-cd.yml"
+
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci-cd.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-production
+  cancel-in-progress: false
+
+jobs:
+  test-and-build:
+    name: Test and build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            backend/**/*.gradle*
+            backend/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Grant Gradle permission
+        run: chmod +x gradlew
+
+      - name: Test backend
+        run: ./gradlew test --no-daemon
+
+      - name: Build Spring Boot JAR
+        run: ./gradlew bootJar --no-daemon
+
+      - name: Select deployment JAR
+        run: |
+          JAR_PATH="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' | head -n 1)"
+          if [ -z "$JAR_PATH" ]; then
+            echo "배포할 Spring Boot JAR를 찾지 못했습니다."
+            exit 1
+          fi
+          cp "$JAR_PATH" /tmp/nextime.jar
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextime-backend-${{ github.sha }}
+          path: /tmp/nextime.jar
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Deploy to production
+    needs: test-and-build
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextime-backend-${{ github.sha }}
+          path: deployment
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-2
+
+      - name: Upload JAR to S3
+        env:
+          DEPLOY_BUCKET: ${{ vars.DEPLOY_S3_BUCKET }}
+          S3_KEY: backend/${{ github.sha }}/nextime.jar
+        run: aws s3 cp deployment/nextime.jar "s3://${DEPLOY_BUCKET}/${S3_KEY}"
+
+      - name: Deploy through SSM
+        env:
+          DEPLOY_BUCKET: ${{ vars.DEPLOY_S3_BUCKET }}
+          EC2_INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
+          S3_KEY: backend/${{ github.sha }}/nextime.jar
+          HEALTH_CHECK_URL: ${{ vars.HEALTH_CHECK_URL }}
+        run: |
+          HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:8080/actuator/health}"
+
+          jq -n \
+            --arg bucket "$DEPLOY_BUCKET" \
+            --arg key "$S3_KEY" \
+            --arg health "$HEALTH_CHECK_URL" \
+            '{
+              commands: [
+                "set -eu",
+                "mkdir -p /opt/nextime",
+                "aws s3 cp s3://\($bucket)/\($key) /tmp/nextime.jar",
+                "install -m 644 /tmp/nextime.jar /opt/nextime/nextime.jar.new",
+                "mv /opt/nextime/nextime.jar.new /opt/nextime/nextime.jar",
+                "systemctl restart nextime.service",
+                "systemctl is-active --quiet nextime.service",
+                "for attempt in $(seq 1 30); do curl --fail --silent \($health) >/dev/null && exit 0; sleep 2; done; echo Health check failed; journalctl -u nextime.service -n 100 --no-pager; exit 1"
+              ]
+            }' > ssm-parameters.json
+
+          COMMAND_ID="$(
+            aws ssm send-command \
+              --instance-ids "$EC2_INSTANCE_ID" \
+              --document-name AWS-RunShellScript \
+              --comment "Deploy NextTime backend $GITHUB_SHA" \
+              --parameters file://ssm-parameters.json \
+              --query 'Command.CommandId' \
+              --output text
+          )"
+
+          echo "SSM command: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID"
+
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID"
