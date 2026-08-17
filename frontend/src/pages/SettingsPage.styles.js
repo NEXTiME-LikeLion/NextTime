@@ -3,17 +3,13 @@ import styled from "styled-components";
 export const Container = styled.div`
   width: 100%;
   height: 100%;
-  padding: 20px 20px 0;
+  padding: 0 20px 0;
   box-sizing: border-box;
   background-color: ${({ theme }) => theme.colors.white};
   overflow-y: auto;
 `;
 
-export const StatusBarImage = styled.img`
-  width: 100%;
-  height: auto;
-  display: block;
-`;
+
 
 export const PageTitle = styled.h1`
   font-size: 20px;

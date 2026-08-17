@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
-import statusBarImg from "../assets/statusbar.svg";
+
 import * as S from "./SettingsPage.styles";
 
 const SettingsPage = () => {
   return (
     <S.Container>
-      <S.StatusBarImage src={statusBarImg} alt="" />
       <S.PageTitle>설정</S.PageTitle>
 
       <S.Section>

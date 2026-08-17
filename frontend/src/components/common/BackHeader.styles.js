@@ -1,10 +1,5 @@
 import styled from "styled-components";
 
-export const StatusBarImage = styled.img`
-  width: 100%;
-  height: auto;
-  display: block;
-`;
 
 export const HeaderWrapper = styled.header`
   display: flex;
