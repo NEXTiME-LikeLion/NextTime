@@ -21,7 +21,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
-          role-to-assume: arn:aws:iam::325087564826:role/arn:aws:iam::325087564826:role/nextime-github-actions-deploy-role
+          role-to-assume: arn:aws:iam::325087564826:role/nextime-github-actions-deploy-role
           aws-region: ap-northeast-2
 
       - name: Verify AWS identity
