@@ -77,4 +77,7 @@ public interface NextTimeSessionRepository extends JpaRepository<NextTimeSession
             Instant since
     );
 
+    @EntityGraph(attributePaths = {"recommendedMission", "contexts"})
+    List<NextTimeSession> findByUser_IdOrderByCreatedAtDesc(UUID userId);
+
 }
