@@ -229,7 +229,11 @@ public class PatternOverviewService {
     }
 
     private boolean sameContext(NextTimeSession session, SmokingContextType type, UUID contextId) {
-        return session.contextOf(type).getId().equals(contextId);
+        try {
+            return session.contextOf(type).getId().equals(contextId);
+        } catch (IllegalStateException exception) {
+            return false;
+        }
     }
 
     private ContextCount representativeLocation(List<NextTimeSession> sessions) {
