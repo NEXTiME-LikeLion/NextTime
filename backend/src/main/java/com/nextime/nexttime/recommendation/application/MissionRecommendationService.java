@@ -89,8 +89,12 @@ public class MissionRecommendationService {
                 );
 
         Set<UUID> excludedIds = new HashSet<>(missionRepository.findExcludedMissionIds(userId));
-        Set<UUID> automaticallyExcludedIds = automaticallyExcludedMissionIds(history);
-        automaticallyExcludedIds.removeAll(missionRepository.findUserSelectedAvailableMissionIds(userId));
+        Map<UUID, Instant> restoredAtByMission = missionRepository.findRestoredMissions(userId).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        MissionRepository.RestoredMissionView::getMissionId,
+                        MissionRepository.RestoredMissionView::getRestoredAt
+                ));
+        Set<UUID> automaticallyExcludedIds = automaticallyExcludedMissionIds(history, restoredAtByMission);
         automaticallyExcludedIds.stream()
                 .filter(missionId -> !excludedIds.contains(missionId))
                 .forEach(missionId -> missionRepository.saveAutomaticExclusion(userId, missionId));
@@ -130,10 +134,18 @@ public class MissionRecommendationService {
         return MissionRecommendationResponse.from(session);
     }
 
-    private Set<UUID> automaticallyExcludedMissionIds(List<NextTimeSession> history) {
+    private Set<UUID> automaticallyExcludedMissionIds(
+            List<NextTimeSession> history,
+            Map<UUID, Instant> restoredAtByMission
+    ) {
         Map<UUID, List<NextTimeSession>> recentByMission = new LinkedHashMap<>();
         for (NextTimeSession past : history) {
             if (past.getRecommendedMission() == null) {
+                continue;
+            }
+            Instant restoredAt = restoredAtByMission.get(past.getRecommendedMission().getId());
+            if (restoredAt != null
+                    && (past.getResultRecordedAt() == null || !past.getResultRecordedAt().isAfter(restoredAt))) {
                 continue;
             }
             List<NextTimeSession> recent = recentByMission.computeIfAbsent(
