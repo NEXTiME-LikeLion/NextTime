@@ -31,6 +31,8 @@ import java.util.UUID;
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.CONTEXT_SAVED;
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.MISSION_RECOMMENDED;
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.RESULT_RECORDED;
+import static com.nextime.nexttime.domain.MissionHelpfulness.NOT_FIT;
+import static com.nextime.nexttime.domain.NextTimeResult.SMOKED;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +81,21 @@ public class MissionRecommendationService {
         SmokingContext location = session.contextOf(SmokingContextType.LOCATION);
         SmokingContext trigger = session.contextOf(SmokingContextType.TRIGGER);
 
+        List<NextTimeSession> history = sessionRepository
+                .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
+                        userId,
+                        RESULT_RECORDED,
+                        Instant.now().minus(30, ChronoUnit.DAYS)
+                );
+
         Set<UUID> excludedIds = new HashSet<>(missionRepository.findExcludedMissionIds(userId));
+        Set<UUID> automaticallyExcludedIds = automaticallyExcludedMissionIds(history);
+        automaticallyExcludedIds.removeAll(missionRepository.findUserSelectedAvailableMissionIds(userId));
+        automaticallyExcludedIds.stream()
+                .filter(missionId -> !excludedIds.contains(missionId))
+                .forEach(missionId -> missionRepository.saveAutomaticExclusion(userId, missionId));
+        excludedIds.addAll(automaticallyExcludedIds);
+
         List<Mission> available = missionRepository.findActiveAvailableAt(location.getId()).stream()
                 .filter(mission -> !excludedIds.contains(mission.getId()))
                 .toList();
@@ -98,13 +114,6 @@ public class MissionRecommendationService {
         }
 
         Set<String> preferredCodes = preferredMissionCodes(userId);
-        List<NextTimeSession> history = sessionRepository
-                .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
-                        userId,
-                        RESULT_RECORDED,
-                        Instant.now().minus(30, ChronoUnit.DAYS)
-                );
-
         Selection selection = select(
                 plan.candidates(),
                 history,
@@ -119,6 +128,32 @@ public class MissionRecommendationService {
         Instant now = Instant.now();
         session.recommend(selection.mission(), selection.reason(), selection.source(), now);
         return MissionRecommendationResponse.from(session);
+    }
+
+    private Set<UUID> automaticallyExcludedMissionIds(List<NextTimeSession> history) {
+        Map<UUID, List<NextTimeSession>> recentByMission = new LinkedHashMap<>();
+        for (NextTimeSession past : history) {
+            if (past.getRecommendedMission() == null) {
+                continue;
+            }
+            List<NextTimeSession> recent = recentByMission.computeIfAbsent(
+                    past.getRecommendedMission().getId(),
+                    ignored -> new ArrayList<>()
+            );
+            if (recent.size() < 3) {
+                recent.add(past);
+            }
+        }
+
+        return recentByMission.entrySet().stream()
+                .filter(entry -> entry.getValue().size() == 3)
+                .filter(entry -> entry.getValue().stream().allMatch(this::hasMinimumSessionScore))
+                .map(Map.Entry::getKey)
+                .collect(java.util.stream.Collectors.toSet());
+    }
+
+    private boolean hasMinimumSessionScore(NextTimeSession session) {
+        return session.getMissionHelpfulness() == NOT_FIT && session.getResult() == SMOKED;
     }
 
     private Selection select(
