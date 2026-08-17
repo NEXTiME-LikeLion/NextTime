@@ -53,8 +53,6 @@ const OnboardingCompletePage = () => {
           <S.StartButton onClick={handleStart}>
             이 모습으로 시작하기
           </S.StartButton>
-
-          <S.EditLink>NEXT ME 수정하기</S.EditLink>
         </S.Content>
       </S.Wrapper>
     </>

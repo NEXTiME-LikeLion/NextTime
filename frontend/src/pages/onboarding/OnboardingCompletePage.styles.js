@@ -116,11 +116,3 @@ export const StartButton = styled.button`
   cursor: pointer;
   margin-top: 24px;
 `;
-
-export const EditLink = styled.p`
-  text-align: center;
-  font-size: 12px;
-  color: #68686D;
-  margin-top: 19.5px;
-  cursor: pointer;
-`;
