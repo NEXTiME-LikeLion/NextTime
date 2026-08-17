@@ -49,6 +49,8 @@ const ProgressBar = styled.div`
 `;
 
 const Fill = styled.div`
+  height: 100%;
+  width: ${({ $ratio }) => `${Math.min($ratio, 1) * 100}%`};
   border-radius: 6.25rem 0 0 6.25rem;
   background: ${({ theme }) => theme.colors.primary};
 `;
@@ -56,7 +58,7 @@ const Fill = styled.div`
 const CountText = styled.p`
   color: var(--gray, #68686d);
   text-align: right;
-  /* align-self: flex-end; */
+  align-self: flex-end;
   font-size: 0.75rem;
   font-weight: 400;
   line-height: 1.4rem;
