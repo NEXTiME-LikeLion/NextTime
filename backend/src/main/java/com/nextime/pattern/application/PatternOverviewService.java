@@ -3,11 +3,13 @@ package com.nextime.pattern.application;
 import com.nextime.common.error.BusinessException;
 import com.nextime.common.error.ErrorCode;
 import com.nextime.mission.domain.Mission;
+import com.nextime.nexttime.domain.CravingBefore;
 import com.nextime.nexttime.domain.CravingChange;
 import com.nextime.nexttime.domain.MissionHelpfulness;
 import com.nextime.nexttime.domain.NextTimeResult;
 import com.nextime.nexttime.domain.NextTimeSession;
 import com.nextime.nexttime.domain.NextTimeSessionRepository;
+import com.nextime.nexttime.recommendation.application.MissionRecommendationService;
 import com.nextime.pattern.api.PatternOverviewResponse;
 import com.nextime.pattern.api.PatternOverviewResponse.*;
 import com.nextime.smokingcontext.domain.SmokingContext;
@@ -43,6 +45,7 @@ public class PatternOverviewService {
 
     private final UserRepository userRepository;
     private final NextTimeSessionRepository sessionRepository;
+    private final MissionRecommendationService recommendationService;
 
     @Transactional(readOnly = true)
     public PatternOverviewResponse getOverview(UUID userId) {
@@ -60,6 +63,7 @@ public class PatternOverviewService {
                         userId,
                         windows.thirtyDayStart()
                 );
+        PatternTarget patternTarget = selectPatternTarget(userId, recentThirtyDaySessions, windows);
         List<NextTimeSession> current = inResultWindow(
                 recentThirtyDayResults,
                 windows.currentStart(),
@@ -71,8 +75,8 @@ public class PatternOverviewService {
                 windows.currentStart()
         );
 
-        if (current.size() < MINIMUM_PATTERN_RECORD_COUNT) {
-            return insufficientOverview(windows, current.size());
+        if (patternTarget.sessions().size() < MINIMUM_PATTERN_RECORD_COUNT) {
+            return insufficientOverview(windows, patternTarget.sessions().size());
         }
 
         List<NextTimeSession> recentRecords =
@@ -81,11 +85,11 @@ public class PatternOverviewService {
         return new PatternOverviewResponse(
                 new Period(SUPPORTED_PERIOD, windows.currentStart(), windows.currentEnd()),
                 DataStatus.AVAILABLE,
-                current.size(),
-                buildInsight(current, recentThirtyDaySessions),
+                patternTarget.sessions().size(),
+                buildInsight(userId, patternTarget, recentThirtyDayResults),
                 buildBehaviorChange(current, previous),
                 buildEffectiveActions(recentThirtyDayResults),
-                rankContexts(current, SmokingContextType.TRIGGER, FREQUENT_TRIGGER_LIMIT),
+                rankContexts(patternTarget.sessions(), SmokingContextType.TRIGGER, FREQUENT_TRIGGER_LIMIT),
                 recentRecords.stream().map(this::toRecentRecord).toList()
         );
     }
@@ -129,22 +133,186 @@ public class PatternOverviewService {
     }
 
     private Insight buildInsight(
-            List<NextTimeSession> current,
-            List<NextTimeSession> recentThirtyDaySessions
+            UUID userId,
+            PatternTarget target,
+            List<NextTimeSession> recentResults
     ) {
-        if (current.isEmpty()) {
+        List<NextTimeSession> sessions = target.sessions();
+        ContextCount topTrigger = firstOrNull(rankContexts(sessions, SmokingContextType.TRIGGER, 1));
+        List<NextTimeSession> triggerSessions = sessions.stream()
+                .filter(session -> sameContext(session, SmokingContextType.TRIGGER, topTrigger.id()))
+                .toList();
+        ContextCount representativeLocation = representativeLocation(triggerSessions);
+        CravingBefore representativeCraving = representativeCraving(
+                triggerSessions,
+                representativeLocation.id()
+        );
+        SmokingContext trigger = triggerSessions.getFirst().contextOf(SmokingContextType.TRIGGER);
+        SmokingContext location = triggerSessions.stream()
+                .filter(session -> sameContext(session, SmokingContextType.LOCATION, representativeLocation.id()))
+                .findFirst()
+                .orElseThrow()
+                .contextOf(SmokingContextType.LOCATION);
+        MissionRecommendationService.RecommendationPreview preview = recommendationService.preview(
+                userId,
+                location,
+                trigger,
+                representativeCraving
+        );
+        Mission mission = preview.mission();
+        ActionEvidence evidence = buildActionEvidence(
+                recentResults,
+                topTrigger.id(),
+                representativeLocation.id(),
+                mission
+        );
+        InsightMessages messages = new InsightMessages(
+                topTrigger.name() + "에 가장 흔들렸어요",
+                "기록한 욕구 " + sessions.size() + "번 중 " + topTrigger.count() + "번",
+                "특히 " + representativeLocation.name() + "에서 강했어요",
+                "이럴 때 " + mission.getName() + " 해보세요!"
+        );
+
+        return new Insight(
+                true,
+                target.periodLabel(),
+                topTrigger,
+                representativeLocation,
+                representativeCraving,
+                new RecommendedAction(mission.getId(), mission.getCode(), mission.getName()),
+                evidence,
+                messages,
+                calculateTopTimeSlot(sessions)
+        );
+    }
+
+    private PatternTarget selectPatternTarget(
+            UUID userId,
+            List<NextTimeSession> recentThirtyDaySessions,
+            PeriodWindows windows
+    ) {
+        List<NextTimeSession> validThirtyDay = recentThirtyDaySessions.stream()
+                .filter(this::hasPatternContext)
+                .toList();
+        List<NextTimeSession> recentSevenDays = validThirtyDay.stream()
+                .filter(session -> isInWindow(session.getCreatedAt(), windows.currentStart(), windows.currentEnd()))
+                .toList();
+        if (recentSevenDays.size() >= MINIMUM_PATTERN_RECORD_COUNT) {
+            return new PatternTarget(recentSevenDays, "최근 7일");
+        }
+        if (validThirtyDay.size() >= MINIMUM_PATTERN_RECORD_COUNT) {
+            return new PatternTarget(validThirtyDay.stream().limit(MINIMUM_PATTERN_RECORD_COUNT).toList(), "최근 기록 5건");
+        }
+        List<NextTimeSession> all = sessionRepository.findByUser_IdOrderByCreatedAtDesc(userId).stream()
+                .filter(this::hasPatternContext)
+                .limit(MINIMUM_PATTERN_RECORD_COUNT)
+                .toList();
+        if (all.isEmpty()) {
+            all = validThirtyDay.stream().limit(MINIMUM_PATTERN_RECORD_COUNT).toList();
+        }
+        return new PatternTarget(all, "최근 기록 5건");
+    }
+
+    private boolean hasPatternContext(NextTimeSession session) {
+        return session.getCravingBefore() != null
+                && session.getCreatedAt() != null
+                && hasContext(session, SmokingContextType.TRIGGER)
+                && hasContext(session, SmokingContextType.LOCATION);
+    }
+
+    private boolean hasContext(NextTimeSession session, SmokingContextType type) {
+        try {
+            return session.contextOf(type) != null;
+        } catch (IllegalStateException exception) {
+            return false;
+        }
+    }
+
+    private boolean sameContext(NextTimeSession session, SmokingContextType type, UUID contextId) {
+        return session.contextOf(type).getId().equals(contextId);
+    }
+
+    private ContextCount representativeLocation(List<NextTimeSession> sessions) {
+        Map<ContextIdentity, LocationStat> stats = new HashMap<>();
+        for (NextTimeSession session : sessions) {
+            SmokingContext location = session.contextOf(SmokingContextType.LOCATION);
+            ContextIdentity identity = new ContextIdentity(location.getId(), location.getCode(), location.getName());
+            LocationStat stat = stats.computeIfAbsent(identity, ignored -> new LocationStat());
+            stat.count++;
+            stat.cravingTotal += cravingScore(session.getCravingBefore());
+            if (stat.latest == null || session.getCreatedAt().isAfter(stat.latest)) {
+                stat.latest = session.getCreatedAt();
+            }
+        }
+        Map.Entry<ContextIdentity, LocationStat> top = stats.entrySet().stream()
+                .sorted(Comparator
+                        .<Map.Entry<ContextIdentity, LocationStat>>comparingDouble(entry -> entry.getValue().average())
+                        .reversed()
+                        .thenComparing(entry -> entry.getValue().count, Comparator.reverseOrder())
+                        .thenComparing(entry -> entry.getValue().latest, Comparator.reverseOrder()))
+                .findFirst()
+                .orElseThrow();
+        return new ContextCount(
+                top.getKey().id(),
+                top.getKey().code(),
+                top.getKey().name(),
+                top.getValue().count
+        );
+    }
+
+    private CravingBefore representativeCraving(List<NextTimeSession> sessions, UUID locationId) {
+        Map<CravingBefore, Long> counts = sessions.stream()
+                .filter(session -> sameContext(session, SmokingContextType.LOCATION, locationId))
+                .collect(java.util.stream.Collectors.groupingBy(
+                        NextTimeSession::getCravingBefore,
+                        java.util.stream.Collectors.counting()
+                ));
+        return counts.entrySet().stream()
+                .sorted(Comparator
+                        .<Map.Entry<CravingBefore, Long>>comparingLong(Map.Entry::getValue)
+                        .reversed()
+                        .thenComparing(entry -> cravingScore(entry.getKey()), Comparator.reverseOrder()))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private int cravingScore(CravingBefore craving) {
+        return switch (craving) {
+            case LOW -> 1;
+            case MEDIUM -> 2;
+            case HIGH -> 3;
+        };
+    }
+
+    private ActionEvidence buildActionEvidence(
+            List<NextTimeSession> results,
+            UUID triggerId,
+            UUID locationId,
+            Mission mission
+    ) {
+        List<NextTimeSession> triggerAndAction = results.stream()
+                .filter(session -> completedWithResult(session, mission.getId()))
+                .filter(session -> sameContext(session, SmokingContextType.TRIGGER, triggerId))
+                .toList();
+        List<NextTimeSession> exact = triggerAndAction.stream()
+                .filter(session -> sameContext(session, SmokingContextType.LOCATION, locationId))
+                .toList();
+        List<NextTimeSession> evidenceSessions = exact.size() >= 2 ? exact : triggerAndAction;
+        if (evidenceSessions.size() < 2) {
             return null;
         }
+        long avoided = evidenceSessions.stream().filter(session -> avoidsImmediateSmoking(session.getResult())).count();
+        String message = "비슷한 상황에서 " + mission.getName() + " " + evidenceSessions.size()
+                + "번 중 " + avoided + "번은 바로 흡연으로 이어지지 않았어요";
+        return new ActionEvidence(evidenceSessions.size(), avoided, message);
+    }
 
-        ContextCount topTrigger = current.size() >= 2
-                ? firstOrNull(rankContexts(current, SmokingContextType.TRIGGER, 1))
-                : null;
-        ContextCount topLocation = current.size() >= 2
-                ? firstOrNull(rankContexts(current, SmokingContextType.LOCATION, 1))
-                : null;
-        TimeSlot topTimeSlot = calculateTopTimeSlot(recentThirtyDaySessions);
-
-        return new Insight(topTrigger, topLocation, topTimeSlot);
+    private boolean completedWithResult(NextTimeSession session, UUID missionId) {
+        return session.getMissionCompletedAt() != null
+                && session.getResult() != null
+                && session.getRecommendedMission() != null
+                && session.getRecommendedMission().getId().equals(missionId);
     }
 
     private ContextCount firstOrNull(List<ContextCount> contexts) {
@@ -203,7 +371,7 @@ public class PatternOverviewService {
             ContextIdentity identity = new ContextIdentity(context.getId(), context.getCode(), context.getName());
             ContextStat stat = stats.computeIfAbsent(identity, ignored -> new ContextStat());
             stat.count++;
-            Instant occurredAt = session.getResultRecordedAt();
+            Instant occurredAt = session.getCreatedAt();
             if (stat.latest == null || occurredAt.isAfter(stat.latest)) {
                 stat.latest = occurredAt;
             }
@@ -355,6 +523,16 @@ public class PatternOverviewService {
         private Instant latest;
     }
 
+    private static final class LocationStat {
+        private long count;
+        private int cravingTotal;
+        private Instant latest;
+
+        private double average() {
+            return (double) cravingTotal / count;
+        }
+    }
+
     private static final class TimeSlotStat {
         private long count;
         private Instant latest;
@@ -382,5 +560,8 @@ public class PatternOverviewService {
             Instant thirtyDayStart = today.minusDays(29).atStartOfDay(SERVICE_ZONE).toInstant();
             return new PeriodWindows(previousStart, currentStart, currentEnd, thirtyDayStart);
         }
+    }
+
+    private record PatternTarget(List<NextTimeSession> sessions, String periodLabel) {
     }
 }

@@ -134,6 +134,54 @@ public class MissionRecommendationService {
         return MissionRecommendationResponse.from(session);
     }
 
+    @Transactional
+    public RecommendationPreview preview(
+            UUID userId,
+            SmokingContext location,
+            SmokingContext trigger,
+            com.nextime.nexttime.domain.CravingBefore craving
+    ) {
+        List<NextTimeSession> history = sessionRepository
+                .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
+                        userId,
+                        RESULT_RECORDED,
+                        Instant.now().minus(30, ChronoUnit.DAYS)
+                );
+
+        Set<UUID> excludedIds = new HashSet<>(missionRepository.findExcludedMissionIds(userId));
+        Map<UUID, Instant> restoredAtByMission = missionRepository.findRestoredMissions(userId).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        MissionRepository.RestoredMissionView::getMissionId,
+                        MissionRepository.RestoredMissionView::getRestoredAt
+                ));
+        excludedIds.addAll(automaticallyExcludedMissionIds(history, restoredAtByMission));
+
+        List<Mission> available = missionRepository.findActiveAvailableAt(location.getId()).stream()
+                .filter(mission -> !excludedIds.contains(mission.getId()))
+                .toList();
+        MissionCandidatePolicy.CandidatePlan plan = candidatePolicy.planCandidates(
+                location.getCode(),
+                trigger.getCode(),
+                craving,
+                available
+        );
+        if (plan.candidates().isEmpty()) {
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "행동 미션을 추천할 수 없습니다.");
+        }
+
+        Selection selection = select(
+                plan.candidates(),
+                history,
+                trigger.getCode(),
+                location.getCode(),
+                trigger.getName(),
+                location.getName(),
+                preferredMissionCodes(userId),
+                plan.fallback()
+        );
+        return new RecommendationPreview(selection.mission(), selection.reason(), selection.source());
+    }
+
     private Set<UUID> automaticallyExcludedMissionIds(
             List<NextTimeSession> history,
             Map<UUID, Instant> restoredAtByMission
@@ -311,5 +359,12 @@ public class MissionRecommendationService {
     }
 
     private record Selection(Mission mission, String reason, RecommendationSource source) {
+    }
+
+    public record RecommendationPreview(
+            Mission mission,
+            String reason,
+            RecommendationSource source
+    ) {
     }
 }

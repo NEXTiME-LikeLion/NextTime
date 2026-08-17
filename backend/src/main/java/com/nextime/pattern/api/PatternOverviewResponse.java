@@ -35,9 +35,36 @@ public record PatternOverviewResponse(
     }
 
     public record Insight(
+            boolean patternReady,
+            String periodLabel,
             ContextCount topTrigger,
             ContextCount topLocation,
+            CravingBefore representativeCraving,
+            RecommendedAction recommendedAction,
+            ActionEvidence actionEvidence,
+            InsightMessages messages,
             TimeSlot topTimeSlot
+    ) {
+        public Insight(ContextCount topTrigger, ContextCount topLocation, TimeSlot topTimeSlot) {
+            this(true, "최근 7일", topTrigger, topLocation, null, null, null, null, topTimeSlot);
+        }
+    }
+
+    public record RecommendedAction(UUID id, String code, String name) {
+    }
+
+    public record ActionEvidence(
+            long sampleCount,
+            long notImmediateSmokingCount,
+            String message
+    ) {
+    }
+
+    public record InsightMessages(
+            String mainPattern,
+            String frequency,
+            String representativeLocation,
+            String nextAction
     ) {
     }
 
