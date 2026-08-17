@@ -56,37 +56,39 @@ function MissionPage() {
     <PageContainer>
       <Header title="NEXT TIME" onBack={handleBack} />
 
-      <Box>
-        <Content>
-          <StatusLabel>미션 진행 중</StatusLabel>
+      <AllContent>
+        <Box>
+          <Content>
+            <StatusLabel>미션 진행 중</StatusLabel>
 
-          <MissionTitle>
-            {titleLines.map((line) => (
-              <p key={line}>{line}</p>
-            ))}
-          </MissionTitle>
+            <MissionTitle>
+              {titleLines.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </MissionTitle>
 
-          <CircularTimer
-            totalSeconds={durationSeconds}
-            remainingSeconds={Math.max(0, remainingSeconds)}
-            showRemainingLabel
-          />
+            <CircularTimer
+              totalSeconds={durationSeconds}
+              remainingSeconds={Math.max(0, remainingSeconds)}
+              showRemainingLabel
+            />
 
-          <Description>
-            {missionDescriptionLines.map((line) => (
-              <p key={line}>{line}</p>
-            ))}
-          </Description>
-        </Content>
+            <Description>
+              {missionDescriptionLines.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </Description>
+          </Content>
 
-        {whyThisText && <WhyThisBox text={whyThisText} />}
-      </Box>
+          {whyThisText && <WhyThisBox text={whyThisText} />}
+        </Box>
 
-      <BottomArea>
-        <SkipButton type="button" onClick={handleSkip}>
-          건너뛰기
-        </SkipButton>
-      </BottomArea>
+        <BottomArea>
+          <SkipButton type="button" onClick={handleSkip}>
+            건너뛰기
+          </SkipButton>
+        </BottomArea>
+      </AllContent>
     </PageContainer>
   );
 }
@@ -99,6 +101,10 @@ const PageContainer = styled.div`
   height: 100%;
   min-height: 0;
   padding-inline: 1.25rem;
+`;
+
+const AllContent = styled.div`
+  overflow-y: auto;
 `;
 
 const Box = styled.div`
@@ -115,7 +121,6 @@ const Content = styled.div`
   gap: 0.75rem;
   padding-block: 1.25rem;
   min-height: 0;
-  overflow-y: auto;
   margin-top: 2.44rem;
 `;
 
@@ -159,6 +164,11 @@ const BottomArea = styled.div`
   justify-content: center;
   margin-bottom: 2.06rem;
   padding-inline: 0.94rem;
+  background: transparent;
+
+  & > button {
+    opacity: 0.92;
+  }
 `;
 
 const SkipButton = styled.button`
