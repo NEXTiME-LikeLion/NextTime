@@ -67,3 +67,10 @@ export const StyledLink = styled(Link)`
   text-decoration: none;
   margin-left: 6px;
 `;
+
+export const ErrorText = styled.p`
+  font-size: 13px;
+  color: #ff5a5a;
+  margin-top: -20px;
+  margin-bottom: 20px;
+`;
