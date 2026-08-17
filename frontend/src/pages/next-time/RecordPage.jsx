@@ -1,6 +1,8 @@
-import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useElementHeight } from "../../hooks/useElementHeight";
 import { useNextTime } from "../../contexts/NextTimeContext";
+
 import { RECORD_OPTIONS, RECORD_NOTE } from "../../data/nextTimeRecord";
 import Header from "../../components/next-time/Header";
 import OptionGrid from "../../components/next-time/OptionGrid";
@@ -29,6 +31,8 @@ function RecordPage() {
     recordAnswers;
 
   const isFormValid = howDidYouDo && currentIntensity && missionFeedback;
+
+  const [bottomAreaRef, bottomAreaHeight] = useElementHeight();
 
   const handleSubmit = () => {
     if (!isFormValid) return;
@@ -65,7 +69,7 @@ function RecordPage() {
         </HelperText>
       </IntroBlock>
 
-      <ScrollContent>
+      <ScrollContent $bottomAreaHeight={bottomAreaHeight}>
         <FieldGroup>
           <FieldLabel>{RECORD_OPTIONS.howDidYouDo.label}</FieldLabel>
           <OptionGrid
@@ -118,7 +122,7 @@ function RecordPage() {
         </FieldGroup>
       </ScrollContent>
 
-      <BottomArea>
+      <BottomArea ref={bottomAreaRef}>
         <PrimaryButton disabled={!isFormValid} onClick={handleSubmit}>
           기록하기
         </PrimaryButton>
@@ -135,6 +139,7 @@ const PageContainer = styled.div`
   height: 100%;
   min-height: 0;
   padding-inline: 1.25rem;
+  position: relative;
 `;
 
 const IntroBlock = styled.div`
@@ -166,8 +171,8 @@ const ScrollContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2.25rem;
-  padding-bottom: 3.56rem;
   margin-top: 1.56rem;
+  padding-bottom: ${({ $bottomAreaHeight }) => $bottomAreaHeight}rem;
 `;
 
 const FieldGroup = styled.section`
@@ -202,6 +207,23 @@ const OptionalHint = styled.p`
 `;
 
 const BottomArea = styled.div`
-  flex-shrink: 0;
-  padding-bottom: 2.25rem;
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 0;
+  padding-block: 3.56rem 2.25rem;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 20, 0) 0%,
+    rgba(10, 10, 20, 0.85) 35%,
+    rgba(10, 10, 20, 0.85) 100%
+  );
+
+  pointer-events: none;
+
+  & > button {
+    opacity: 0.92;
+    pointer-events: auto;
+  }
 `;

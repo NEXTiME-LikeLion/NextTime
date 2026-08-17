@@ -1,5 +1,6 @@
-import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useElementHeight } from "../../hooks/useElementHeight";
 import { useNextTime } from "../../contexts/NextTimeContext";
 import Header from "../../components/next-time/Header";
 import MascotCharacter from "../../components/next-time/MascotCharacter";
@@ -16,6 +17,7 @@ function CompletePage() {
 
   const navigate = useNavigate();
   const { resetFlow } = useNextTime();
+  const [bottomAreaRef, bottomAreaHeight] = useElementHeight();
 
   const handleGoPattern = () => {
     resetFlow();
@@ -31,7 +33,7 @@ function CompletePage() {
     <PageContainer>
       <Header title="" onBack={handleGoHome} />
 
-      <Content>
+      <Content $bottomAreaHeight={bottomAreaHeight}>
         <TextBlock>
           <Title>{COMPLETE_CONTENT.title}</Title>
           <Subtitle>{COMPLETE_CONTENT.subtitle}</Subtitle>
@@ -45,7 +47,7 @@ function CompletePage() {
         </InsightBox>
       </Content>
 
-      <BottomArea>
+      <BottomArea ref={bottomAreaRef}>
         <PrimaryButton variant="primary" onClick={handleGoPattern}>
           내 패턴 보러가기
         </PrimaryButton>
@@ -65,6 +67,7 @@ const PageContainer = styled.div`
   height: 100%;
   min-height: 0;
   padding-inline: 1.25rem;
+  position: relative;
 `;
 
 const Content = styled.div`
@@ -73,10 +76,11 @@ const Content = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 1.75rem;
-  padding-block: 1.25rem;
   min-height: 0;
   overflow-y: auto;
   margin-top: 2.87rem;
+  padding-top: 1.25rem;
+  padding-bottom: ${({ $bottomAreaHeight }) => $bottomAreaHeight}rem;
 `;
 
 const TextBlock = styled.div`
@@ -127,13 +131,31 @@ const InsightBody = styled.p`
 `;
 
 const BottomArea = styled.div`
-  flex-shrink: 0;
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 0;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.125rem;
   padding-inline: 0.94rem;
-  padding-bottom: 2.25rem;
+  padding-block: 2.5rem 2.25rem;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 20, 0) 0%,
+    rgba(10, 10, 20, 0.85) 35%,
+    rgba(10, 10, 20, 0.85) 100%
+  );
+
+  pointer-events: none;
+
+  & > button {
+    opacity: 0.92;
+    pointer-events: auto;
+  }
 `;
 
 const SkipButton = styled.button`

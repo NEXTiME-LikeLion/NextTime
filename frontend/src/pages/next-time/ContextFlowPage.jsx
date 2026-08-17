@@ -1,6 +1,7 @@
+import styled from "styled-components";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
+import { useElementHeight } from "../../hooks/useElementHeight";
 import { useNextTime } from "../../contexts/NextTimeContext";
 import { CONTEXT_STEPS } from "../../data/nextTimeSteps";
 import Header from "../../components/next-time/Header";
@@ -34,6 +35,8 @@ function ContextFlowPage() {
   const selectedValue = fieldConfig.getter(nextTime);
   const progressPercentage =
     ((currentStepIndex + 1) / CONTEXT_STEPS.length) * 100;
+
+  const [bottomAreaRef, bottomAreaHeight] = useElementHeight();
 
   const handleBack = () => {
     if (currentStepIndex > 0) {
@@ -76,7 +79,7 @@ function ContextFlowPage() {
         <ProgressBar percentage={progressPercentage} />
       </ProgressBarWrap>
 
-      <ScrollContent>
+      <ScrollContent $bottomAreaHeight={bottomAreaHeight}>
         <Question>{currentStep.question}</Question>
         <OptionGrid
           options={currentStep.options}
@@ -87,7 +90,7 @@ function ContextFlowPage() {
         />
       </ScrollContent>
 
-      <BottomArea>
+      <BottomArea ref={bottomAreaRef}>
         <PrimaryButton disabled={!selectedValue} onClick={handlePrimaryAction}>
           {isLastStep ? "내게 맞는 행동 찾기" : "다음"}
         </PrimaryButton>
@@ -104,6 +107,7 @@ const PageContainer = styled.div`
   height: 100%;
   min-height: 0;
   padding-inline: 1.25rem;
+  position: relative;
 `;
 
 const IntroBlock = styled.div`
@@ -143,7 +147,7 @@ const ScrollContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  padding-bottom: 1rem;
+  padding-bottom: ${({ $bottomAreaHeight }) => $bottomAreaHeight}rem;
 `;
 
 const Question = styled.h2`
@@ -155,6 +159,23 @@ const Question = styled.h2`
 `;
 
 const BottomArea = styled.div`
-  flex-shrink: 0;
-  padding-bottom: 2.25rem;
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 0;
+  padding-block: 2.5rem 2.25rem;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 20, 0) 0%,
+    rgba(10, 10, 20, 0.85) 35%,
+    rgba(10, 10, 20, 0.85) 100%
+  );
+
+  pointer-events: none;
+
+  & > button {
+    opacity: 0.92;
+    pointer-events: auto;
+  }
 `;

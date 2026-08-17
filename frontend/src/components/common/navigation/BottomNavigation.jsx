@@ -25,7 +25,7 @@ export default BottomNavigation;
 const NavContainer = styled.div`
   display: flex;
   width: 100%;
-  height: 5rem;
+  height: 3.23rem;
   padding-top: 0.625rem;
   padding-bottom: var(--safe-bottom);
   align-items: flex-start;

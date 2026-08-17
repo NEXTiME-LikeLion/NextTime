@@ -1,5 +1,6 @@
-import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useElementHeight } from "../../hooks/useElementHeight";
 import { useNextTime } from "../../contexts/NextTimeContext";
 import Header from "../../components/next-time/Header";
 import CircularTimer from "../../components/next-time/CircularTimer";
@@ -19,6 +20,8 @@ function RecommendPage() {
   const { title, description, durationSeconds } = recommendedMission;
   const titleLines = splitMissionTitle(title);
 
+  const [bottomAreaRef, bottomAreaHeight] = useElementHeight();
+
   const handleStart = () => {
     navigate("/next-time/mission", { replace: true });
   };
@@ -35,7 +38,7 @@ function RecommendPage() {
     <PageContainer>
       <Header title="NEXT TIME" onBack={handleBack} />
 
-      <Content>
+      <Content $bottomAreaHeight={bottomAreaHeight}>
         <MissionTitle>
           {titleLines.map((line) => (
             <p key={line}>{line}</p>
@@ -50,7 +53,7 @@ function RecommendPage() {
         <Description>{description}</Description>
       </Content>
 
-      <BottomArea>
+      <BottomArea ref={bottomAreaRef}>
         <PrimaryButton variant="primary" onClick={handleStart}>
           시작하기
         </PrimaryButton>
@@ -70,6 +73,7 @@ const PageContainer = styled.div`
   height: 100%;
   min-height: 0;
   padding-inline: 1.25rem;
+  position: relative;
 `;
 
 const Content = styled.div`
@@ -78,10 +82,11 @@ const Content = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  padding-block: 1.25rem;
   min-height: 0;
   overflow-y: auto;
   margin-top: 2.44rem;
+  padding-top: 1.25rem;
+  padding-bottom: ${({ $bottomAreaHeight }) => $bottomAreaHeight}rem;
 `;
 
 const MissionTitle = styled.h1`
@@ -109,12 +114,29 @@ const Description = styled.p`
 `;
 
 const BottomArea = styled.div`
-  flex-shrink: 0;
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 0;
+  padding: 2.5rem 0.94rem 2.06rem;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 2.06rem;
-  padding-inline: 0.94rem;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 20, 0) 0%,
+    rgba(10, 10, 20, 0.85) 35%,
+    rgba(10, 10, 20, 0.85) 100%
+  );
+
+  pointer-events: none;
+
+  & > button {
+    opacity: 0.92;
+    pointer-events: auto;
+  }
 `;
 
 const SkipButton = styled.button`
