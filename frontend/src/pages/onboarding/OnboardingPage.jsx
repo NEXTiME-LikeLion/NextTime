@@ -53,7 +53,7 @@ const OnboardingPage = () => {
     if (stepIndex < totalSteps - 1) {
       setStepIndex((i) => i + 1);
     } else {
-      navigate("/onboarding/loading");
+      navigate("/onboarding/loading", { state: { answers, customInputs } });
     }
   };
 
