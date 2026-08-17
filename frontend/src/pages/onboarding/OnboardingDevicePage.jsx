@@ -6,11 +6,11 @@ const OnboardingDevicePage = () => {
   const navigate = useNavigate();
 
   const handleConnect = () => {
-    navigate("/");
+    navigate("/main");
   };
 
   const handleSkip = () => {
-    navigate("/");
+    navigate("/main");
   };
 
   return (
