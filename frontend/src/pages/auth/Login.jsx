@@ -5,7 +5,7 @@ import { useToast } from "../../contexts/ToastContext";
 import { registerUser } from "../../api/registerUser";
 import Toast from "../../components/Toast/Toast";
 import * as S from "./Login.styles";
-
+//
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
