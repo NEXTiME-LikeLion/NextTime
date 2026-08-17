@@ -106,6 +106,7 @@ const PageContainer = styled.div`
 const AllContent = styled.div`
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   overflow-y: auto;
 `;
 
