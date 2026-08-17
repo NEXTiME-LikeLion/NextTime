@@ -58,64 +58,65 @@ const GoalPage = () => {
   const currentConfig = activeSheet ? sheetConfig[activeSheet] : null;
 
   return (
-    <S.Wrapper>
+    <>
       <BackHeader title="나의 목표" />
+      <S.Wrapper>
+        <S.Content>
+          <S.FirstSectionLabel>현재 원하는 변화</S.FirstSectionLabel>
+          <S.Row>
+            <S.RowText>{goal.desiredChange}</S.RowText>
+            <S.EditButton onClick={() => setActiveSheet("desiredChange")}>
+              수정하기
+            </S.EditButton>
+          </S.Row>
 
-      <S.Content>
-        <S.FirstSectionLabel>현재 원하는 변화</S.FirstSectionLabel>
-        <S.Row>
-          <S.RowText>{goal.desiredChange}</S.RowText>
-          <S.EditButton onClick={() => setActiveSheet("desiredChange")}>
+          <S.Divider />
+
+          <S.SectionLabel>나의 NEXT ME</S.SectionLabel>
+          <S.NextMeCard>
+            <S.NextMeLabel>NEXT ME</S.NextMeLabel>
+            <S.NextMeText>{goal.nextMe}</S.NextMeText>
+
+            <S.NextMeSubLabel>내가 남긴 말</S.NextMeSubLabel>
+            <S.NextMeSubText>{goal.leftMessage}</S.NextMeSubText>
+
+            <S.MascotImage src={mascotRunImg} alt="" />
+          </S.NextMeCard>
+          <S.EditButtonRight onClick={() => setActiveSheet("nextMe")}>
             수정하기
-          </S.EditButton>
-        </S.Row>
+          </S.EditButtonRight>
 
-        <S.Divider />
+          <S.Divider />
 
-        <S.SectionLabel>나의 NEXT ME</S.SectionLabel>
-        <S.NextMeCard>
-          <S.NextMeLabel>NEXT ME</S.NextMeLabel>
-          <S.NextMeText>{goal.nextMe}</S.NextMeText>
+          <S.SectionLabel>나의 동기</S.SectionLabel>
+          <S.BodyText>{goal.motivation}</S.BodyText>
+          <S.EditButtonRight onClick={() => setActiveSheet("motivation")}>
+            수정하기
+          </S.EditButtonRight>
 
-          <S.NextMeSubLabel>내가 남긴 말</S.NextMeSubLabel>
-          <S.NextMeSubText>{goal.leftMessage}</S.NextMeSubText>
+          <S.Divider />
 
-          <S.MascotImage src={mascotRunImg} alt="" />
-        </S.NextMeCard>
-        <S.EditButtonRight onClick={() => setActiveSheet("nextMe")}>
-          수정하기
-        </S.EditButtonRight>
+          <S.SectionLabel>내가 남긴 말</S.SectionLabel>
+          <S.BodyText>"{goal.leftMessage}"</S.BodyText>
+          <S.EditButtonRight onClick={() => setActiveSheet("leftMessage")}>
+            수정하기
+          </S.EditButtonRight>
+        </S.Content>
 
-        <S.Divider />
-
-        <S.SectionLabel>나의 동기</S.SectionLabel>
-        <S.BodyText>{goal.motivation}</S.BodyText>
-        <S.EditButtonRight onClick={() => setActiveSheet("motivation")}>
-          수정하기
-        </S.EditButtonRight>
-
-        <S.Divider />
-
-        <S.SectionLabel>내가 남긴 말</S.SectionLabel>
-        <S.BodyText>"{goal.leftMessage}"</S.BodyText>
-        <S.EditButtonRight onClick={() => setActiveSheet("leftMessage")}>
-          수정하기
-        </S.EditButtonRight>
-      </S.Content>
-
-      {currentConfig && (
-        <EditSheet
-          type={currentConfig.type}
-          title={currentConfig.title}
-          description={currentConfig.description}
-          options={currentConfig.options}
-          placeholder={currentConfig.placeholder}
-          initialValue={goal[activeSheet]}
-          onClose={() => setActiveSheet(null)}
-          onSubmit={handleSubmit(activeSheet)}
-        />
-      )}
-    </S.Wrapper>
+        {currentConfig && (
+          <EditSheet
+            type={currentConfig.type}
+            title={currentConfig.title}
+            description={currentConfig.description}
+            options={currentConfig.options}
+            placeholder={currentConfig.placeholder}
+            initialValue={goal[activeSheet]}
+            onClose={() => setActiveSheet(null)}
+            onSubmit={handleSubmit(activeSheet)}
+          />
+        )}
+      </S.Wrapper>
+    </>
   );
 };
 

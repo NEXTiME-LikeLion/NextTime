@@ -1,11 +1,5 @@
 import styled from "styled-components";
 
-export const StatusBarImage = styled.img`
-  width: 100%;
-  height: auto;
-  display: block;
-`;
-
 export const HeaderWrapper = styled.header`
   display: flex;
   align-items: center;
@@ -17,7 +11,7 @@ export const HeaderWrapper = styled.header`
 export const BackButton = styled.button`
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 32px;
   height: 32px;
   border: none;
@@ -39,9 +33,15 @@ export const ArrowIcon = styled.svg`
 `;
 
 export const Title = styled.h1`
-  color: ${({ theme }) => theme.colors.bg1};
   font-size: 1.25rem;
   font-weight: 800;
   color: #252843;
   line-height: 1.4;
+`;
+
+export const RightContent = styled.div`
+  position: absolute;
+  right: 20px;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.bg1};
 `;

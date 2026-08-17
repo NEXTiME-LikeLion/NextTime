@@ -6,15 +6,14 @@ export const Container = styled.div`
   padding: 20px 20px 0;
   box-sizing: border-box;
   background-color: ${({ theme }) => theme.colors.white};
-  overflow-y: auto;
 `;
 
 export const StatusBarImage = styled.img`
   width: 100%;
   height: auto;
+  aspect-ratio: 375 / 57.828;
   display: block;
 `;
-
 export const PageTitle = styled.h1`
   font-size: 20px;
   font-weight: 800;
