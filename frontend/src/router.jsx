@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import Splash from "./pages/Splash/Splash";
 import OnboardingPage from "./pages/onboarding/OnboardingPage";
 import OnboardingLoadingPage from "./pages/onboarding/OnboardingLoadingPage";
 import OnboardingCompletePage from "./pages/onboarding/OnboardingCompletePage";
@@ -24,6 +24,11 @@ import RecordPage from "./pages/next-time/RecordPage";
 import CompletePage from "./pages/next-time/CompletePage";
 
 const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Splash />,
+  },
+
   {
     path: "/onboarding",
     element: <OnboardingPage />,
@@ -57,7 +62,7 @@ const router = createBrowserRouter([
     element: <PatternRecordPage />,
   },
   {
-    path: "/",
+    path: "/main",
     element: <TabLayout />,
     children: [
       { index: true, element: <HomePage /> },
