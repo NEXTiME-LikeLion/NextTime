@@ -1,13 +1,13 @@
-// App.jsx (테스트용 임시 버전)
 import "./App.css";
-import { BrowserRouter } from "react-router-dom";
-import Splash from "./pages/Splash/Splash";
+import { RouterProvider } from "react-router-dom";
+import { ToastProvider } from "./contexts/ToastContext";
+import router from "./router";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Splash />
-    </BrowserRouter>
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>
   );
 }
 
