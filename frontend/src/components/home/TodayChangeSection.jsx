@@ -18,6 +18,10 @@ function TodayChangeSection() {
     },
   };
 
+  if (todayChange.totalCount === 0) {
+    return null;
+  }
+
   return (
     <Section>
       <SectionTitle>오늘의 변화</SectionTitle>
