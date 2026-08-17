@@ -23,14 +23,16 @@ function RecordPage() {
     recordAnswers,
     setRecordAnswers,
     updateRecordAnswer,
+    resetFlow,
   } = useNextTime();
   const { howDidYouDo, currentIntensity, missionFeedback, additionalNote } =
     recordAnswers;
 
   const isFormValid = howDidYouDo && currentIntensity && missionFeedback;
 
+  // TODO: 뒤로가기 버튼 삭제 예정
   const handleBack = () => {
-    navigate(-1);
+    // navigate(-1);
   };
 
   const handleSubmit = () => {
@@ -53,7 +55,8 @@ function RecordPage() {
     // TODO: 기록 저장 API 연동 시
     // await saveRecord({ ...fullRecord, missionId: recommendedMission.id });
 
-    navigate("/next-time/complete");
+    resetFlow(); // Next Time 초기화
+    navigate("/next-time/complete", { replace: true });
   };
 
   return (

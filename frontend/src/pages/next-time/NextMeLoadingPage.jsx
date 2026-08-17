@@ -33,14 +33,14 @@ function NextMeLoadingPage() {
     setRecommendedMission(recommendation);
 
     const timer = setTimeout(() => {
-      navigate("/next-time/recommend");
+      navigate("/next-time/recommend", { replace: true });
     }, LOADING_DURATION_MS);
 
     return () => clearTimeout(timer);
   }, [navigate, setRecommendedMission, situationIntensity, location, moment]);
 
   const handleBack = () => {
-    navigate("/next-time/context");
+    navigate(-1);
   };
 
   return (

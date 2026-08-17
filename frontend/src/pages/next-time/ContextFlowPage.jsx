@@ -88,10 +88,7 @@ function ContextFlowPage() {
       </ScrollContent>
 
       <BottomArea>
-        <PrimaryButton
-          disabled={!selectedValue}
-          onClick={handlePrimaryAction}
-        >
+        <PrimaryButton disabled={!selectedValue} onClick={handlePrimaryAction}>
           {isLastStep ? "내게 맞는 행동 찾기" : "다음"}
         </PrimaryButton>
       </BottomArea>

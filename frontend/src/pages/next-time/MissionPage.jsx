@@ -45,7 +45,7 @@ function MissionPage() {
   }, [remainingSeconds, navigate]);
 
   const handleBack = () => {
-    navigate("/next-time/recommend");
+    navigate(-1);
   };
 
   const handleSkip = () => {

@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useNextTime } from "../../contexts/NextTimeContext";
-import { COMPLETE_CONTENT } from "../../data/nextTimeMock";
 import Header from "../../components/next-time/Header";
 import MascotCharacter from "../../components/next-time/MascotCharacter";
 import PrimaryButton from "../../components/next-time/PrimaryButton";
@@ -18,24 +17,19 @@ function CompletePage() {
   const navigate = useNavigate();
   const { resetFlow } = useNextTime();
 
-  const handleBack = () => {
-    resetFlow();
-    navigate(-1);
-  };
-
   const handleGoPattern = () => {
     resetFlow();
-    navigate("/pattern");
+    navigate("/pattern", { replace: true });
   };
 
   const handleGoHome = () => {
     resetFlow();
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   return (
     <PageContainer>
-      <Header title="" onBack={handleBack} />
+      <Header title="" onBack={handleGoHome} />
 
       <Content>
         <TextBlock>

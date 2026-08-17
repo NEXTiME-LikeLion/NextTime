@@ -19,16 +19,16 @@ function RecommendPage() {
   const { title, description, durationSeconds } = recommendedMission;
   const titleLines = splitMissionTitle(title);
 
-  const handleBack = () => {
-    navigate(-1);
-  };
-
   const handleStart = () => {
     navigate("/next-time/mission");
   };
 
   const handleSkip = () => {
-    navigate("/next-time/record");
+    navigate("/next-time/record", { replace: true });
+  };
+
+  const handleBack = () => {
+    navigate(-1);
   };
 
   return (
