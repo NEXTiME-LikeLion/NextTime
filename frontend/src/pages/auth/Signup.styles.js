@@ -33,7 +33,7 @@ export const FieldWrapper = styled.div`
 export const Label = styled.label`
   font-size: 18px;
   font-weight: 700;
-  color: '#686D79"; // FIX
+  color: '#686D79'; // FIX
 `;
 
 export const Input = styled.input`
@@ -68,14 +68,32 @@ export const SubmitButton = styled.button`
 
 export const BottomText = styled.p`
   margin-top: 12px;
+  margin-bottom: 12px;
   text-align: center;
   font-size: 14px;
   color: ${({ theme }) => theme.brand.auth.textMuted};
-  font-weight: 700;
+  font-weight: 500;
+`;
+
+export const VerifySpacer = styled.div`
+  height: 200px; 
 `;
 
 export const StyledLink = styled(Link)`
   color: ${({ theme }) => theme.brand.auth.primary};
   text-decoration: none;
   margin-left: 6px;
+`;
+
+export const ErrorText = styled.p`
+  font-size: 13px;
+  color: #ff5a5a;
+  margin-top: -20px;
+  margin-bottom: 20px;
+`;
+
+export const HelperText = styled.p`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray};
+  margin-top: 6px;
 `;
