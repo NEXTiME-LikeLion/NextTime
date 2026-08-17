@@ -58,6 +58,7 @@ export const ONBOARDING_STEPS = [
                 note: "* 최대 2개 선택",
                 type: "multi",
                 layout: "grid",
+                maxSelect: 2,
                 options: ["체력·건강", "가족·사람", "돈", "자유", "외모·냄새", "임신·아이", "취미·일상", "직접 입력"],
             },
             {

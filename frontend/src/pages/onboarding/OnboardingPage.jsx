@@ -25,11 +25,17 @@ const OnboardingPage = () => {
     return !!value;
   });
 
-  const handleSelect = (key, option, multi) => {
+  const handleSelect = (key, option, multi, maxSelect) => {
     setAnswers((prev) => {
       if (multi) {
         const current = prev[key] || [];
-        const next = current.includes(option)
+        const alreadySelected = current.includes(option);
+
+        if (!alreadySelected && maxSelect && current.length >= maxSelect) {
+          return prev;
+        }
+
+        const next = alreadySelected
           ? current.filter((v) => v !== option)
           : [...current, option];
         return { ...prev, [key]: next };
@@ -62,11 +68,12 @@ const OnboardingPage = () => {
         rightContent={`${stepIndex + 1} / ${totalSteps}`}
         onBack={handleBack}
       />
-      <S.Wrapper>
-        <S.ProgressBarTrack>
-          <S.ProgressBarFill $progress={progress} />
-        </S.ProgressBarTrack>
 
+      <S.ProgressBarTrack>
+        <S.ProgressBarFill $progress={progress} />
+      </S.ProgressBarTrack>
+
+      <S.Wrapper>
         <S.Title>
           {step.title.split("\n").map((line, i) => (
             <span key={i}>
@@ -91,6 +98,7 @@ const OnboardingPage = () => {
                 onFocus={() => setFocusedKey(q.key)}
                 onBlur={() => setFocusedKey(null)}
                 $focused={focusedKey === q.key}
+                $filled={(answers[q.key] || "").trim().length > 0}
                 $height={q.textareaHeight}
               />
             ) : (
@@ -107,7 +115,12 @@ const OnboardingPage = () => {
                             : answers[q.key] === opt
                         }
                         onClick={() =>
-                          handleSelect(q.key, opt, q.type === "multi")
+                          handleSelect(
+                            q.key,
+                            opt,
+                            q.type === "multi",
+                            q.maxSelect,
+                          )
                         }
                       />
                     ))}
@@ -128,6 +141,9 @@ const OnboardingPage = () => {
                           onFocus={() => setFocusedKey(`${q.key}-custom`)}
                           onBlur={() => setFocusedKey(null)}
                           $focused={focusedKey === `${q.key}-custom`}
+                          $filled={
+                            (customInputs[q.key] || "").trim().length > 0
+                          }
                           $height={52}
                         />
                       ) : (
@@ -140,7 +156,12 @@ const OnboardingPage = () => {
                               : answers[q.key] === opt
                           }
                           onClick={() =>
-                            handleSelect(q.key, opt, q.type === "multi")
+                            handleSelect(
+                              q.key,
+                              opt,
+                              q.type === "multi",
+                              q.maxSelect,
+                            )
                           }
                         />
                       ),

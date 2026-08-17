@@ -85,14 +85,18 @@ export const TextArea = styled.textarea`
   height: ${({ $height = 100 }) => $height}px;
   padding: 14px;
   border-radius: 12px;
-  border-width: ${({ $focused }) => ($focused ? "1px" : "0.4px")};
+  border-width: ${({ $focused, $filled }) =>
+    $focused || $filled ? "1px" : "0.4px"};
   border-style: solid;
-  border-color: ${({ theme, $focused }) =>
-        $focused ? theme.colors.primary : theme.colors.light_gray};
-  background-color: #ffffff;
+  border-color: ${({ theme, $focused, $filled }) =>
+    $focused || $filled ? theme.colors.primary : theme.colors.light_gray};
+  background-color: ${({ $focused, $filled }) =>
+    $focused || $filled ? "rgba(0, 213, 121, 0.10)" : "#ffffff"};
   font-size: 14px;
+  font-weight: ${({ $filled }) => ($filled ? 600 : 400)};
   font-family: inherit;
   color: #252843;
+  line-height: 1.5;
   resize: none;
   box-sizing: border-box;
   outline: none;
@@ -112,7 +116,7 @@ export const NextButton = styled.button`
   font-weight: 500;
   cursor: pointer;
   background-color: ${({ theme, disabled }) =>
-        disabled ? "rgba(178, 178, 178, 0.24)" : theme.colors.primary};
+    disabled ? "rgba(178, 178, 178, 0.24)" : theme.colors.primary};
   color: ${({ disabled }) => (disabled ? "#252843" : "#ffffff")};
   transition: background-color 0.15s ease;
 `;
