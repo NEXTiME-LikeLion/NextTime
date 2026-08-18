@@ -11,6 +11,8 @@ import com.nextime.nexttime.domain.NextTimeResult;
 import com.nextime.nexttime.domain.NextTimeSession;
 import com.nextime.nexttime.domain.NextTimeSessionRepository;
 import com.nextime.nexttime.domain.NextTimeSessionStatus;
+import com.nextime.smokingrecord.domain.SmokingRecord;
+import com.nextime.smokingrecord.domain.SmokingRecordRepository;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +56,7 @@ public class HomeService {
     private final UserRepository userRepository;
     private final NextMeGenerationRepository nextMeGenerationRepository;
     private final NextTimeSessionRepository nextTimeSessionRepository;
+    private final SmokingRecordRepository smokingRecordRepository;
 
     @Transactional(readOnly = true)
     public HomeResponse getHome(UUID userId) {
@@ -72,11 +75,17 @@ public class HomeService {
                         today.start(),
                         today.end()
                 );
+        List<SmokingRecord> todaySmokingRecords = smokingRecordRepository
+                .findByUser_IdAndSmokedAtGreaterThanEqualAndSmokedAtLessThan(
+                        userId,
+                        today.start(),
+                        today.end()
+                );
 
         return new HomeResponse(
                 HomeResponse.NextMe.from(nextMe),
                 activeSession == null ? null : HomeResponse.ActiveNextTimeSession.from(activeSession),
-                summarize(todayResults)
+                summarize(todayResults, todaySmokingRecords)
         );
     }
 
@@ -88,12 +97,12 @@ public class HomeService {
         }
     }
 
-    private TodaySummary summarize(List<NextTimeSession> sessions) {
+    private TodaySummary summarize(List<NextTimeSession> sessions, List<SmokingRecord> smokingRecords) {
         int overcomeCount = countResult(sessions, NOT_SMOKED);
         int delayedCount = countResult(sessions, DELAYED);
-        int smokedCount = countResult(sessions, SMOKED);
+        int smokedCount = countResult(sessions, SMOKED) + smokingRecords.size();
         return new TodaySummary(
-                sessions.size(),
+                sessions.size() + smokingRecords.size(),
                 overcomeCount,
                 delayedCount,
                 smokedCount,

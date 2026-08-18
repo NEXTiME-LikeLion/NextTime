@@ -1,5 +1,6 @@
 package com.nextime.smokingrecord.api;
 
+import com.nextime.nexttime.domain.NextTimeResult;
 import com.nextime.smokingcontext.domain.SmokingContext;
 import com.nextime.smokingrecord.domain.SmokingRecord;
 
