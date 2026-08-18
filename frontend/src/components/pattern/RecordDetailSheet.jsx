@@ -1,40 +1,51 @@
+import { useEffect } from "react";
 import styled from "styled-components";
 import BottomSheet from "../common/BottomSheet";
+import ApiStatusView from "../common/ApiStatusView";
+import useAsync from "../../hooks/useAsync";
+import { getRecord } from "../../api/record";
+import { mapRecordDetail } from "./mapRecordItem";
 
-function RecordDetailSheet({ isOpen, onClose, record }) {
-  if (!record) return null;
+function RecordDetailSheet({ isOpen, onClose, recordId }) {
+  const { data, isLoading, error, execute, refetch, reset } = useAsync(
+    getRecord,
+    { immediate: false },
+  );
 
-  const cravingText =
-    record.status?.length === 2 ? record.status.join(" → ") : null;
+  useEffect(() => {
+    if (!isOpen || !recordId) {
+      reset();
+      return;
+    }
 
-  const fields =
-    record.recordType === "MANUAL_SMOKING"
-      ? [
-          { label: "상황", value: record.moment },
-          { label: "흡연 기록", value: record.record },
-        ]
-      : [
-          { label: "미션", value: record.title },
-          { label: "상황", value: record.moment },
-          { label: "장소", value: record.location },
-          { label: "흡연 기록", value: record.record },
-          { label: "흡연 욕구", value: cravingText },
-        ];
+    execute(recordId);
+  }, [isOpen, recordId, execute, reset]);
 
-  const visibleFields = fields.filter((field) => field.value);
+  const detail = data ? mapRecordDetail(data) : null;
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose}>
-      <DateTitle>{record.time}</DateTitle>
-
-      <DataFields>
-        {visibleFields.map((field) => (
-          <Field key={field.label}>
-            <FieldLabel>{field.label}</FieldLabel>
-            <FieldValue>{field.value}</FieldValue>
-          </Field>
-        ))}
-      </DataFields>
+      <ApiStatusView
+        variant="embed"
+        isLoading={Boolean(recordId) && !error && (isLoading || !data)}
+        error={!data ? error : null}
+        onRetry={refetch}
+        loadingTitle="기록을 불러오는 중이에요"
+      >
+        {detail ? (
+          <>
+            <DateTitle>{detail.time}</DateTitle>
+            <DataFields>
+              {detail.fields.map((field) => (
+                <Field key={field.label}>
+                  <FieldLabel>{field.label}</FieldLabel>
+                  <FieldValue>{field.value}</FieldValue>
+                </Field>
+              ))}
+            </DataFields>
+          </>
+        ) : null}
+      </ApiStatusView>
     </BottomSheet>
   );
 }

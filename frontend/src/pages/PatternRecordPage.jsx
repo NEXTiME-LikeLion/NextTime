@@ -24,22 +24,19 @@ function PatternRecordPage() {
     [data],
   );
 
-  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [selectedRecordId, setSelectedRecordId] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (!selectedIdFromState || records.length === 0) return;
+    if (!selectedIdFromState) return;
 
-    const found = records.find((record) => record.id === selectedIdFromState);
-    if (!found) return;
-
-    setSelectedRecord(found);
+    setSelectedRecordId(selectedIdFromState);
     setIsSheetOpen(true);
-  }, [selectedIdFromState, records]);
+  }, [selectedIdFromState]);
 
   const handleItemClick = (record) => {
-    setSelectedRecord(record);
+    setSelectedRecordId(record.id);
     setIsSheetOpen(true);
   };
 
@@ -96,7 +93,7 @@ function PatternRecordPage() {
       <RecordDetailSheet
         isOpen={isSheetOpen}
         onClose={handleCloseSheet}
-        record={selectedRecord}
+        recordId={selectedRecordId}
       />
 
       {toast && <Toast message={toast.message} />}

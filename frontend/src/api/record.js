@@ -45,3 +45,8 @@ export const getRecords = async (limit = 10) => {
     });
     return response.data.data;
 };
+
+export const getRecord = async (recordId) => {
+    const response = await axiosInstance.get(`/records/${recordId}`);
+    return response.data.data;
+};
