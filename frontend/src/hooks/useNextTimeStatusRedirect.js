@@ -1,0 +1,46 @@
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useNextTime } from "../contexts/NextTimeContext";
+import {
+  getNextTimePathByStatus,
+  isNextTimeStatusAfter,
+} from "../api/nextTime";
+
+function useNextTimeStatusRedirect(pageStatus) {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { session, resetFlow } = useNextTime();
+  const sessionStatus = session?.status;
+
+  useEffect(() => {
+    if (!sessionStatus) return;
+
+    if (sessionStatus === "CANCELLED") {
+      const homePath = getNextTimePathByStatus("CANCELLED");
+      console.log("건너뛴 세션이라 홈으로 이동합니다.", {
+        sessionStatus,
+        from: pathname,
+        to: homePath,
+      });
+      resetFlow();
+      navigate(homePath, { replace: true });
+      return;
+    }
+
+    if (!isNextTimeStatusAfter(sessionStatus, pageStatus)) {
+      return;
+    }
+
+    const targetPath = getNextTimePathByStatus(sessionStatus);
+    if (pathname === targetPath) return;
+
+    console.log("진행 중인 세션 상태에 맞는 화면으로 이동합니다.", {
+      sessionStatus,
+      from: pathname,
+      to: targetPath,
+    });
+    navigate(targetPath, { replace: true });
+  }, [navigate, pageStatus, pathname, resetFlow, sessionStatus]);
+}
+
+export default useNextTimeStatusRedirect;

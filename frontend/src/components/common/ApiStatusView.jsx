@@ -21,8 +21,8 @@ function ApiStatusView({
       <StatusScreen $variant={variant}>
         <StatusContent>
           <Mascot src={mascotLoading} alt="" $variant={variant} />
-          <StatusTitle>{loadingTitle}</StatusTitle>
-          <StatusDesc>{loadingDescription}</StatusDesc>
+          <StatusTitle $variant={variant}>{loadingTitle}</StatusTitle>
+          <StatusDesc $variant={variant}>{loadingDescription}</StatusDesc>
         </StatusContent>
       </StatusScreen>
     );
@@ -32,8 +32,8 @@ function ApiStatusView({
     return (
       <StatusScreen $variant={variant}>
         <StatusContent>
-          <StatusTitle>{errorTitle}</StatusTitle>
-          <StatusDesc>{resolvedErrorDescription}</StatusDesc>
+          <StatusTitle $variant={variant}>{errorTitle}</StatusTitle>
+          <StatusDesc $variant={variant}>{resolvedErrorDescription}</StatusDesc>
           {onRetry && (
             <RetryButton type="button" onClick={onRetry}>
               다시 시도
@@ -59,8 +59,11 @@ const StatusScreen = styled.div`
     $variant === "embed"
       ? "0.5rem 0"
       : "var(--safe-top) 1.25rem var(--safe-bottom)"};
-  background-color: ${({ $variant, theme }) =>
-    $variant === "embed" ? "transparent" : theme.colors.bg0};
+  background-color: ${({ $variant, theme }) => {
+    if ($variant === "embed") return "transparent";
+    if ($variant === "dark") return theme.colors.bg_black;
+    return theme.colors.bg0;
+  }};
 `;
 
 const StatusContent = styled.div`
@@ -81,14 +84,16 @@ const Mascot = styled.img`
 `;
 
 const StatusTitle = styled.h2`
-  color: ${({ theme }) => theme.colors.bg1};
+  color: ${({ theme, $variant }) =>
+    $variant === "dark" ? theme.colors.white : theme.colors.bg1};
   font-size: 1.125rem;
   font-weight: 700;
   line-height: 1.4;
 `;
 
 const StatusDesc = styled.p`
-  color: ${({ theme }) => theme.colors.gray};
+  color: ${({ theme, $variant }) =>
+    $variant === "dark" ? theme.colors.light_gray : theme.colors.gray};
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.5;

@@ -1,12 +1,22 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useNextTime } from "../../contexts/NextTimeContext";
+import useAsync from "../../hooks/useAsync";
+import useNextTimeStatusRedirect from "../../hooks/useNextTimeStatusRedirect";
+import {
+  completeNextTimeMission,
+  getNextTimePathByStatus,
+  isNextTimeStatusAfter,
+} from "../../api/nextTime";
 import Header from "../../components/next-time/Header";
 import CircularTimer from "../../components/next-time/CircularTimer";
 import WhyThisBox from "../../components/next-time/WhyThisBox";
+import ApiStatusView from "../../components/common/ApiStatusView";
+import useSkipNextTimeMission from "../../hooks/useSkipNextTimeMission";
 
 function splitMissionTitle(title) {
+  if (!title) return [""];
   const splitIndex = title.search(/\d+분/);
   if (splitIndex > 0) {
     return [title.slice(0, splitIndex).trim(), title.slice(splitIndex).trim()];
@@ -14,17 +24,130 @@ function splitMissionTitle(title) {
   return [title];
 }
 
+function getRemainingSeconds(durationSeconds, startedAt) {
+  if (!startedAt) return durationSeconds;
+
+  const elapsedSeconds = Math.floor(
+    (Date.now() - new Date(startedAt).getTime()) / 1000,
+  );
+  return Math.max(0, durationSeconds - elapsedSeconds);
+}
+
 function MissionPage() {
   const navigate = useNavigate();
-  const { recommendedMission } = useNextTime();
-  const { title, missionDescription, durationSeconds, whyThisText } =
-    recommendedMission;
+  const { session, sessionId, recommendedMission, setSession } = useNextTime();
+  useNextTimeStatusRedirect("MISSION_STARTED");
+  const {
+    title,
+    missionDescription,
+    durationSeconds,
+    whyThisText,
+    startedAt,
+  } = recommendedMission;
   const titleLines = splitMissionTitle(title);
   const missionDescriptionLines = missionDescription?.split("\n") ?? [];
+  const {
+    isLoading: isCompleting,
+    error: completeError,
+    execute,
+    refetch,
+  } = useAsync(
+    completeNextTimeMission,
+    { immediate: false },
+  );
+  const {
+    skip,
+    retry: retrySkip,
+    isLoading: isSkipping,
+    error: skipError,
+  } = useSkipNextTimeMission({ isBusy: isCompleting });
+  const isLoading = isCompleting || isSkipping;
+  const error = skipError || completeError;
+  const hasRequestedCompleteRef = useRef(false);
 
-  const [remainingSeconds, setRemainingSeconds] = useState(durationSeconds);
+  const [remainingSeconds, setRemainingSeconds] = useState(() =>
+    getRemainingSeconds(durationSeconds, startedAt),
+  );
+
+  const goToRecord = useCallback(
+    (completedSession) => {
+      if (completedSession) {
+        setSession((prev) => ({ ...(prev ?? {}), ...completedSession }));
+      }
+      navigate("/next-time/record", { replace: true });
+    },
+    [navigate, setSession],
+  );
+
+  const completeMission = useCallback(async () => {
+    if (isLoading) return;
+
+    if (!sessionId) {
+      console.error("세션 ID가 없어 미션을 완료할 수 없습니다.");
+      return;
+    }
+
+    if (isNextTimeStatusAfter(session?.status, "MISSION_STARTED")) {
+      const path = getNextTimePathByStatus(session.status);
+      console.log("세션이 이미 미션 시작 이후 단계라 미션 완료를 건너뜁니다.", {
+        sessionId,
+        status: session.status,
+        path,
+        session,
+      });
+      if (session.status === "MISSION_COMPLETED") {
+        goToRecord(session);
+        return;
+      }
+      navigate(path, { replace: true });
+      return;
+    }
+
+    console.log("미션을 완료합니다.", { sessionId });
+    const result = await execute(sessionId);
+    if (!result) {
+      console.error("미션 완료에 실패했습니다.");
+      return;
+    }
+
+    console.log("미션을 완료했습니다.", {
+      sessionId: result.sessionId,
+      status: result.status,
+      mission: result.mission,
+      startedAt: result.startedAt,
+      completedAt: result.completedAt,
+      result,
+    });
+    goToRecord(result);
+  }, [execute, goToRecord, isLoading, navigate, session, sessionId]);
+
+  const handleRetry = async () => {
+    if (skipError) {
+      await retrySkip();
+      return;
+    }
+
+    console.log("미션 완료를 다시 시도합니다.", { sessionId });
+    const result = await refetch();
+    if (!result) {
+      console.error("미션 완료에 실패했습니다.");
+      return;
+    }
+
+    console.log("미션을 완료했습니다.", {
+      sessionId: result.sessionId,
+      status: result.status,
+      mission: result.mission,
+      startedAt: result.startedAt,
+      completedAt: result.completedAt,
+      result,
+    });
+    goToRecord(result);
+  };
 
   useEffect(() => {
+    if (remainingSeconds <= 0) return;
+
     const intervalId = setInterval(() => {
       setRemainingSeconds((prev) => {
         if (prev <= 1) {
@@ -39,20 +162,41 @@ function MissionPage() {
   }, []);
 
   useEffect(() => {
-    if (remainingSeconds <= 0) {
-      navigate("/next-time/record", { replace: true });
+    if (
+      remainingSeconds > 0 ||
+      isSkipping ||
+      skipError ||
+      hasRequestedCompleteRef.current
+    ) {
+      return;
     }
-  }, [remainingSeconds, navigate]);
+
+    hasRequestedCompleteRef.current = true;
+    completeMission();
+  }, [completeMission, isSkipping, remainingSeconds, skipError]);
 
   const handleBack = () => {
+    if (isLoading) return;
     navigate("/next-time/recommend", { replace: true });
   };
 
   const handleSkip = () => {
-    navigate("/next-time/record", { replace: true });
+    skip();
   };
 
   return (
+    <ApiStatusView
+      variant="dark"
+      isLoading={isLoading}
+      error={error}
+      onRetry={handleRetry}
+      loadingTitle={
+        isSkipping ? "미션을 건너뛰는 중이에요" : "미션을 완료하는 중이에요"
+      }
+      errorTitle={
+        skipError ? "미션을 건너뛰지 못했어요" : "미션을 완료하지 못했어요"
+      }
+    >
     <PageContainer>
       <Header title="NEXT TIME" onBack={handleBack} />
 
@@ -90,6 +234,7 @@ function MissionPage() {
         </BottomArea>
       </AllContent>
     </PageContainer>
+    </ApiStatusView>
   );
 }
 

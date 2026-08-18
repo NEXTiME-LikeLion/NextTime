@@ -1,4 +1,8 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import {
+  mapContextAnswersFromSession,
+  mapMissionFromSession,
+} from "../api/nextTime";
 import { MOCK_RECOMMENDATION } from "../data/nextTimeMock";
 
 const NextTimeContext = createContext(null);
@@ -10,46 +14,65 @@ const initialRecordAnswers = {
   additionalNote: "",
 };
 
-export const NextTimeProvider = ({ children }) => {
-  const [situationIntensity, setSituationIntensity] = useState(null);
-  const [location, setLocation] = useState(null);
-  const [moment, setMoment] = useState(null);
-  const [recommendedMission, setRecommendedMission] = useState(
-    MOCK_RECOMMENDATION,
+export const NextTimeProvider = ({ children, initialSession = null }) => {
+  const initialContext = mapContextAnswersFromSession(initialSession);
+  const [session, setSession] = useState(initialSession);
+  const [situationIntensity, setSituationIntensity] = useState(
+    initialContext.situationIntensity,
+  );
+  const [location, setLocation] = useState(initialContext.location);
+  const [moment, setMoment] = useState(initialContext.moment);
+  const [futureVoice, setFutureVoice] = useState(null);
+  const [recommendedMissionState, setRecommendedMission] = useState(
+    () => mapMissionFromSession(initialSession) ?? MOCK_RECOMMENDATION,
   );
   const [recordAnswers, setRecordAnswers] = useState(initialRecordAnswers);
+
+  const recommendedMission = useMemo(
+    () => mapMissionFromSession(session) ?? recommendedMissionState,
+    [recommendedMissionState, session],
+  );
 
   const updateRecordAnswer = useCallback((key, value) => {
     setRecordAnswers((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   const resetFlow = useCallback(() => {
+    setSession(null);
     setSituationIntensity(null);
     setLocation(null);
     setMoment(null);
+    setFutureVoice(null);
     setRecommendedMission(MOCK_RECOMMENDATION);
     setRecordAnswers(initialRecordAnswers);
   }, []);
 
   const value = useMemo(
     () => ({
+      session,
+      sessionId: session?.sessionId ?? null,
       situationIntensity,
       location,
       moment,
+      futureVoice,
       recommendedMission,
       recordAnswers,
+      setSession,
       setSituationIntensity,
       setLocation,
       setMoment,
+      setFutureVoice,
       setRecommendedMission,
       setRecordAnswers,
       updateRecordAnswer,
       resetFlow,
     }),
     [
+      session,
       situationIntensity,
       location,
       moment,
+      futureVoice,
       recommendedMission,
       recordAnswers,
       updateRecordAnswer,

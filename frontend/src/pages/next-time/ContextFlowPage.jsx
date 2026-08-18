@@ -3,11 +3,19 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useElementHeight } from "../../hooks/useElementHeight";
 import { useNextTime } from "../../contexts/NextTimeContext";
+import useAsync from "../../hooks/useAsync";
+import useNextTimeStatusRedirect from "../../hooks/useNextTimeStatusRedirect";
 import { CONTEXT_STEPS } from "../../data/nextTimeSteps";
+import {
+  buildNextTimeContextBody,
+  getNextTimePathByStatus,
+  saveNextTimeContext,
+} from "../../api/nextTime";
 import Header from "../../components/next-time/Header";
 import ProgressBar from "../../components/next-time/ProgressBar";
 import OptionGrid from "../../components/next-time/OptionGrid";
 import PrimaryButton from "../../components/next-time/PrimaryButton";
+import ApiStatusView from "../../components/common/ApiStatusView";
 
 const STEP_FIELD_MAP = {
   intensity: {
@@ -27,7 +35,12 @@ const STEP_FIELD_MAP = {
 function ContextFlowPage() {
   const navigate = useNavigate();
   const nextTime = useNextTime();
+  const { session, sessionId, setSession } = nextTime;
+  useNextTimeStatusRedirect("CREATED");
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const { isLoading, error, execute, refetch } = useAsync(saveNextTimeContext, {
+    immediate: false,
+  });
 
   const currentStep = CONTEXT_STEPS[currentStepIndex];
   const isLastStep = currentStepIndex === CONTEXT_STEPS.length - 1;
@@ -38,7 +51,77 @@ function ContextFlowPage() {
 
   const [bottomAreaRef, bottomAreaHeight] = useElementHeight();
 
+  const goToNextMe = (savedSession) => {
+    if (savedSession) {
+      setSession((prev) => ({ ...(prev ?? {}), ...savedSession }));
+    }
+    navigate("/next-time/next-me", { replace: true });
+  };
+
+  const saveContext = async () => {
+    const payload = buildNextTimeContextBody({
+      situationIntensity: nextTime.situationIntensity,
+      location: nextTime.location,
+      moment: nextTime.moment,
+    });
+
+    if (!sessionId) {
+      console.error("세션 ID가 없어 상황을 저장할 수 없습니다.");
+      return;
+    }
+
+    if (
+      !payload.cravingBefore ||
+      !payload.locationContextId ||
+      !payload.triggerContextId
+    ) {
+      console.error("상황 데이터 매핑에 실패했습니다.", {
+        situationIntensity: nextTime.situationIntensity,
+        location: nextTime.location,
+        moment: nextTime.moment,
+        payload,
+      });
+      return;
+    }
+
+    if (session?.status && session.status !== "CREATED") {
+      const path = getNextTimePathByStatus(session.status);
+      console.log("세션이 CREATED 상태가 아니라 상황 저장을 건너뜁니다.", {
+        sessionId,
+        status: session.status,
+        path,
+        session,
+      });
+      navigate(path, { replace: true });
+      return;
+    }
+
+    console.log("상황 데이터를 저장합니다.", { sessionId, payload });
+    const result = await execute(sessionId, payload);
+    if (!result) {
+      console.error("상황 데이터 저장에 실패했습니다.");
+      return;
+    }
+
+    console.log("상황 데이터를 저장했습니다.", result);
+    goToNextMe(result);
+  };
+
+  const handleRetry = async () => {
+    console.log("상황 데이터 저장을 다시 시도합니다.");
+    const result = await refetch();
+    if (!result) {
+      console.error("상황 데이터 저장에 실패했습니다.");
+      return;
+    }
+
+    console.log("상황 데이터를 저장했습니다.", result);
+    goToNextMe(result);
+  };
+
   const handleBack = () => {
+    if (isLoading) return;
+
     if (currentStepIndex > 0) {
       setCurrentStepIndex((prev) => prev - 1);
       return;
@@ -51,10 +134,10 @@ function ContextFlowPage() {
   };
 
   const handlePrimaryAction = () => {
-    if (!selectedValue) return;
+    if (!selectedValue || isLoading) return;
 
     if (isLastStep) {
-      navigate("/next-time/next-me", { replace: true });
+      saveContext();
       return;
     }
 
@@ -62,7 +145,15 @@ function ContextFlowPage() {
   };
 
   return (
-    <PageContainer>
+    <ApiStatusView
+      variant="dark"
+      isLoading={isLoading}
+      error={error}
+      onRetry={handleRetry}
+      loadingTitle="상황을 저장하는 중이에요"
+      errorTitle="상황 저장에 실패했어요"
+    >
+      <PageContainer>
       <Header onBack={handleBack} />
 
       <IntroBlock>
@@ -96,6 +187,7 @@ function ContextFlowPage() {
         </PrimaryButton>
       </BottomArea>
     </PageContainer>
+    </ApiStatusView>
   );
 }
 
