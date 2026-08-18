@@ -1,22 +1,12 @@
 import { useState } from "react";
-import { useToast } from "../../contexts/ToastContext";
 import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../common/PrimaryButton";
 import SmokingLogModal from "../common/SmokingLogModal";
-import Toast from "../Toast/Toast";
 import styled from "styled-components";
 
-function UrgeActionSection() {
+function UrgeActionSection({ onSmokingRecorded }) {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { showToast } = useToast();
-
-  const handleSubmit = (selected) => {
-    // TODO: API 연동 - reason 전송 코드 추가
-    console.log("기록된 이유:", selected);
-    showToast("기록했어요. 다음 추천에 반영할게요.");
-    setIsModalOpen(false);
-  };
 
   return (
     <Section>
@@ -39,7 +29,7 @@ function UrgeActionSection() {
       <SmokingLogModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmit}
+        onSuccess={onSmokingRecorded}
       />
     </Section>
   );

@@ -6,7 +6,8 @@ import PatternEmptyContent from "../components/pattern/empty/PatternEmptyContent
 import usePatternSummary from "../hooks/usePatternSummary";
 
 function PatternPage() {
-  const { isReady, recordCount, requiredCount } = usePatternSummary();
+  // TODO: 패턴 전용 API 연동 후 recordCount 교체
+  const { isReady, recordCount, requiredCount } = usePatternSummary(0);
 
   if (!isReady) {
     return (

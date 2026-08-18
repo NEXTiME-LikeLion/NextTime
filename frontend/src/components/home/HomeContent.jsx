@@ -1,23 +1,14 @@
 import UrgeActionSection from "./UrgeActionSection";
 import TodayChangeSection from "./TodayChangeSection";
 import styled from "styled-components";
-import usePatternSummary from "../../hooks/usePatternSummary";
 
-function HomeContent() {
-  const { isReady } = usePatternSummary();
-
-  if (!isReady) {
-    return (
-    <Container>
-      <UrgeActionSection />
-    </Container>
-    );
-  }
+function HomeContent({ todaySummary, onSmokingRecorded }) {
+  const hasTodayRecords = (todaySummary?.totalAttemptCount ?? 0) > 0;
 
   return (
     <Container>
-      <UrgeActionSection />
-      <TodayChangeSection />
+      <UrgeActionSection onSmokingRecorded={onSmokingRecorded} />
+      {hasTodayRecords && <TodayChangeSection todaySummary={todaySummary} />}
     </Container>
   );
 }

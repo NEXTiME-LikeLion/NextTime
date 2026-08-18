@@ -1,13 +1,31 @@
 import styled from "styled-components";
-import mascotHome from "../../assets/mascot-home.svg";
+import mascot from "../../assets/mascot.svg";
+import mascotHealth from "../../assets/mascot-run.svg";
+import mascotEconomy from "../../assets/mascot-economy.svg";
+import mascotGrowth from "../../assets/mascot-growth.svg";
+import mascotRelationship from "../../assets/mascot-relationship.svg";
+import mascotSelfEfficacy from "../../assets/mascot-self-efficacy.svg";
+import {useMemo} from "react";
 
-// TODO: API 연동 시 교체
-const NEXT_ME = {
-  title: "러닝할 때 숨이 차서 먼저 멈추지 않는 나",
-  quote: "러닝도 수영도, 내 체력 때문에 포기하고 싶지 않아.",
-};
+function HomeHeader({ nextMe }) {
+  const mascotImage = useMemo(() => {
+    switch (nextMe?.nextBudTheme) {
+      case "NEXTBUD_HEALTH_01":
+        return mascotHealth;
+      case "NEXTBUD_RELATIONSHIP_01":
+        return mascotRelationship;
+      case "NEXTBUD_ECONOMY_01":
+        return mascotEconomy;
+      case "NEXTBUD_SELF_EFFICACY_01":
+        return mascotSelfEfficacy;
+      case "NEXTBUD_GROWTH_01":
+        return mascotGrowth;
+      case "NEXTBUD_DEFAULT_01":
+      default:
+        return mascot;
+    }
+  }, [nextMe?.nextBudTheme]);
 
-function HomeHeader() {
   return (
     <>
       <TabName>홈</TabName>
@@ -15,14 +33,14 @@ function HomeHeader() {
         <TextBlock>
           <Block>
             <Label>NEXT ME</Label>
-            <Title>{NEXT_ME.title}</Title>
+            <Title>{nextMe?.headline}</Title>
           </Block>
           <Block>
             <QuoteLabel>내가 남긴 말</QuoteLabel>
-            <Quote>{NEXT_ME.quote}</Quote>
+            <Quote>{nextMe?.messageToFutureSelf}</Quote>
           </Block>
         </TextBlock>
-        <Mascot src={mascotHome} alt="" />
+        <Mascot src={mascotImage} alt="Next Bud Mascot" />
       </Container>
     </>
   );
