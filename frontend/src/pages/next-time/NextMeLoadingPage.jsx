@@ -1,29 +1,80 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { css, keyframes } from "styled-components";
 import { useNextTime } from "../../contexts/NextTimeContext";
-import { getMockRecommendation, NEXT_ME_LOADING } from "../../data/nextTimeMock";
-import { generateFutureVoice } from "../../api/nextTime";
+import { NEXT_ME_LOADING } from "../../data/nextTimeMock";
+import {
+  generateFutureVoice,
+  getNextTimeRecommendation,
+  mapRecommendedMission,
+} from "../../api/nextTime";
 import useAsync from "../../hooks/useAsync";
 import Header from "../../components/next-time/Header";
 import MascotCharacter from "../../components/next-time/MascotCharacter";
 import ApiStatusView from "../../components/common/ApiStatusView";
 
-const TEXT_REVEAL_MS = 2200;
+const MIN_LOADING_MS = 5000;
+const MIN_BAR_PERCENT = 38;
+
+const waitRemainingLoadingTime = async (startedAt) => {
+  const elapsedMs = Math.round(performance.now() - startedAt);
+  const remainingMs = Math.max(0, MIN_LOADING_MS - elapsedMs);
+  console.log("로딩 화면을 최소 시간만큼 유지합니다.", {
+    elapsedMs,
+    minLoadingMs: MIN_LOADING_MS,
+    remainingMs,
+  });
+
+  if (remainingMs <= 0) return;
+  await new Promise((resolve) => setTimeout(resolve, remainingMs));
+};
 
 function NextMeLoadingPage() {
   const navigate = useNavigate();
-  const {
-    sessionId,
-    situationIntensity,
-    location,
-    moment,
-    setSession,
-    setFutureVoice,
-    setRecommendedMission,
-  } = useNextTime();
-  const { data, isLoading, error, execute, refetch } = useAsync(
-    generateFutureVoice,
+  const { sessionId, setSession, setFutureVoice, setRecommendedMission } =
+    useNextTime();
+  const [voice, setVoice] = useState(null);
+  const [barStage, setBarStage] = useState("min");
+  const [barKey, setBarKey] = useState(0);
+  const apiReadyRef = useRef(false);
+
+  const loadVoiceAndRecommendation = useCallback(
+    async (id) => {
+      setVoice(null);
+
+      console.log("미래의 목소리를 생성합니다.", { sessionId: id });
+      const voiceResult = await generateFutureVoice(id);
+      const { elapsedMs, ...sessionVoice } = voiceResult;
+      console.log("미래의 목소리를 생성했습니다.", {
+        sessionId: sessionVoice.sessionId,
+        source: sessionVoice.source,
+        elapsedMs,
+        generatedAt: sessionVoice.generatedAt,
+        result: sessionVoice,
+      });
+
+      setVoice(sessionVoice);
+      setFutureVoice(sessionVoice);
+      setSession((prev) => ({ ...(prev ?? {}), ...sessionVoice }));
+
+      console.log("추천 미션을 요청합니다.", { sessionId: id });
+      const recommendation = await getNextTimeRecommendation(id);
+      console.log("추천 미션을 받았습니다.", {
+        sessionId: recommendation.sessionId,
+        status: recommendation.status,
+        source: recommendation.source,
+        mission: recommendation.mission,
+        reason: recommendation.reason,
+        result: recommendation,
+      });
+
+      return recommendation;
+    },
+    [setFutureVoice, setSession],
+  );
+
+  const { error, execute, refetch } = useAsync(
+    loadVoiceAndRecommendation,
     { immediate: false },
   );
 
@@ -36,90 +87,78 @@ function NextMeLoadingPage() {
       };
 
   const goToRecommend = useCallback(
-    (voice) => {
-      const { elapsedMs: _elapsedMs, ...sessionVoice } = voice;
-      setSession((prev) => ({ ...(prev ?? {}), ...sessionVoice }));
-      setFutureVoice(sessionVoice);
-      setRecommendedMission(
-        getMockRecommendation({
-          situationIntensity,
-          location,
-          moment,
-        }),
-      );
+    (recommendation) => {
+      const mission = mapRecommendedMission(recommendation);
+      setSession((prev) => ({ ...(prev ?? {}), ...recommendation }));
+      setRecommendedMission(mission);
+      console.log("추천 화면으로 이동합니다.", { mission });
       navigate("/next-time/recommend", { replace: true });
     },
-    [
-      location,
-      moment,
-      navigate,
-      setFutureVoice,
-      setRecommendedMission,
-      setSession,
-      situationIntensity,
-    ],
+    [navigate, setRecommendedMission, setSession],
   );
 
   useEffect(() => {
+    apiReadyRef.current = false;
+    const timerId = setTimeout(() => {
+      if (!apiReadyRef.current) setBarStage("extra");
+    }, MIN_LOADING_MS);
+
+    return () => clearTimeout(timerId);
+  }, [barKey]);
+
+  useEffect(() => {
     if (!sessionId) {
-      console.error("세션 ID가 없어 미래의 목소리를 생성할 수 없습니다.");
+      console.error(
+        "세션 ID가 없어 미래의 목소리와 추천 미션을 요청할 수 없습니다.",
+      );
       return;
     }
 
-    console.log("미래의 목소리를 생성합니다.", { sessionId });
-    execute(sessionId).then((result) => {
-      if (!result) {
-        console.error("미래의 목소리 생성에 실패했습니다.");
+    let cancelled = false;
+    const startedAt = performance.now();
+
+    execute(sessionId).then(async (recommendation) => {
+      if (cancelled) return;
+
+      if (!recommendation) {
+        console.error("미래의 목소리 또는 추천 미션 요청에 실패했습니다.");
         return;
       }
 
-      console.log("미래의 목소리를 생성했습니다.", {
-        sessionId: result.sessionId,
-        source: result.source,
-        elapsedMs: result.elapsedMs,
-        generatedAt: result.generatedAt,
-        result,
-      });
-    });
-  }, [execute, sessionId]);
+      apiReadyRef.current = true;
+      await waitRemainingLoadingTime(startedAt);
+      if (cancelled) return;
 
-  useEffect(() => {
-    if (!data) return;
-
-    const displayDurationMs = TEXT_REVEAL_MS;
-    console.log("미래의 목소리를 표시한 뒤 다음 화면으로 이동합니다.", {
-      elapsedMs: data.elapsedMs,
-      displayDurationMs,
+      goToRecommend(recommendation);
     });
 
-    const timer = setTimeout(() => {
-      goToRecommend(data);
-    }, displayDurationMs);
-
-    return () => clearTimeout(timer);
-  }, [data, goToRecommend]);
+    return () => {
+      cancelled = true;
+    };
+  }, [execute, goToRecommend, sessionId]);
 
   const handleRetry = async () => {
     if (!sessionId) return;
 
-    console.log("미래의 목소리 생성을 다시 시도합니다.", { sessionId });
-    const result = await refetch();
-    if (!result) {
-      console.error("미래의 목소리 생성에 실패했습니다.");
+    apiReadyRef.current = false;
+    setBarStage("min");
+    setBarKey((prev) => prev + 1);
+    setVoice(null);
+
+    console.log("미래의 목소리와 추천 미션을 다시 요청합니다.", { sessionId });
+    const startedAt = performance.now();
+    const recommendation = await refetch();
+    if (!recommendation) {
+      console.error("미래의 목소리 또는 추천 미션 요청에 실패했습니다.");
       return;
     }
 
-    console.log("미래의 목소리를 생성했습니다.", {
-      sessionId: result.sessionId,
-      source: result.source,
-      elapsedMs: result.elapsedMs,
-      generatedAt: result.generatedAt,
-      result,
-    });
+    apiReadyRef.current = true;
+    await waitRemainingLoadingTime(startedAt);
+    goToRecommend(recommendation);
   };
 
   const handleBack = () => {
-    if (isLoading) return;
     navigate("/next-time/context", { replace: true });
   };
 
@@ -129,36 +168,38 @@ function NextMeLoadingPage() {
       isLoading={false}
       error={missingSessionError || error}
       onRetry={sessionId ? handleRetry : undefined}
-      errorTitle="미래의 목소리를 만들지 못했어요"
+      errorTitle={
+        voice ? "행동 추천에 실패했어요" : "미래의 목소리를 만들지 못했어요"
+      }
     >
       <PageContainer>
         <Header title="NEXT ME" subtitle="미래의 목소리" onBack={handleBack} />
 
         <Content>
           <TextGroup>
-            {data ? (
+            {voice ? (
               <>
-                <HighlightLine $delay={0}>{data.futureHook}</HighlightLine>
-                <BodyLine $delay={0.4}>{data.acknowledge}</BodyLine>
-                <BoldLine $delay={0.8}>{data.futureReason}</BoldLine>
+                <HighlightLine $delay={0}>{voice.futureHook}</HighlightLine>
+                <BodyLine $delay={0.4}>{voice.acknowledge}</BodyLine>
+                <BoldLine $delay={0.8}>{voice.futureReason}</BoldLine>
               </>
             ) : null}
           </TextGroup>
 
-          <MascotWrap $delay={data ? 1.2 : 0} $immediate={!data}>
+          <MascotWrap $delay={voice ? 1.2 : 0} $immediate={!voice}>
             <MascotCharacter mood="run" size="lg" />
           </MascotWrap>
 
-          {data ? (
-            <ClosingLine $delay={1.6}>{data.closing}</ClosingLine>
+          {voice ? (
+            <ClosingLine $delay={1.6}>{voice.closing}</ClosingLine>
           ) : null}
         </Content>
 
         <BottomArea>
           <LoadingBarTrack>
             <LoadingBarBg />
-            <LoadingBarFill $isComplete={Boolean(data)} />
-            <LoadingBarDot $isComplete={Boolean(data)} />
+            <LoadingBarFill key={`fill-${barKey}`} $stage={barStage} />
+            <LoadingBarDot key={`dot-${barKey}`} $stage={barStage} />
           </LoadingBarTrack>
           <LoadingText>{NEXT_ME_LOADING.statusText}</LoadingText>
         </BottomArea>
@@ -190,27 +231,39 @@ const runMotion = keyframes`
   }
 `;
 
-const loadingPulse = keyframes`
-  0% {
-    width: 8%;
+const fillMin = keyframes`
+  from {
+    width: 0%;
   }
-  50% {
-    width: 24%;
-  }
-  100% {
-    width: 8%;
+  to {
+    width: ${MIN_BAR_PERCENT}%;
   }
 `;
 
-const loadingDotPulse = keyframes`
-  0% {
+const fillExtra = keyframes`
+  from {
+    width: ${MIN_BAR_PERCENT}%;
+  }
+  to {
+    width: 90%;
+  }
+`;
+
+const dotMin = keyframes`
+  from {
     left: 0;
   }
-  50% {
-    left: calc(24% - 0.375rem);
+  to {
+    left: calc(${MIN_BAR_PERCENT}% - 0.1875rem);
   }
-  100% {
-    left: 0;
+`;
+
+const dotExtra = keyframes`
+  from {
+    left: calc(${MIN_BAR_PERCENT}% - 0.1875rem);
+  }
+  to {
+    left: calc(90% - 0.1875rem);
   }
 `;
 
@@ -317,13 +370,14 @@ const LoadingBarFill = styled.div`
   height: 0.125rem;
   border-radius: 6.25rem;
   background: ${({ theme }) => theme.colors.primary};
-  width: ${({ $isComplete }) => ($isComplete ? "33%" : "8%")};
-  transition: width 0.4s ease-out;
-  animation: ${({ $isComplete }) =>
-    $isComplete
-      ? "none"
+  width: ${({ $stage }) => ($stage === "extra" ? `${MIN_BAR_PERCENT}%` : "0")};
+  animation: ${({ $stage }) =>
+    $stage === "extra"
+      ? css`
+          ${fillExtra} 20s linear forwards
+        `
       : css`
-          ${loadingPulse} 1.4s ease-in-out infinite
+          ${fillMin} ${MIN_LOADING_MS}ms ease-out forwards
         `};
 `;
 
@@ -334,14 +388,15 @@ const LoadingBarDot = styled.div`
   height: 0.375rem;
   border-radius: 50%;
   background: ${({ theme }) => theme.colors.primary};
-  left: ${({ $isComplete }) =>
-    $isComplete ? "calc(33% - 0.375rem)" : "0"};
-  transition: left 0.4s ease-out;
-  animation: ${({ $isComplete }) =>
-    $isComplete
-      ? "none"
+  left: ${({ $stage }) =>
+    $stage === "extra" ? `calc(${MIN_BAR_PERCENT}% - 0.1875rem)` : "0"};
+  animation: ${({ $stage }) =>
+    $stage === "extra"
+      ? css`
+          ${dotExtra} 20s linear forwards
+        `
       : css`
-          ${loadingDotPulse} 1.4s ease-in-out infinite
+          ${dotMin} ${MIN_LOADING_MS}ms ease-out forwards
         `};
 `;
 

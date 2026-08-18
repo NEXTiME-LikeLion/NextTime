@@ -64,3 +64,23 @@ export const generateFutureVoice = async (sessionId) => {
         elapsedMs,
     };
 };
+
+export const getNextTimeRecommendation = async (sessionId) => {
+    const response = await axiosInstance.post(
+        `/next-time/sessions/${sessionId}/recommendation`,
+    );
+    return response.data.data;
+};
+
+export const mapRecommendedMission = (data) => ({
+    id: data.mission.id,
+    code: data.mission.code,
+    title: data.mission.name,
+    description: data.reason,
+    missionDescription: data.mission.description,
+    durationSeconds: data.mission.estimatedSeconds,
+    whyThisText: data.reason,
+    completionCriteria: data.mission.completionCriteria,
+    source: data.source,
+    recommendedAt: data.recommendedAt,
+});
