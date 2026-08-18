@@ -1,39 +1,28 @@
 import TabMainLayout from "../layouts/TabMainLayout";
 import HomeHeader from "../components/home/HomeHeader";
 import HomeContent from "../components/home/HomeContent";
-import { useEffect, useState } from "react";
+import ApiStatusView from "../components/common/ApiStatusView";
+import useAsync from "../hooks/useAsync";
 import { getHome } from "../api/home";
 
 function HomePage() {
-  const [homeData, setHomeData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: homeData, isLoading, error, refetch } = useAsync(() =>
+    getHome().then((res) => res.data.data),
+  );
 
-  useEffect(() => {
-    getHome()
-    .then((res) => {
-      setHomeData(res.data.data);
-    })
-    .catch((err) => {
-      console.error(err);
-      setHomeData(null);
-    })
-    .finally(()=> 
-      setIsLoading(false)
-    );
-  }, []);
-
-  if (isLoading) {
-    return <div>로딩 중입니다.</div>;
-  }
-  if (!homeData) {
-    return <div>에러가 발생했어요. 다시 시도해주세요.</div>;
-  }
-
-  return <TabMainLayout 
-    header={<HomeHeader nextMe={homeData.nextMe} />} 
-    content={<HomeContent todaySummary={homeData.todaySummary} />} 
-  />;
+  return (
+    <ApiStatusView
+      isLoading={isLoading}
+      error={error}
+      onRetry={refetch}
+      loadingTitle="홈을 불러오는 중이에요"
+    >
+      <TabMainLayout
+        header={<HomeHeader nextMe={homeData.nextMe} />}
+        content={<HomeContent todaySummary={homeData.todaySummary} />}
+      />
+    </ApiStatusView>
+  );
 }
-
 
 export default HomePage;
