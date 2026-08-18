@@ -46,7 +46,7 @@ function useAsync(asyncFn, { immediate = true } = {}) {
     }
   }, [immediate, execute]);
 
-  return { data, isLoading, error, execute, refetch, reset };
+  return { data, isLoading, error, execute, refetch, reset, setData };
 }
 
 export default useAsync;

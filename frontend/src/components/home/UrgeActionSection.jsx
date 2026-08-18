@@ -4,7 +4,7 @@ import PrimaryButton from "../common/PrimaryButton";
 import SmokingLogModal from "../common/SmokingLogModal";
 import styled from "styled-components";
 
-function UrgeActionSection() {
+function UrgeActionSection({ onSmokingRecorded }) {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -29,6 +29,7 @@ function UrgeActionSection() {
       <SmokingLogModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={onSmokingRecorded}
       />
     </Section>
   );

@@ -2,12 +2,12 @@ import UrgeActionSection from "./UrgeActionSection";
 import TodayChangeSection from "./TodayChangeSection";
 import styled from "styled-components";
 
-function HomeContent({ todaySummary }) {
+function HomeContent({ todaySummary, onSmokingRecorded }) {
   const hasTodayRecords = (todaySummary?.totalAttemptCount ?? 0) > 0;
 
   return (
     <Container>
-      <UrgeActionSection />
+      <UrgeActionSection onSmokingRecorded={onSmokingRecorded} />
       {hasTodayRecords && <TodayChangeSection todaySummary={todaySummary} />}
     </Container>
   );

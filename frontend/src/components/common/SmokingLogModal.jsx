@@ -7,6 +7,7 @@ import {
   SMOKING_TRIGGER_OPTIONS,
   createSmokingRecord,
 } from "../../api/smokingRecords";
+import { getHome } from "../../api/home";
 import { useToast } from "../../contexts/ToastContext";
 import useAsync from "../../hooks/useAsync";
 
@@ -43,7 +44,14 @@ function SmokingLogModal({ isOpen, onClose, onSuccess }) {
 
     onClose();
     showToast("기록했어요. 다음 추천에 반영할게요.");
-    onSuccess?.(record);
+
+    try {
+      const homeData = await getHome();
+      onSuccess?.(record, homeData);
+    } catch (err) {
+      console.error(err);
+      onSuccess?.(record);
+    }
   };
 
   return (
