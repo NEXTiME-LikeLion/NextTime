@@ -1,6 +1,7 @@
 import axiosInstance from "./axiosInstance";
 import { getHome } from "./home";
 import { CONTEXT_STEPS } from "../data/nextTimeSteps";
+import { FEEDBACK_MAX_LENGTH, RECORD_OPTIONS } from "../data/nextTimeRecord";
 
 const findContextOption = (stepId, value) =>
     CONTEXT_STEPS.find((step) => step.id === stepId)?.options.find(
@@ -86,12 +87,46 @@ export const completeNextTimeMission = async (sessionId) => {
     return response.data.data;
 };
 
+const findRecordOption = (fieldId, value) =>
+    RECORD_OPTIONS[fieldId]?.options.find((option) => option.value === value);
+
+export const buildNextTimeResultBody = ({
+    howDidYouDo,
+    currentIntensity,
+    missionFeedback,
+    additionalNote,
+}) => {
+    const body = {
+        result: findRecordOption("howDidYouDo", howDidYouDo)?.result,
+        cravingAfter: findRecordOption("currentIntensity", currentIntensity)
+            ?.cravingAfter,
+        missionHelpfulness: findRecordOption("missionFeedback", missionFeedback)
+            ?.missionHelpfulness,
+    };
+
+    const feedback = additionalNote?.trim();
+    if (feedback) {
+        body.feedback = feedback.slice(0, FEEDBACK_MAX_LENGTH);
+    }
+
+    return body;
+};
+
+export const saveNextTimeResult = async (sessionId, body) => {
+    const response = await axiosInstance.post(
+        `/next-time/sessions/${sessionId}/result`,
+        body,
+    );
+    return response.data.data;
+};
+
 export const NEXT_TIME_STATUS_ORDER = [
     "CREATED",
     "CONTEXT_SAVED",
     "MISSION_RECOMMENDED",
     "MISSION_STARTED",
     "MISSION_COMPLETED",
+    "RESULT_RECORDED",
 ];
 
 export const NEXT_TIME_STATUS_PATHS = {

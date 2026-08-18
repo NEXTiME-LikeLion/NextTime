@@ -2,12 +2,25 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useElementHeight } from "../../hooks/useElementHeight";
 import { useNextTime } from "../../contexts/NextTimeContext";
+import useAsync from "../../hooks/useAsync";
+import useNextTimeStatusRedirect from "../../hooks/useNextTimeStatusRedirect";
+import {
+  buildNextTimeResultBody,
+  getNextTimePathByStatus,
+  isNextTimeStatusAfter,
+  saveNextTimeResult,
+} from "../../api/nextTime";
 
-import { RECORD_OPTIONS, RECORD_NOTE } from "../../data/nextTimeRecord";
+import {
+  FEEDBACK_MAX_LENGTH,
+  RECORD_OPTIONS,
+  RECORD_NOTE,
+} from "../../data/nextTimeRecord";
 import Header from "../../components/next-time/Header";
 import OptionGrid from "../../components/next-time/OptionGrid";
 import TextAreaField from "../../components/next-time/TextAreaField";
 import PrimaryButton from "../../components/next-time/PrimaryButton";
+import ApiStatusView from "../../components/common/ApiStatusView";
 
 const RECORD_FIELD_LAYOUT = {
   howDidYouDo: "list-start",
@@ -15,50 +28,123 @@ const RECORD_FIELD_LAYOUT = {
   missionFeedback: "grid-3",
 };
 
+const logSavedResult = (result) => {
+  console.log("결과를 저장했습니다.", {
+    sessionId: result.sessionId,
+    status: result.status,
+    result: result.result,
+    cravingBefore: result.cravingBefore,
+    cravingAfter: result.cravingAfter,
+    cravingChange: result.cravingChange,
+    missionHelpfulness: result.missionHelpfulness,
+    feedback: result.feedback,
+    memorySummary: result.memorySummary,
+    memorySource: result.memorySource,
+    resultRecordedAt: result.resultRecordedAt,
+    data: result,
+  });
+};
+
 function RecordPage() {
   const navigate = useNavigate();
   const {
-    situationIntensity,
-    location,
-    moment,
-    recommendedMission,
+    session,
+    sessionId,
     recordAnswers,
-    setRecordAnswers,
+    setSession,
     updateRecordAnswer,
-    resetFlow,
   } = useNextTime();
+  useNextTimeStatusRedirect("MISSION_COMPLETED");
   const { howDidYouDo, currentIntensity, missionFeedback, additionalNote } =
     recordAnswers;
+  const { isLoading, error, execute, refetch } = useAsync(saveNextTimeResult, {
+    immediate: false,
+  });
 
   const isFormValid = howDidYouDo && currentIntensity && missionFeedback;
 
   const [bottomAreaRef, bottomAreaHeight] = useElementHeight();
 
-  const handleSubmit = () => {
-    if (!isFormValid) return;
+  const goToComplete = (savedResult) => {
+    if (savedResult) {
+      setSession((prev) => ({ ...(prev ?? {}), ...savedResult }));
+    }
+    navigate("/next-time/complete", { replace: true });
+  };
 
-    const fullRecord = {
+  const saveResult = async () => {
+    if (!isFormValid || isLoading) return;
+
+    const payload = buildNextTimeResultBody({
       howDidYouDo,
       currentIntensity,
       missionFeedback,
       additionalNote,
-      situationIntensity,
-      location,
-      moment,
-      recommendedMissionId: recommendedMission.id,
-      recommendedMissionTitle: recommendedMission.title,
-    };
+    });
 
-    setRecordAnswers(fullRecord);
+    if (!sessionId) {
+      console.error("세션 ID가 없어 결과를 저장할 수 없습니다.");
+      return;
+    }
 
-    // TODO: 기록 저장 API 연동 시
-    // await saveRecord({ ...fullRecord, missionId: recommendedMission.id });
+    if (!payload.result || !payload.cravingAfter || !payload.missionHelpfulness) {
+      console.error("기록 데이터 매핑에 실패했습니다.", {
+        howDidYouDo,
+        currentIntensity,
+        missionFeedback,
+        payload,
+      });
+      return;
+    }
 
-    resetFlow(); // Next Time 초기화
-    navigate("/next-time/complete", { replace: true });
+    if (isNextTimeStatusAfter(session?.status, "MISSION_COMPLETED")) {
+      const path = getNextTimePathByStatus(session.status);
+      console.log("세션이 이미 결과 기록 이후 단계라 저장을 건너뜁니다.", {
+        sessionId,
+        status: session.status,
+        path,
+        session,
+      });
+      if (session.status === "RESULT_RECORDED") {
+        goToComplete(session);
+        return;
+      }
+      navigate(path, { replace: true });
+      return;
+    }
+
+    console.log("결과를 저장합니다.", { sessionId, payload });
+    const result = await execute(sessionId, payload);
+    if (!result) {
+      console.error("결과 저장에 실패했습니다.");
+      return;
+    }
+
+    logSavedResult(result);
+    goToComplete(result);
+  };
+
+  const handleRetry = async () => {
+    console.log("결과 저장을 다시 시도합니다.", { sessionId });
+    const result = await refetch();
+    if (!result) {
+      console.error("결과 저장에 실패했습니다.");
+      return;
+    }
+
+    logSavedResult(result);
+    goToComplete(result);
   };
 
   return (
+    <ApiStatusView
+      variant="dark"
+      isLoading={isLoading}
+      error={error}
+      onRetry={handleRetry}
+      loadingTitle="기록을 저장하는 중이에요"
+      errorTitle="기록 저장에 실패했어요"
+    >
     <PageContainer>
       <Header title="기록하기" back={false} />
 
@@ -118,16 +204,18 @@ function RecordPage() {
               updateRecordAnswer("additionalNote", e.target.value)
             }
             placeholder={RECORD_NOTE.placeholder}
+            maxLength={FEEDBACK_MAX_LENGTH}
           />
         </FieldGroup>
       </ScrollContent>
 
       <BottomArea ref={bottomAreaRef}>
-        <PrimaryButton disabled={!isFormValid} onClick={handleSubmit}>
+        <PrimaryButton disabled={!isFormValid || isLoading} onClick={saveResult}>
           기록하기
         </PrimaryButton>
       </BottomArea>
     </PageContainer>
+    </ApiStatusView>
   );
 }
 

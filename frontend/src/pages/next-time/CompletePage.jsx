@@ -11,22 +11,21 @@ function CompletePage() {
     title: "방금의 기록 기억해둘게요",
     subtitle: "다음에 비슷한 순간이 오면\n오늘의 기록을 먼저 참고할게요",
     insightTitle: "💡 다음에는 이렇게 기억할게요",
-    insightText:
-      "퇴근 후 욕구가 강할 때, 일단 흡연구역에서 벗어나면 흡연 욕구 강함에서 보통으로 낮아졌어요.",
   };
 
   const navigate = useNavigate();
-  const { resetFlow } = useNextTime();
+  const { session, resetFlow } = useNextTime();
   const [bottomAreaRef, bottomAreaHeight] = useElementHeight();
+  const insightText = session?.memorySummary;
 
   const handleGoPattern = () => {
     resetFlow();
-    navigate("/pattern", { replace: true });
+    navigate("/main/pattern", { replace: true });
   };
 
   const handleGoHome = () => {
     resetFlow();
-    navigate("/", { replace: true });
+    navigate("/main", { replace: true });
   };
 
   return (
@@ -41,10 +40,12 @@ function CompletePage() {
 
         <MascotCharacter mood="success" size="llg" />
 
-        <InsightBox>
-          <InsightTitle>{COMPLETE_CONTENT.insightTitle}</InsightTitle>
-          <InsightBody>{COMPLETE_CONTENT.insightText}</InsightBody>
-        </InsightBox>
+        {insightText ? (
+          <InsightBox>
+            <InsightTitle>{COMPLETE_CONTENT.insightTitle}</InsightTitle>
+            <InsightBody>{insightText}</InsightBody>
+          </InsightBox>
+        ) : null}
       </Content>
 
       <BottomArea ref={bottomAreaRef}>
