@@ -1,7 +1,7 @@
 import UrgeActionSection from "./UrgeActionSection";
 import TodayChangeSection from "./TodayChangeSection";
 import styled from "styled-components";
-import usePatternSummary from "../hooks/usePatternSummary";
+import usePatternSummary from "../../hooks/usePatternSummary";
 
 function HomeContent() {
   const { isReady } = usePatternSummary();
