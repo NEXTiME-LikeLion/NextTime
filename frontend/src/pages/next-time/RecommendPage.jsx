@@ -14,8 +14,10 @@ import Header from "../../components/next-time/Header";
 import CircularTimer from "../../components/next-time/CircularTimer";
 import PrimaryButton from "../../components/next-time/PrimaryButton";
 import ApiStatusView from "../../components/common/ApiStatusView";
+import useSkipNextTimeMission from "../../hooks/useSkipNextTimeMission";
 
 function splitMissionTitle(title) {
+  if (!title) return [""];
   const splitIndex = title.search(/\d+분/);
   if (splitIndex > 0) {
     return [title.slice(0, splitIndex).trim(), title.slice(splitIndex).trim()];
@@ -28,11 +30,25 @@ function RecommendPage() {
   const { session, sessionId, recommendedMission, setSession, setRecommendedMission } =
     useNextTime();
   useNextTimeStatusRedirect("MISSION_RECOMMENDED");
-  const { title, description, durationSeconds } = recommendedMission;
+  const { title = "", description = "", durationSeconds = 0 } =
+    recommendedMission ?? {};
   const titleLines = splitMissionTitle(title);
-  const { isLoading, error, execute, refetch } = useAsync(startNextTimeMission, {
+  const {
+    isLoading: isStarting,
+    error: startError,
+    execute,
+    refetch,
+  } = useAsync(startNextTimeMission, {
     immediate: false,
   });
+  const {
+    skip,
+    retry: retrySkip,
+    isLoading: isSkipping,
+    error: skipError,
+  } = useSkipNextTimeMission({ isBusy: isStarting });
+  const isLoading = isStarting || isSkipping;
+  const error = skipError || startError;
 
   const [bottomAreaRef, bottomAreaHeight] = useElementHeight();
 
@@ -91,6 +107,11 @@ function RecommendPage() {
   };
 
   const handleRetry = async () => {
+    if (skipError) {
+      await retrySkip();
+      return;
+    }
+
     console.log("미션 시작을 다시 시도합니다.", { sessionId });
     const result = await refetch();
     if (!result) {
@@ -109,8 +130,7 @@ function RecommendPage() {
   };
 
   const handleSkip = () => {
-    if (isLoading) return;
-    navigate("/next-time/record", { replace: true });
+    skip();
   };
 
   const handleBack = () => {
@@ -124,8 +144,12 @@ function RecommendPage() {
       isLoading={isLoading}
       error={error}
       onRetry={handleRetry}
-      loadingTitle="미션을 시작하는 중이에요"
-      errorTitle="미션을 시작하지 못했어요"
+      loadingTitle={
+        isSkipping ? "미션을 건너뛰는 중이에요" : "미션을 시작하는 중이에요"
+      }
+      errorTitle={
+        skipError ? "미션을 건너뛰지 못했어요" : "미션을 시작하지 못했어요"
+      }
     >
     <PageContainer>
       <Header title="NEXT TIME" onBack={handleBack} />

@@ -53,24 +53,47 @@ export const saveNextTimeContext = async (sessionId, body) => {
     return response.data.data;
 };
 
+export const unwrapNextTimePayload = (payload) => {
+    if (!payload || typeof payload !== "object") return payload;
+    if (payload.mission || payload.sessionId || payload.status) return payload;
+    if (payload.data && typeof payload.data === "object") return payload.data;
+    return payload;
+};
+
 export const generateFutureVoice = async (sessionId) => {
     const startedAt = performance.now();
-    const response = await axiosInstance.post(
-        `/next-time/sessions/${sessionId}/future-voice`,
-    );
-    const elapsedMs = Math.round(performance.now() - startedAt);
+    const withElapsed = (payload) => ({
+        ...payload,
+        elapsedMs: Math.round(performance.now() - startedAt),
+    });
 
-    return {
-        ...response.data.data,
-        elapsedMs,
-    };
+    try {
+        const response = await axiosInstance.post(
+            `/next-time/sessions/${sessionId}/future-voice`,
+        );
+        return withElapsed(response.data.data);
+    } catch (error) {
+        const existing = unwrapNextTimePayload(error?.response?.data?.data);
+        if (error?.response?.status === 409 && existing) {
+            return withElapsed(existing);
+        }
+        throw error;
+    }
 };
 
 export const getNextTimeRecommendation = async (sessionId) => {
-    const response = await axiosInstance.post(
-        `/next-time/sessions/${sessionId}/recommendation`,
-    );
-    return response.data.data;
+    try {
+        const response = await axiosInstance.post(
+            `/next-time/sessions/${sessionId}/recommendation`,
+        );
+        return unwrapNextTimePayload(response.data.data);
+    } catch (error) {
+        const existing = unwrapNextTimePayload(error?.response?.data?.data);
+        if (error?.response?.status === 409 && existing?.mission) {
+            return existing;
+        }
+        throw error;
+    }
 };
 
 export const startNextTimeMission = async (sessionId) => {
@@ -83,6 +106,13 @@ export const startNextTimeMission = async (sessionId) => {
 export const completeNextTimeMission = async (sessionId) => {
     const response = await axiosInstance.post(
         `/next-time/sessions/${sessionId}/mission/complete`,
+    );
+    return response.data.data;
+};
+
+export const skipNextTimeMission = async (sessionId) => {
+    const response = await axiosInstance.post(
+        `/next-time/sessions/${sessionId}/mission/skip`,
     );
     return response.data.data;
 };
@@ -136,6 +166,7 @@ export const NEXT_TIME_STATUS_PATHS = {
     MISSION_STARTED: "/next-time/mission",
     MISSION_COMPLETED: "/next-time/record",
     RESULT_RECORDED: "/next-time/complete",
+    CANCELLED: "/main",
 };
 
 export const getNextTimePathByStatus = (status) =>
@@ -173,21 +204,22 @@ export const mapContextAnswersFromSession = (session) => ({
 });
 
 export const mapMissionFromSession = (data) => {
-    if (!data?.mission) return null;
+    const payload = unwrapNextTimePayload(data);
+    if (!payload?.mission) return null;
 
     return {
-        id: data.mission.id,
-        code: data.mission.code,
-        title: data.mission.name,
-        description: data.reason ?? data.mission.description,
-        missionDescription: data.mission.description,
-        durationSeconds: data.mission.estimatedSeconds,
-        whyThisText: data.reason,
-        completionCriteria: data.mission.completionCriteria,
-        source: data.source,
-        recommendedAt: data.recommendedAt,
-        startedAt: data.startedAt ?? data.missionStartedAt,
-        status: data.status,
+        id: payload.mission.id,
+        code: payload.mission.code,
+        title: payload.mission.name,
+        description: payload.reason ?? payload.mission.description,
+        missionDescription: payload.mission.description,
+        durationSeconds: payload.mission.estimatedSeconds,
+        whyThisText: payload.reason,
+        completionCriteria: payload.mission.completionCriteria,
+        source: payload.source,
+        recommendedAt: payload.recommendedAt,
+        startedAt: payload.startedAt ?? payload.missionStartedAt,
+        status: payload.status,
     };
 };
 

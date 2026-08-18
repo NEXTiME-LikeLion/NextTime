@@ -13,8 +13,10 @@ import Header from "../../components/next-time/Header";
 import CircularTimer from "../../components/next-time/CircularTimer";
 import WhyThisBox from "../../components/next-time/WhyThisBox";
 import ApiStatusView from "../../components/common/ApiStatusView";
+import useSkipNextTimeMission from "../../hooks/useSkipNextTimeMission";
 
 function splitMissionTitle(title) {
+  if (!title) return [""];
   const splitIndex = title.search(/\d+분/);
   if (splitIndex > 0) {
     return [title.slice(0, splitIndex).trim(), title.slice(splitIndex).trim()];
@@ -44,10 +46,23 @@ function MissionPage() {
   } = recommendedMission;
   const titleLines = splitMissionTitle(title);
   const missionDescriptionLines = missionDescription?.split("\n") ?? [];
-  const { isLoading, error, execute, refetch } = useAsync(
+  const {
+    isLoading: isCompleting,
+    error: completeError,
+    execute,
+    refetch,
+  } = useAsync(
     completeNextTimeMission,
     { immediate: false },
   );
+  const {
+    skip,
+    retry: retrySkip,
+    isLoading: isSkipping,
+    error: skipError,
+  } = useSkipNextTimeMission({ isBusy: isCompleting });
+  const isLoading = isCompleting || isSkipping;
+  const error = skipError || completeError;
   const hasRequestedCompleteRef = useRef(false);
 
   const [remainingSeconds, setRemainingSeconds] = useState(() =>
@@ -107,6 +122,11 @@ function MissionPage() {
   }, [execute, goToRecord, isLoading, navigate, session, sessionId]);
 
   const handleRetry = async () => {
+    if (skipError) {
+      await retrySkip();
+      return;
+    }
+
     console.log("미션 완료를 다시 시도합니다.", { sessionId });
     const result = await refetch();
     if (!result) {
@@ -142,11 +162,18 @@ function MissionPage() {
   }, []);
 
   useEffect(() => {
-    if (remainingSeconds > 0 || hasRequestedCompleteRef.current) return;
+    if (
+      remainingSeconds > 0 ||
+      isSkipping ||
+      skipError ||
+      hasRequestedCompleteRef.current
+    ) {
+      return;
+    }
 
     hasRequestedCompleteRef.current = true;
     completeMission();
-  }, [completeMission, remainingSeconds]);
+  }, [completeMission, isSkipping, remainingSeconds, skipError]);
 
   const handleBack = () => {
     if (isLoading) return;
@@ -154,8 +181,7 @@ function MissionPage() {
   };
 
   const handleSkip = () => {
-    if (isLoading) return;
-    navigate("/next-time/record", { replace: true });
+    skip();
   };
 
   return (
@@ -164,8 +190,12 @@ function MissionPage() {
       isLoading={isLoading}
       error={error}
       onRetry={handleRetry}
-      loadingTitle="미션을 완료하는 중이에요"
-      errorTitle="미션을 완료하지 못했어요"
+      loadingTitle={
+        isSkipping ? "미션을 건너뛰는 중이에요" : "미션을 완료하는 중이에요"
+      }
+      errorTitle={
+        skipError ? "미션을 건너뛰지 못했어요" : "미션을 완료하지 못했어요"
+      }
     >
     <PageContainer>
       <Header title="NEXT TIME" onBack={handleBack} />

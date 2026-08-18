@@ -18,7 +18,7 @@ function PatternRecordPage() {
   const selectedIdFromState = location.state?.selectedId;
   const { toast } = useToast();
 
-  const { data, isLoading, error, refetch } = useAsync(getRecords);
+  const { data, isLoading, error, refetch } = useAsync(() => getRecords(30));
   const records = useMemo(
     () => (data?.records ?? []).map(mapRecordListItem),
     [data],

@@ -41,6 +41,28 @@ function NextMeLoadingPage() {
   const [barStage, setBarStage] = useState("min");
   const [barKey, setBarKey] = useState(0);
   const apiReadyRef = useRef(false);
+  const hasNavigatedRef = useRef(false);
+  const loadRequestRef = useRef(null);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+
+  const applyRecommendation = useCallback(
+    (recommendation) => {
+      if (!recommendation) return null;
+
+      const mission = mapRecommendedMission(recommendation);
+      setSession((prev) => ({
+        ...(prev ?? {}),
+        ...recommendation,
+        status: prev?.status ?? recommendation.status,
+      }));
+      if (mission) {
+        setRecommendedMission(mission);
+      }
+      return mission;
+    },
+    [setRecommendedMission, setSession],
+  );
 
   const loadVoiceAndRecommendation = useCallback(
     async (id) => {
@@ -59,7 +81,11 @@ function NextMeLoadingPage() {
 
       setVoice(sessionVoice);
       setFutureVoice(sessionVoice);
-      setSession((prev) => ({ ...(prev ?? {}), ...sessionVoice }));
+      setSession((prev) => ({
+        ...(prev ?? {}),
+        ...sessionVoice,
+        status: prev?.status ?? sessionVoice.status,
+      }));
 
       console.log("추천 미션을 요청합니다.", { sessionId: id });
       const recommendation = await getNextTimeRecommendation(id);
@@ -72,9 +98,10 @@ function NextMeLoadingPage() {
         result: recommendation,
       });
 
+      applyRecommendation(recommendation);
       return recommendation;
     },
-    [setFutureVoice, setSession],
+    [applyRecommendation, setFutureVoice, setSession],
   );
 
   const { error, execute, refetch } = useAsync(
@@ -92,15 +119,44 @@ function NextMeLoadingPage() {
 
   const goToRecommend = useCallback(
     (recommendation) => {
-      const mission = mapRecommendedMission(recommendation);
-      setSession((prev) => ({ ...(prev ?? {}), ...recommendation }));
+      if (hasNavigatedRef.current) return;
+
+      const mission = applyRecommendation(recommendation);
+      const nextSession = {
+        ...(sessionRef.current ?? {}),
+        ...recommendation,
+      };
+      hasNavigatedRef.current = true;
+      setSession(nextSession);
       if (mission) {
-        setRecommendedMission(mission);
         console.log("추천 화면으로 이동합니다.", { mission });
       }
-      navigate("/next-time/recommend", { replace: true });
+      navigate("/next-time/recommend", {
+        replace: true,
+        state: { session: nextSession },
+      });
     },
-    [navigate, setRecommendedMission, setSession],
+    [applyRecommendation, navigate, setSession],
+  );
+
+  const startLoad = useCallback(
+    (id) => {
+      if (
+        loadRequestRef.current?.sessionId === id &&
+        loadRequestRef.current.promise
+      ) {
+        return loadRequestRef.current;
+      }
+
+      const request = {
+        sessionId: id,
+        startedAt: performance.now(),
+        promise: execute(id),
+      };
+      loadRequestRef.current = request;
+      return request;
+    },
+    [execute],
   );
 
   useEffect(() => {
@@ -120,21 +176,27 @@ function NextMeLoadingPage() {
       return;
     }
 
-    if (isNextTimeStatusAfter(session?.status, "CONTEXT_SAVED")) {
-      const path = getNextTimePathByStatus(session.status);
+    if (isNextTimeStatusAfter(sessionRef.current?.status, "CONTEXT_SAVED")) {
+      const path = getNextTimePathByStatus(sessionRef.current.status);
       console.log("이미 추천이 끝난 세션이라 미래의 목소리 요청을 건너뜁니다.", {
         sessionId,
-        status: session.status,
+        status: sessionRef.current.status,
         path,
+      });
+      applyRecommendation(sessionRef.current);
+      navigate(path, {
+        replace: true,
+        state: { session: sessionRef.current },
       });
       return;
     }
 
     let cancelled = false;
-    const startedAt = performance.now();
+    const requestedSessionId = sessionId;
+    const { promise, startedAt } = startLoad(requestedSessionId);
 
-    execute(sessionId).then(async (recommendation) => {
-      if (cancelled) return;
+    promise.then(async (recommendation) => {
+      if (requestedSessionId !== sessionRef.current?.sessionId) return;
 
       if (!recommendation) {
         console.error("미래의 목소리 또는 추천 미션 요청에 실패했습니다.");
@@ -143,7 +205,9 @@ function NextMeLoadingPage() {
 
       apiReadyRef.current = true;
       await waitRemainingLoadingTime(startedAt);
-      if (cancelled) return;
+      if (cancelled || requestedSessionId !== sessionRef.current?.sessionId) {
+        return;
+      }
 
       goToRecommend(recommendation);
     });
@@ -151,24 +215,35 @@ function NextMeLoadingPage() {
     return () => {
       cancelled = true;
     };
-  }, [execute, goToRecommend, session?.status, sessionId]);
+  }, [applyRecommendation, goToRecommend, navigate, sessionId, startLoad]);
 
   const handleRetry = async () => {
     if (!sessionId) return;
 
     if (isNextTimeStatusAfter(session?.status, "CONTEXT_SAVED")) {
-      navigate(getNextTimePathByStatus(session.status), { replace: true });
+      applyRecommendation(session);
+      navigate(getNextTimePathByStatus(session.status), {
+        replace: true,
+        state: session ? { session } : undefined,
+      });
       return;
     }
 
     apiReadyRef.current = false;
+    hasNavigatedRef.current = false;
     setBarStage("min");
     setBarKey((prev) => prev + 1);
     setVoice(null);
 
     console.log("미래의 목소리와 추천 미션을 다시 요청합니다.", { sessionId });
     const startedAt = performance.now();
-    const recommendation = await refetch();
+    const promise = refetch();
+    loadRequestRef.current = {
+      sessionId,
+      startedAt,
+      promise,
+    };
+    const recommendation = await promise;
     if (!recommendation) {
       console.error("미래의 목소리 또는 추천 미션 요청에 실패했습니다.");
       return;

@@ -23,10 +23,15 @@ export const NextTimeProvider = ({ children, initialSession = null }) => {
   const [location, setLocation] = useState(initialContext.location);
   const [moment, setMoment] = useState(initialContext.moment);
   const [futureVoice, setFutureVoice] = useState(null);
-  const [recommendedMission, setRecommendedMission] = useState(
+  const [recommendedMissionState, setRecommendedMission] = useState(
     () => mapMissionFromSession(initialSession) ?? MOCK_RECOMMENDATION,
   );
   const [recordAnswers, setRecordAnswers] = useState(initialRecordAnswers);
+
+  const recommendedMission = useMemo(
+    () => mapMissionFromSession(session) ?? recommendedMissionState,
+    [recommendedMissionState, session],
+  );
 
   const updateRecordAnswer = useCallback((key, value) => {
     setRecordAnswers((prev) => ({ ...prev, [key]: value }));
