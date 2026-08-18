@@ -21,7 +21,10 @@ const OnboardingPage = () => {
   const isStepValid = step.questions.every((q) => {
     const value = answers[q.key];
     if (q.type === "multi") return Array.isArray(value) && value.length > 0;
-    if (q.type === "text") return true;
+    if (q.type === "text") {
+      if (q.required === false) return true; // 선택 입력은 항상 통과
+      return (value || "").trim().length > 0; // 그 외 텍스트는 필수 검증
+    }
     return !!value;
   });
 
