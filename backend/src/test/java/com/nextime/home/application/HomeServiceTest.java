@@ -8,6 +8,8 @@ import com.nextime.mission.domain.Mission;
 import com.nextime.nexttime.domain.NextTimeSession;
 import com.nextime.nexttime.domain.NextTimeSessionRepository;
 import com.nextime.smokingcontext.domain.SmokingContext;
+import com.nextime.smokingrecord.domain.SmokingRecord;
+import com.nextime.smokingrecord.domain.SmokingRecordRepository;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,12 +49,19 @@ class HomeServiceTest {
     private NextMeGenerationRepository nextMeGenerationRepository;
     @Mock
     private NextTimeSessionRepository nextTimeSessionRepository;
+    @Mock
+    private SmokingRecordRepository smokingRecordRepository;
 
     private HomeService service;
 
     @BeforeEach
     void setUp() {
-        service = new HomeService(userRepository, nextMeGenerationRepository, nextTimeSessionRepository);
+        service = new HomeService(
+                userRepository,
+                nextMeGenerationRepository,
+                nextTimeSessionRepository,
+                smokingRecordRepository
+        );
     }
 
     @Test
@@ -75,6 +84,9 @@ class HomeServiceTest {
                 .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualAndResultRecordedAtLessThanOrderByResultRecordedAtDesc(
                         eq(userId), eq(RESULT_RECORDED), any(Instant.class), any(Instant.class)
                 )).thenReturn(results);
+        when(smokingRecordRepository.findByUser_IdAndSmokedAtGreaterThanEqualAndSmokedAtLessThan(
+                eq(userId), any(Instant.class), any(Instant.class)
+        )).thenReturn(List.of());
 
         var response = service.getHome(userId);
 
@@ -90,6 +102,30 @@ class HomeServiceTest {
     }
 
     @Test
+    void includesManualSmokingRecordsInTodaySummary() {
+        UUID userId = UUID.randomUUID();
+        mockCommon(userId, nextMe());
+        when(nextTimeSessionRepository.findFirstByUser_IdAndStatusInOrderByUpdatedAtDesc(
+                eq(userId), anyCollection()
+        )).thenReturn(Optional.empty());
+        when(nextTimeSessionRepository
+                .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualAndResultRecordedAtLessThanOrderByResultRecordedAtDesc(
+                        eq(userId), eq(RESULT_RECORDED), any(Instant.class), any(Instant.class)
+                )).thenReturn(List.of());
+        when(smokingRecordRepository.findByUser_IdAndSmokedAtGreaterThanEqualAndSmokedAtLessThan(
+                eq(userId), any(Instant.class), any(Instant.class)
+        )).thenReturn(List.of(mock(SmokingRecord.class)));
+
+        var response = service.getHome(userId);
+
+        assertThat(response.todaySummary().totalAttemptCount()).isEqualTo(1);
+        assertThat(response.todaySummary().overcomeCount()).isZero();
+        assertThat(response.todaySummary().delayedCount()).isZero();
+        assertThat(response.todaySummary().smokedCount()).isEqualTo(1);
+        assertThat(response.todaySummary().nextAction()).isNull();
+    }
+
+    @Test
     void returnsEmptyTodaySummaryWhenThereAreNoResults() {
         UUID userId = UUID.randomUUID();
         mockCommon(userId, nextMe());
@@ -100,6 +136,9 @@ class HomeServiceTest {
                 .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualAndResultRecordedAtLessThanOrderByResultRecordedAtDesc(
                         eq(userId), eq(RESULT_RECORDED), any(Instant.class), any(Instant.class)
                 )).thenReturn(List.of());
+        when(smokingRecordRepository.findByUser_IdAndSmokedAtGreaterThanEqualAndSmokedAtLessThan(
+                eq(userId), any(Instant.class), any(Instant.class)
+        )).thenReturn(List.of());
 
         var response = service.getHome(userId);
 
@@ -122,6 +161,9 @@ class HomeServiceTest {
                 .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualAndResultRecordedAtLessThanOrderByResultRecordedAtDesc(
                         eq(userId), eq(RESULT_RECORDED), any(Instant.class), any(Instant.class)
                 )).thenReturn(List.of(session));
+        when(smokingRecordRepository.findByUser_IdAndSmokedAtGreaterThanEqualAndSmokedAtLessThan(
+                eq(userId), any(Instant.class), any(Instant.class)
+        )).thenReturn(List.of());
 
         assertThat(service.getHome(userId).todaySummary().nextAction()).isNull();
     }
