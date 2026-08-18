@@ -15,8 +15,9 @@ const ScreenContainer = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
   background-color: ${({ theme }) => theme.colors.primary};
-  overflow-y: auto;
+  overflow: hidden;
 `;
 
 const Header = styled.div`
@@ -24,7 +25,12 @@ const Header = styled.div`
 `;
 
 const Content = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   border-radius: 1rem 1rem 0 0;
   background-color: ${({ theme }) => theme.colors.bg0};
   padding-inline: 1.25rem;
+  overflow-y: auto;
 `;

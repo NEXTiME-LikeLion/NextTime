@@ -1,16 +1,17 @@
 import styled from "styled-components";
 
 function PatternTopBlock() {
-  return;
-  <TopBlock>
-    <TopRow>
-      <TabName>내 패턴</TabName>
-      <Recent>최근 7일</Recent>
-    </TopRow>
-    <PatternDescription>
-      기록이 쌓일수록 나에게 잘 맞는 순간과 행동을 찾아드려요
-    </PatternDescription>
-  </TopBlock>;
+  return (
+    <TopBlock>
+      <TopRow>
+        <TabName>내 패턴</TabName>
+        <Recent>최근 7일</Recent>
+      </TopRow>
+      <PatternDescription>
+        기록이 쌓일수록 나에게 잘 맞는 순간과 행동을 찾아드려요.
+      </PatternDescription>
+    </TopBlock>
+  );
 }
 
 export default PatternTopBlock;

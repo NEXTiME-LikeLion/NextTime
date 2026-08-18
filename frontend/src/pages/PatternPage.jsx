@@ -6,7 +6,7 @@ import PatternEmptyContent from "../components/pattern/empty/PatternEmptyContent
 import usePatternSummary from "../hooks/usePatternSummary";
 
 function PatternPage() {
-  const { isReady, recordCount, requiredCount, pattern } = usePatternSummary();
+  const { isReady, recordCount, requiredCount } = usePatternSummary();
 
   if (!isReady) {
     return (
@@ -24,7 +24,9 @@ function PatternPage() {
 
   return (
     <TabMainLayout
-      header={<PatternHeader pattern={pattern} />}
+      // TODO: API 연동 후 패턴 전달
+      // header={<PatternHeader pattern={pattern} />}
+      header={<PatternHeader />}
       content={<PatternContent />}
     />
   );
