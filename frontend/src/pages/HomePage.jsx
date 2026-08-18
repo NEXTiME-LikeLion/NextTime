@@ -21,6 +21,7 @@ function HomePage() {
     >
       {homeData ? (
         <TabMainLayout
+          scrollEntirePage
           header={<HomeHeader nextMe={homeData.nextMe} />}
           content={
             <HomeContent
