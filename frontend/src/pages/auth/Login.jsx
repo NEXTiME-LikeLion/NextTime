@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signIn } from "aws-amplify/auth";
+import { signIn, signOut } from "aws-amplify/auth";
 import { useToast } from "../../contexts/ToastContext";
 import { registerUser } from "../../api/registerUser";
 import Toast from "../../components/Toast/Toast";
 import * as S from "./Login.styles";
-//
+
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -13,22 +13,35 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const { toast, showToast } = useToast();
 
+  const doSignIn = async () => {
+    await signIn({ username: email, password });
+    const userData = await registerUser();
+
+    showToast("로그인 완료!");
+    if (!userData.onboardingCompleted) {
+      navigate("/onboarding");
+    } else {
+      navigate("/main");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
 
     try {
-      await signIn({ username: email, password });
-      const userData = await registerUser();
-
-      showToast("로그인 완료!");
-      if (!userData.onboardingCompleted) {
-        navigate("/onboarding");
-      } else {
-        navigate("/main");
-      }
+      await doSignIn();
     } catch (error) {
-      setErrorMessage("이메일 또는 비밀번호가 올바르지 않습니다.");
+      if (error.name === "UserAlreadyAuthenticatedException") {
+        try {
+          await signOut();
+          await doSignIn();
+        } catch {
+          setErrorMessage("이메일 또는 비밀번호가 올바르지 않습니다.");
+        }
+      } else {
+        setErrorMessage("이메일 또는 비밀번호가 올바르지 않습니다.");
+      }
     }
   };
 
