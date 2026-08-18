@@ -43,7 +43,7 @@ function ContextFlowPage() {
       setCurrentStepIndex((prev) => prev - 1);
       return;
     }
-    navigate("/", { replace: true });
+    navigate("/main", { replace: true });
   };
 
   const handleSelect = (value) => {
