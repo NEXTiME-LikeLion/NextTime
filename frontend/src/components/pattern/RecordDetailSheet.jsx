@@ -4,49 +4,36 @@ import BottomSheet from "../common/BottomSheet";
 function RecordDetailSheet({ isOpen, onClose, record }) {
   if (!record) return null;
 
+  const cravingText =
+    record.status?.length === 2 ? record.status.join(" → ") : null;
+
+  const fields =
+    record.recordType === "MANUAL_SMOKING"
+      ? [
+          { label: "상황", value: record.moment },
+          { label: "흡연 기록", value: record.record },
+        ]
+      : [
+          { label: "미션", value: record.title },
+          { label: "상황", value: record.moment },
+          { label: "장소", value: record.location },
+          { label: "흡연 기록", value: record.record },
+          { label: "흡연 욕구", value: cravingText },
+        ];
+
+  const visibleFields = fields.filter((field) => field.value);
+
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose}>
       <DateTitle>{record.time}</DateTitle>
 
       <DataFields>
-        <Field>
-          <FieldLabel>미션</FieldLabel>
-          <FieldValue>{record.title}</FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>상황</FieldLabel>
-          <FieldValue>{record.moment}</FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>흡연 기록</FieldLabel>
-          <FieldValue>{record.record}</FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>흡연 욕구</FieldLabel>
-          <FieldValue>
-            {record.status.length === 2
-              ? record.status.join(" → ")
-              : record.status[0]}
-          </FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>미룬 시간</FieldLabel>
-          <FieldValue>{record.delayTime}</FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>행동 체감</FieldLabel>
-          <FieldValue>{record.actionImpact}</FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>내가 남긴 말</FieldLabel>
-          <FieldValue>{record.myMessage}</FieldValue>
-        </Field>
+        {visibleFields.map((field) => (
+          <Field key={field.label}>
+            <FieldLabel>{field.label}</FieldLabel>
+            <FieldValue>{field.value}</FieldValue>
+          </Field>
+        ))}
       </DataFields>
     </BottomSheet>
   );

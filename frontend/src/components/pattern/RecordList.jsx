@@ -3,23 +3,26 @@ import styled from "styled-components";
 function RecordList({ recordList, onClick, ItemComponent = RecordItem }) {
   return (
     <ListWrapper>
-      {recordList.map((record) => (
-        <ItemComponent
-          key={record.id}
-          type="button"
-          onClick={() => onClick?.(record)}
-        >
-          <RecordTitle>{record.title}</RecordTitle>
-          <RecordMeta>
-            {record.time} | {record.moment} |{" "}
-            <Status $status={record.status}>
-              {record.status.length === 2
-                ? record.status.join(" → ")
-                : record.status[0]}
-            </Status>
-          </RecordMeta>
-        </ItemComponent>
-      ))}
+      {recordList.map((record) => {
+        const statusText =
+          record.status?.length === 2
+            ? record.status.join(" → ")
+            : record.status?.[0];
+        const metaText = [record.time, record.moment, statusText]
+          .filter(Boolean)
+          .join(" | ");
+
+        return (
+          <ItemComponent
+            key={record.id}
+            type="button"
+            onClick={() => onClick?.(record)}
+          >
+            <RecordTitle>{record.title}</RecordTitle>
+            <RecordMeta>{metaText}</RecordMeta>
+          </ItemComponent>
+        );
+      })}
     </ListWrapper>
   );
 }
@@ -57,5 +60,3 @@ const RecordMeta = styled.p`
   font-weight: 400;
   line-height: 1.4;
 `;
-
-const Status = styled.span``;

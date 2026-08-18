@@ -6,7 +6,7 @@ import ApiStatusView from "./ApiStatusView";
 import {
   SMOKING_TRIGGER_OPTIONS,
   createSmokingRecord,
-} from "../../api/smokingRecords";
+} from "../../api/record";
 import { getHome } from "../../api/home";
 import { useToast } from "../../contexts/ToastContext";
 import useAsync from "../../hooks/useAsync";

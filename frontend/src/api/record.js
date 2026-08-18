@@ -38,3 +38,10 @@ export const createSmokingRecord = async (triggerContextId) => {
     const response = await axiosInstance.post("/records/smoking", body);
     return response.data.data;
 };
+
+export const getRecords = async (limit = 10) => {
+    const response = await axiosInstance.get("/records", {
+        params: { limit },
+    });
+    return response.data.data;
+};
