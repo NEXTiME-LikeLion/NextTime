@@ -14,15 +14,31 @@ function splitMissionTitle(title) {
   return [title];
 }
 
+function getRemainingSeconds(durationSeconds, startedAt) {
+  if (!startedAt) return durationSeconds;
+
+  const elapsedSeconds = Math.floor(
+    (Date.now() - new Date(startedAt).getTime()) / 1000,
+  );
+  return Math.max(0, durationSeconds - elapsedSeconds);
+}
+
 function MissionPage() {
   const navigate = useNavigate();
   const { recommendedMission } = useNextTime();
-  const { title, missionDescription, durationSeconds, whyThisText } =
-    recommendedMission;
+  const {
+    title,
+    missionDescription,
+    durationSeconds,
+    whyThisText,
+    startedAt,
+  } = recommendedMission;
   const titleLines = splitMissionTitle(title);
   const missionDescriptionLines = missionDescription?.split("\n") ?? [];
 
-  const [remainingSeconds, setRemainingSeconds] = useState(durationSeconds);
+  const [remainingSeconds, setRemainingSeconds] = useState(() =>
+    getRemainingSeconds(durationSeconds, startedAt),
+  );
 
   useEffect(() => {
     const intervalId = setInterval(() => {

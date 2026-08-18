@@ -72,6 +72,13 @@ export const getNextTimeRecommendation = async (sessionId) => {
     return response.data.data;
 };
 
+export const startNextTimeMission = async (sessionId) => {
+    const response = await axiosInstance.post(
+        `/next-time/sessions/${sessionId}/mission/start`,
+    );
+    return response.data.data;
+};
+
 export const mapRecommendedMission = (data) => ({
     id: data.mission.id,
     code: data.mission.code,
@@ -83,4 +90,15 @@ export const mapRecommendedMission = (data) => ({
     completionCriteria: data.mission.completionCriteria,
     source: data.source,
     recommendedAt: data.recommendedAt,
+});
+
+export const mapStartedMission = (data) => ({
+    id: data.mission.id,
+    code: data.mission.code,
+    title: data.mission.name,
+    missionDescription: data.mission.description,
+    durationSeconds: data.mission.estimatedSeconds,
+    completionCriteria: data.mission.completionCriteria,
+    startedAt: data.startedAt,
+    status: data.status,
 });
