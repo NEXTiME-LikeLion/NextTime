@@ -22,12 +22,12 @@ const OnboardingLoadingPage = () => {
         await saveOnboarding(answers);
         const nextMeData = await generateNextMe(answers, customInputs);
         await saveCopingProfile(answers, customInputs);
-
+        localStorage.setItem("onboardingAnswers", JSON.stringify(answers));
+        navigate("/onboarding/complete", { state: { nextMeData, answers } });
         navigate("/onboarding/complete", { state: { nextMeData, answers } });
       } catch (error) {
         console.log("에러 응답 데이터:", error.response?.data);
         console.error("온보딩 저장 실패:", error);
-        // TODO: 에러 화면 처리 필요
       }
     };
 
