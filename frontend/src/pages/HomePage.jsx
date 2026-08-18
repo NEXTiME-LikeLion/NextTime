@@ -11,7 +11,7 @@ function HomePage() {
   useEffect(() => {
     getHome()
     .then((res) => {
-      setHomeData(res.data);
+      setHomeData(res.data.data);
     })
     .catch((err) => {
       console.error(err);
