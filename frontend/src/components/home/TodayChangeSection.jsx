@@ -29,7 +29,7 @@ function TodayChangeSection({ todaySummary }) {
       <SectionTitle>오늘의 변화</SectionTitle>
 
       <Card
-        onClick={() => navigate("/pattern")}
+        onClick={() => navigate("/main/pattern")}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
