@@ -10,10 +10,12 @@ const initialRecordAnswers = {
   additionalNote: "",
 };
 
-export const NextTimeProvider = ({ children }) => {
+export const NextTimeProvider = ({ children, initialSession = null }) => {
+  const [session, setSession] = useState(initialSession);
   const [situationIntensity, setSituationIntensity] = useState(null);
   const [location, setLocation] = useState(null);
   const [moment, setMoment] = useState(null);
+  const [futureVoice, setFutureVoice] = useState(null);
   const [recommendedMission, setRecommendedMission] = useState(
     MOCK_RECOMMENDATION,
   );
@@ -24,32 +26,41 @@ export const NextTimeProvider = ({ children }) => {
   }, []);
 
   const resetFlow = useCallback(() => {
+    setSession(null);
     setSituationIntensity(null);
     setLocation(null);
     setMoment(null);
+    setFutureVoice(null);
     setRecommendedMission(MOCK_RECOMMENDATION);
     setRecordAnswers(initialRecordAnswers);
   }, []);
 
   const value = useMemo(
     () => ({
+      session,
+      sessionId: session?.sessionId ?? null,
       situationIntensity,
       location,
       moment,
+      futureVoice,
       recommendedMission,
       recordAnswers,
+      setSession,
       setSituationIntensity,
       setLocation,
       setMoment,
+      setFutureVoice,
       setRecommendedMission,
       setRecordAnswers,
       updateRecordAnswer,
       resetFlow,
     }),
     [
+      session,
       situationIntensity,
       location,
       moment,
+      futureVoice,
       recommendedMission,
       recordAnswers,
       updateRecordAnswer,

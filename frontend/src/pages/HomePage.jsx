@@ -3,10 +3,17 @@ import HomeHeader from "../components/home/HomeHeader";
 import HomeContent from "../components/home/HomeContent";
 import ApiStatusView from "../components/common/ApiStatusView";
 import useAsync from "../hooks/useAsync";
+import useStartNextTime from "../hooks/useStartNextTime";
 import { getHome } from "../api/home";
 
 function HomePage() {
   const { data: homeData, isLoading, error, refetch, setData } = useAsync(getHome);
+  const {
+    start: startNextTime,
+    isLoading: isStarting,
+    error: startError,
+    retry: retryStart,
+  } = useStartNextTime(homeData?.activeNextTimeSession);
 
   const handleSmokingRecorded = (_record, nextHome) => {
     if (nextHome) setData(nextHome);
@@ -14,10 +21,15 @@ function HomePage() {
 
   return (
     <ApiStatusView
-      isLoading={isLoading && !homeData}
-      error={!homeData ? error : null}
-      onRetry={refetch}
-      loadingTitle="홈을 불러오는 중이에요"
+      isLoading={(isLoading && !homeData) || isStarting}
+      error={!homeData ? error : startError}
+      onRetry={startError ? retryStart : refetch}
+      loadingTitle={
+        isStarting ? "NEXT TIME을 시작하는 중이에요" : "홈을 불러오는 중이에요"
+      }
+      errorTitle={
+        startError ? "NEXT TIME을 시작하지 못했어요" : "불러오기에 실패했어요"
+      }
     >
       {homeData ? (
         <TabMainLayout
@@ -26,6 +38,7 @@ function HomePage() {
           content={
             <HomeContent
               todaySummary={homeData.todaySummary}
+              onStartNextTime={startNextTime}
               onSmokingRecorded={handleSmokingRecorded}
             />
           }

@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../common/PrimaryButton";
 import SmokingLogModal from "../common/SmokingLogModal";
 import styled from "styled-components";
 
-function UrgeActionSection({ onSmokingRecorded }) {
-  const navigate = useNavigate();
+function UrgeActionSection({ onStartNextTime, onSmokingRecorded }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -15,7 +13,7 @@ function UrgeActionSection({ onSmokingRecorded }) {
         <Subtitle>지금 상황에 맞는 행동을 찾아드릴게요.</Subtitle>
       </TextBlock>
 
-      <PrimaryButton onClick={() => navigate("/next-time")}>
+      <PrimaryButton onClick={onStartNextTime}>
         NEXT TIME 시작하기
       </PrimaryButton>
 
