@@ -1,16 +1,32 @@
 import styled from "styled-components";
 
+function getCravingColor(text, theme) {
+  if (text.includes("강함")) return "#FE8159";
+  if (text.includes("보통")) return theme.colors.primary;
+  return "inherit";
+}
+
+function StatusText({ status }) {
+  if (!status?.length) return null;
+
+  if (status.length === 2) {
+    return (
+      <>
+        <CravingText $label={status[0]}>{status[0]}</CravingText>
+        {" → "}
+        <CravingText $label={status[1]}>{status[1]}</CravingText>
+      </>
+    );
+  }
+
+  return <CravingText $label={status[0]}>{status[0]}</CravingText>;
+}
+
 function RecordList({ recordList, onClick, ItemComponent = RecordItem }) {
   return (
     <ListWrapper>
       {recordList.map((record) => {
-        const statusText =
-          record.status?.length === 2
-            ? record.status.join(" → ")
-            : record.status?.[0];
-        const metaText = [record.time, record.moment, statusText]
-          .filter(Boolean)
-          .join(" | ");
+        const metaParts = [record.time, record.moment].filter(Boolean);
 
         return (
           <ItemComponent
@@ -19,7 +35,20 @@ function RecordList({ recordList, onClick, ItemComponent = RecordItem }) {
             onClick={() => onClick?.(record)}
           >
             <RecordTitle>{record.title}</RecordTitle>
-            <RecordMeta>{metaText}</RecordMeta>
+            <RecordMeta>
+              {metaParts.map((part, index) => (
+                <span key={index}>
+                  {index > 0 ? " | " : null}
+                  {part}
+                </span>
+              ))}
+              {record.status?.length ? (
+                <>
+                  {metaParts.length > 0 ? " | " : null}
+                  <StatusText status={record.status} />
+                </>
+              ) : null}
+            </RecordMeta>
           </ItemComponent>
         );
       })}
@@ -59,4 +88,8 @@ const RecordMeta = styled.p`
   font-size: 0.75rem;
   font-weight: 400;
   line-height: 1.4;
+`;
+
+const CravingText = styled.span`
+  color: ${({ $label, theme }) => getCravingColor($label, theme)};
 `;
