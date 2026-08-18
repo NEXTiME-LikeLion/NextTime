@@ -3,7 +3,7 @@ import axiosInstance from "./axiosInstance";
 // 추천 제외 목록 조회
 export const getExcludedMissions = async () => {
     const response = await axiosInstance.get("/users/me/excluded-missions");
-    return response.data.data;
+    return response.data.data; // { excludedMissions: [...], totalCount }
 };
 
 // 다시 추천받기
