@@ -36,7 +36,7 @@ export const SMOKING_TRIGGER_OPTIONS = [
 export const createSmokingRecord = async (triggerContextId) => {
     const body = triggerContextId ? { triggerContextId } : {};
     const response = await axiosInstance.post("/records/smoking", body);
-    return response.data.data;
+    return response.data?.data ?? true;
 };
 
 export const getRecords = async (limit = 10) => {

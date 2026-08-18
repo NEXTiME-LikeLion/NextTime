@@ -47,6 +47,10 @@ function PatternRecordPage() {
     setIsSheetOpen(false);
   };
 
+  const handleSmokingRecorded = () => {
+    refetch();
+  };
+
   return (
     <PageContainer>
       <HeaderWrap>
@@ -85,7 +89,8 @@ function PatternRecordPage() {
       <SmokingLogModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => refetch()}
+        onSuccess={handleSmokingRecorded}
+        shouldRefreshHome={false}
       />
 
       <RecordDetailSheet

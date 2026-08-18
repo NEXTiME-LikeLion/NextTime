@@ -11,7 +11,12 @@ import { getHome } from "../../api/home";
 import { useToast } from "../../contexts/ToastContext";
 import useAsync from "../../hooks/useAsync";
 
-function SmokingLogModal({ isOpen, onClose, onSuccess }) {
+function SmokingLogModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  shouldRefreshHome = true,
+}) {
   const [selectedId, setSelectedId] = useState("");
   const { showToast } = useToast();
   const { data, isLoading, error, execute, refetch, reset } = useAsync(
@@ -39,18 +44,20 @@ function SmokingLogModal({ isOpen, onClose, onSuccess }) {
   const handleModalSubmit = async () => {
     if (isLoading) return;
 
-    const record = await execute(selectedId);
+    const record = await execute(selectedId || undefined);
     if (!record) return;
 
     onClose();
     showToast("기록했어요. 다음 추천에 반영할게요.");
+    onSuccess?.(record);
+
+    if (!shouldRefreshHome) return;
 
     try {
       const homeData = await getHome();
       onSuccess?.(record, homeData);
     } catch (err) {
       console.error(err);
-      onSuccess?.(record);
     }
   };
 
