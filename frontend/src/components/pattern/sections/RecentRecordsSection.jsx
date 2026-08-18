@@ -3,34 +3,11 @@ import styled from "styled-components";
 import RecordList from "../RecordList";
 import { SectionTitle } from "./RecentChangeSection";
 import { Section } from "./HelpfulActionSection";
+import { mapRecordListItem } from "../mapRecordItem";
 
-// TODO: API 연동 시 교체
-const mockRecentRecords = [
-  {
-    id: 1,
-    title: "흡연구역에서 벗어나 5분 걷기",
-    time: "오늘 18:24",
-    moment: "일·공부 끝난 뒤",
-    status: ["욕구 강함", "보통"],
-  },
-  {
-    id: 2,
-    title: "물 마시기",
-    time: "오늘 13:11",
-    moment: "식사 후",
-    status: ["11분 미룸", "이후 흡연"],
-  },
-  {
-    id: 3,
-    title: "흡연구역에서 벗어나 5분 걷기",
-    time: "오늘 9:12",
-    moment: "일·공부 끝난 뒤",
-    status: ["바로 흡연"],
-  },
-];
-
-function RecentRecordsSection() {
+function RecentRecordsSection({ records = [] }) {
   const navigate = useNavigate();
+  const recordList = records.map(mapRecordListItem);
 
   return (
     <Section>
@@ -44,7 +21,7 @@ function RecentRecordsSection() {
         </ViewAllButton>
       </SectionHeader>
 
-      <RecordList recordList={mockRecentRecords} />
+      {recordList.length > 0 ? <RecordList recordList={recordList} /> : null}
     </Section>
   );
 }

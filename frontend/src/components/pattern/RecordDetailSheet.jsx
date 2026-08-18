@@ -1,53 +1,51 @@
+import { useEffect } from "react";
 import styled from "styled-components";
 import BottomSheet from "../common/BottomSheet";
+import ApiStatusView from "../common/ApiStatusView";
+import useAsync from "../../hooks/useAsync";
+import { getRecord } from "../../api/record";
+import { mapRecordDetail } from "./mapRecordItem";
 
-function RecordDetailSheet({ isOpen, onClose, record }) {
-  if (!record) return null;
+function RecordDetailSheet({ isOpen, onClose, recordId }) {
+  const { data, isLoading, error, execute, refetch, reset } = useAsync(
+    getRecord,
+    { immediate: false },
+  );
+
+  useEffect(() => {
+    if (!isOpen || !recordId) {
+      reset();
+      return;
+    }
+
+    execute(recordId);
+  }, [isOpen, recordId, execute, reset]);
+
+  const detail = data ? mapRecordDetail(data) : null;
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose}>
-      <DateTitle>{record.time}</DateTitle>
-
-      <DataFields>
-        <Field>
-          <FieldLabel>미션</FieldLabel>
-          <FieldValue>{record.title}</FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>상황</FieldLabel>
-          <FieldValue>{record.moment}</FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>흡연 기록</FieldLabel>
-          <FieldValue>{record.record}</FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>흡연 욕구</FieldLabel>
-          <FieldValue>
-            {record.status.length === 2
-              ? record.status.join(" → ")
-              : record.status[0]}
-          </FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>미룬 시간</FieldLabel>
-          <FieldValue>{record.delayTime}</FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>행동 체감</FieldLabel>
-          <FieldValue>{record.actionImpact}</FieldValue>
-        </Field>
-
-        <Field>
-          <FieldLabel>내가 남긴 말</FieldLabel>
-          <FieldValue>{record.myMessage}</FieldValue>
-        </Field>
-      </DataFields>
+      <ApiStatusView
+        variant="embed"
+        isLoading={Boolean(recordId) && !error && (isLoading || !data)}
+        error={!data ? error : null}
+        onRetry={refetch}
+        loadingTitle="기록을 불러오는 중이에요"
+      >
+        {detail ? (
+          <>
+            <DateTitle>{detail.time}</DateTitle>
+            <DataFields>
+              {detail.fields.map((field) => (
+                <Field key={field.label}>
+                  <FieldLabel>{field.label}</FieldLabel>
+                  <FieldValue>{field.value}</FieldValue>
+                </Field>
+              ))}
+            </DataFields>
+          </>
+        ) : null}
+      </ApiStatusView>
     </BottomSheet>
   );
 }

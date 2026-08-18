@@ -2,16 +2,20 @@ import styled from "styled-components";
 import SummaryCard from "../SummaryCard";
 import patternArrow from "../../../assets/pattern-arrow.svg";
 
-// TODO: API 연동 시 교체
-const recentChange = {
-  beforeTotalCount: 5,
-  beforeOvercomeCount: 1,
-  afterTotalCount: 5,
-  afterOvercomeCount: 3,
-  description: "퇴근 후에도 바로 피우지 않는 경우가 늘고 있어요",
+const CHANGE_DESCRIPTIONS = {
+  INCREASED: "바로 피우지 않는 경우가 늘고 있어요",
+  DECREASED: "바로 피우지 않는 경우가 줄었어요",
+  SAME: "바로 피우지 않은 비율이 비슷해요",
+  NO_COMPARISON: "최근 7일 기록을 기준으로 보여드려요",
 };
 
-function RecentChangeSection() {
+function RecentChangeSection({ behaviorChange }) {
+  const previousPeriod = behaviorChange?.previousPeriod;
+  const currentPeriod = behaviorChange?.currentPeriod;
+  const description =
+    CHANGE_DESCRIPTIONS[behaviorChange?.change] ??
+    CHANGE_DESCRIPTIONS.NO_COMPARISON;
+
   return (
     <Section>
       <TitleBlock>
@@ -22,20 +26,20 @@ function RecentChangeSection() {
       <SummaryBlock>
         <SummaryCard
           title="이전 7일"
-          overcomeCount={recentChange.beforeOvercomeCount}
-          totalCount={recentChange.beforeTotalCount}
+          overcomeCount={previousPeriod?.avoidedImmediateSmokingCount ?? 0}
+          totalCount={previousPeriod?.totalCount ?? 0}
           variant="before"
         />
         <PatternArrowIcon src={patternArrow} alt="" aria-hidden="true" />
         <SummaryCard
           title="최근 7일"
-          overcomeCount={recentChange.afterOvercomeCount}
-          totalCount={recentChange.afterTotalCount}
+          overcomeCount={currentPeriod?.avoidedImmediateSmokingCount ?? 0}
+          totalCount={currentPeriod?.totalCount ?? 0}
           variant="after"
         />
       </SummaryBlock>
 
-      <SummaryText>💡 {recentChange.description}</SummaryText>
+      <SummaryText>💡 {description}</SummaryText>
     </Section>
   );
 }
