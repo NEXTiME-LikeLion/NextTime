@@ -8,7 +8,7 @@ function PatternTopBlock() {
         <Recent>최근 7일</Recent>
       </TopRow>
       <PatternDescription>
-        기록이 쌓일수록 나에게 잘 맞는 순간과 행동을 찾아드려요
+        기록이 쌓일수록 나에게 잘 맞는 순간과 행동을 찾아드려요.
       </PatternDescription>
     </TopBlock>
   );

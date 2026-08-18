@@ -42,7 +42,7 @@ function PatternHeader() {
 
       <BottomBlock>
         <Solution>
-          이럴땐 <Emphasis>{myPattern.solution}</Emphasis>
+          이럴 땐 <Emphasis>{myPattern.solution}</Emphasis>
         </Solution>
         <SimilarPattern>
           <BoldText text={myPattern.similarPattern} />

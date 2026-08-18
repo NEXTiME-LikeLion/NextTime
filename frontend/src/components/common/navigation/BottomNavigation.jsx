@@ -6,7 +6,7 @@ import SettingIcon from "./icons/SettingIcon";
 
 const menus = [
   { to: "/main", text: "홈", Icon: HomeIcon, end: true },
-  { to: "/main/pattern", text: "패턴", Icon: PatternIcon },
+  { to: "/main/pattern", text: "내 패턴", Icon: PatternIcon },
   { to: "/main/settings", text: "설정", Icon: SettingIcon },
 ];
 

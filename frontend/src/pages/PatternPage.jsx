@@ -6,7 +6,7 @@ import PatternEmptyContent from "../components/pattern/empty/PatternEmptyContent
 import usePatternSummary from "../hooks/usePatternSummary";
 
 function PatternPage() {
-  const { isReady, recordCount, requiredCount, pattern } = usePatternSummary();
+  const { isReady, recordCount, requiredCount } = usePatternSummary();
 
   if (!isReady) {
     return (

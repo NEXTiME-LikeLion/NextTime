@@ -2,35 +2,54 @@ import styled from "styled-components";
 import mascot from "../../../assets/mascot.svg";
 
 function PatternEmptyContent({ recordCount, requiredCount }) {
+  const ratio = requiredCount > 0 ? recordCount / requiredCount : 0;
+
   return (
     <Container>
-      <Mascot src={mascot} alt="" />
-      <Message>
-        기록이 5번 이상 누적되면
-        <br />
-        패턴을 알려드릴게요
-      </Message>
-      <ProgressBar>
-        <Fill $ratio={recordCount / 5} />
-      </ProgressBar>
-      <CountText>현재 기록 {recordCount} / 5</CountText>
+      <Hero>
+        <Mascot src={mascot} alt="" />
+        <Message>
+          기록이 {requiredCount}번 이상 누적되면
+          <br />
+          패턴을 알려드릴게요
+        </Message>
+      </Hero>
+      <ProgressBlock>
+        <ProgressBar>
+          <Fill $ratio={ratio} />
+        </ProgressBar>
+        <CountText>
+          현재 기록 {recordCount} / {requiredCount}
+        </CountText>
+      </ProgressBlock>
     </Container>
   );
 }
 export default PatternEmptyContent;
 
 const Container = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-inline: 3.81rem;
+  gap: 2.25rem;
+  width: 100%;
+  padding-inline: 2.5625rem;
+`;
+
+const Hero = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 11.25rem;
 `;
 
 const Mascot = styled.img`
   width: 9.125rem;
   height: 10.5rem;
   aspect-ratio: 73/84;
+  object-fit: contain;
 `;
 
 const Message = styled.p`
@@ -41,25 +60,32 @@ const Message = styled.p`
   line-height: 1.4;
 `;
 
+const ProgressBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+`;
+
 const ProgressBar = styled.div`
   width: 100%;
-  display: flex;
   height: 0.5rem;
-  align-items: center;
+  overflow: hidden;
+  border-radius: 6.25rem;
+  background: rgba(178, 178, 178, 0.2);
 `;
 
 const Fill = styled.div`
   height: 100%;
-  width: ${({ $ratio }) => `${Math.min($ratio, 1) * 100}%`};
+  width: ${({ $ratio }) => `${Math.min(Math.max($ratio, 0), 1) * 100}%`};
   border-radius: 6.25rem 0 0 6.25rem;
   background: ${({ theme }) => theme.colors.primary};
 `;
 
 const CountText = styled.p`
-  color: var(--gray, #68686d);
+  color: ${({ theme }) => theme.colors.gray};
   text-align: right;
-  align-self: flex-end;
   font-size: 0.75rem;
   font-weight: 400;
-  line-height: 1.4rem;
+  line-height: 1.4;
 `;
