@@ -7,25 +7,24 @@ import mascotRelationship from "../../assets/mascot-relationship.svg";
 import mascotSelfEfficacy from "../../assets/mascot-self-efficacy.svg";
 import {useMemo} from "react";
 
-function HomeHeader({nextMe}) {
+function HomeHeader({ nextMe }) {
   const mascotImage = useMemo(() => {
-    switch (nextMe.nextBudTheme) {
-      case "DEFAULT":
-        return mascot;
-      case "HEALTH":
+    switch (nextMe?.nextBudTheme) {
+      case "NEXTBUD_HEALTH_01":
         return mascotHealth;
-      case "ECONOMY":
-        return mascotEconomy;
-      case "GROWTH":
-        return mascotGrowth;
-      case "RELATIONSHIP":
+      case "NEXTBUD_RELATIONSHIP_01":
         return mascotRelationship;
-      case "SELF_EFFICIENCY":
-        return mascotSelfEfficiency;
+      case "NEXTBUD_ECONOMY_01":
+        return mascotEconomy;
+      case "NEXTBUD_SELF_EFFICACY_01":
+        return mascotSelfEfficacy;
+      case "NEXTBUD_GROWTH_01":
+        return mascotGrowth;
+      case "NEXTBUD_DEFAULT_01":
       default:
         return mascot;
     }
-  }, [nextMe]);
+  }, [nextMe?.nextBudTheme]);
 
   return (
     <>
@@ -34,11 +33,11 @@ function HomeHeader({nextMe}) {
         <TextBlock>
           <Block>
             <Label>NEXT ME</Label>
-            <Title>{nextMe.headline}</Title>
+            <Title>{nextMe?.headline}</Title>
           </Block>
           <Block>
             <QuoteLabel>내가 남긴 말</QuoteLabel>
-            <Quote>{nextMe.messageToFutureSelf}</Quote>
+            <Quote>{nextMe?.messageToFutureSelf}</Quote>
           </Block>
         </TextBlock>
         <Mascot src={mascotImage} alt="Next Bud Mascot" />

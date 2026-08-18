@@ -3,24 +3,26 @@ import ProgressIndicator from "./ProgressIndicator";
 import rightArrow from "../../assets/right-arrow.svg";
 import styled from "styled-components";
 
-function TodayChangeSection() {
+function TodayChangeSection({ todaySummary }) {
   const navigate = useNavigate();
-  // TODO: API 연동 시 교체
-  const todayChange = {
-    overcomeCount: 3,
-    totalCount: 5,
-    postponeCount: 1,
-    smokeCount: 1,
-    dots: ["overcome", "overcome", "overcome", "postpone", "smoke"], // 5개
-    nextAction: {
-      title: "흡연구역에서 벗어나 걷기",
-      description: "오늘은 자리를 옮겼을 때 흡연 욕구를 가장 잘 넘겼어요.",
-    },
-  };
 
-  if (todayChange.totalCount === 0) {
+  const {
+    totalAttemptCount = 0,
+    overcomeCount = 0,
+    delayedCount = 0,
+    smokedCount = 0,
+    nextAction,
+  } = todaySummary ?? {};
+
+  if (totalAttemptCount === 0) {
     return null;
   }
+
+  const dots = [
+    ...Array(overcomeCount).fill("overcome"),
+    ...Array(delayedCount).fill("postpone"),
+    ...Array(smokedCount).fill("smoke"),
+  ];
 
   return (
     <Section>
@@ -40,8 +42,8 @@ function TodayChangeSection() {
         <TopRow>
           <StatBlock>
             <StatCount>
-              <Strong>{todayChange.overcomeCount}</Strong>
-              <Muted> / {todayChange.totalCount}</Muted>
+              <Strong>{overcomeCount}</Strong>
+              <Muted> / {totalAttemptCount}</Muted>
             </StatCount>
             <StatLabel>기록한 욕구를 넘겼어요</StatLabel>
           </StatBlock>
@@ -49,20 +51,23 @@ function TodayChangeSection() {
         </TopRow>
 
         <MiddleRow>
-          <ProgressIndicator dots={todayChange.dots} />
+          <ProgressIndicator dots={dots} />
           <Summary>
-            넘김 {todayChange.overcomeCount} · 미룸 {todayChange.postponeCount}{" "}
-            · 흡연 {todayChange.smokeCount}
+            넘김 {overcomeCount} · 미룸 {delayedCount} · 흡연 {smokedCount}
           </Summary>
         </MiddleRow>
 
-        <Divider />
+        {nextAction && (
+          <>
+            <Divider />
 
-        <NextActionBlock>
-          <NextActionLabel>다음해도 해볼 행동</NextActionLabel>
-          <NextActionTitle>{todayChange.nextAction.title}</NextActionTitle>
-          <NextActionDesc>{todayChange.nextAction.description}</NextActionDesc>
-        </NextActionBlock>
+            <NextActionBlock>
+              <NextActionLabel>다음해도 해볼 행동</NextActionLabel>
+              <NextActionTitle>{nextAction.name}</NextActionTitle>
+              <NextActionDesc>{nextAction.reason}</NextActionDesc>
+            </NextActionBlock>
+          </>
+        )}
       </Card>
     </Section>
   );

@@ -1,9 +1,6 @@
 const MIN_RECORDS_FOR_PATTERN = 5;
 
-function usePatternSummary() {
-  // TODO: API 연동 시 교체
-  const recordCount = 2;
-
+function usePatternSummary(recordCount = 0) {
   const isReady = recordCount >= MIN_RECORDS_FOR_PATTERN;
 
   return {
