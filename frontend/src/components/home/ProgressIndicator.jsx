@@ -27,7 +27,9 @@ export default ProgressIndicator;
 
 const Row = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  width: 100%;
 `;
 
 const DotIcon = styled.img`
