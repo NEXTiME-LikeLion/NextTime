@@ -1,4 +1,8 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import {
+  mapContextAnswersFromSession,
+  mapMissionFromSession,
+} from "../api/nextTime";
 import { MOCK_RECOMMENDATION } from "../data/nextTimeMock";
 
 const NextTimeContext = createContext(null);
@@ -11,13 +15,16 @@ const initialRecordAnswers = {
 };
 
 export const NextTimeProvider = ({ children, initialSession = null }) => {
+  const initialContext = mapContextAnswersFromSession(initialSession);
   const [session, setSession] = useState(initialSession);
-  const [situationIntensity, setSituationIntensity] = useState(null);
-  const [location, setLocation] = useState(null);
-  const [moment, setMoment] = useState(null);
+  const [situationIntensity, setSituationIntensity] = useState(
+    initialContext.situationIntensity,
+  );
+  const [location, setLocation] = useState(initialContext.location);
+  const [moment, setMoment] = useState(initialContext.moment);
   const [futureVoice, setFutureVoice] = useState(null);
   const [recommendedMission, setRecommendedMission] = useState(
-    MOCK_RECOMMENDATION,
+    () => mapMissionFromSession(initialSession) ?? MOCK_RECOMMENDATION,
   );
   const [recordAnswers, setRecordAnswers] = useState(initialRecordAnswers);
 

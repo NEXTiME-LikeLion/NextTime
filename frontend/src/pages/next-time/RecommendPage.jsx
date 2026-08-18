@@ -3,7 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useElementHeight } from "../../hooks/useElementHeight";
 import { useNextTime } from "../../contexts/NextTimeContext";
 import useAsync from "../../hooks/useAsync";
-import { mapStartedMission, startNextTimeMission } from "../../api/nextTime";
+import useNextTimeStatusRedirect from "../../hooks/useNextTimeStatusRedirect";
+import {
+  getNextTimePathByStatus,
+  isNextTimeStatusAfter,
+  mapStartedMission,
+  startNextTimeMission,
+} from "../../api/nextTime";
 import Header from "../../components/next-time/Header";
 import CircularTimer from "../../components/next-time/CircularTimer";
 import PrimaryButton from "../../components/next-time/PrimaryButton";
@@ -21,6 +27,7 @@ function RecommendPage() {
   const navigate = useNavigate();
   const { session, sessionId, recommendedMission, setSession, setRecommendedMission } =
     useNextTime();
+  useNextTimeStatusRedirect("MISSION_RECOMMENDED");
   const { title, description, durationSeconds } = recommendedMission;
   const titleLines = splitMissionTitle(title);
   const { isLoading, error, execute, refetch } = useAsync(startNextTimeMission, {
@@ -50,13 +57,19 @@ function RecommendPage() {
       return;
     }
 
-    if (session?.status === "MISSION_STARTED") {
-      console.log("세션이 이미 MISSION_STARTED 상태라 미션 시작을 건너뜁니다.", {
+    if (isNextTimeStatusAfter(session?.status, "MISSION_RECOMMENDED")) {
+      const path = getNextTimePathByStatus(session.status);
+      console.log("세션이 이미 미션 추천 이후 단계라 미션 시작을 건너뜁니다.", {
         sessionId,
         status: session.status,
+        path,
         session,
       });
-      goToMission(session);
+      if (session.status === "MISSION_STARTED") {
+        goToMission(session);
+        return;
+      }
+      navigate(path, { replace: true });
       return;
     }
 

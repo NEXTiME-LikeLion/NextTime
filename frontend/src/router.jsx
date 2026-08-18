@@ -3,10 +3,12 @@ import OnboardingPage from "./pages/onboarding/OnboardingPage";
 import OnboardingLoadingPage from "./pages/onboarding/OnboardingLoadingPage";
 import OnboardingCompletePage from "./pages/onboarding/OnboardingCompletePage";
 import OnboardingDevicePage from "./pages/onboarding/OnboardingDevicePage";
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import TabLayout from "./layouts/TabLayout";
 import AuthLayout from "./layouts/AuthLayout";
-import NextTimeLayout from "./layouts/NextTimeLayout";
+import NextTimeLayout, {
+  NextTimeIndexRedirect,
+} from "./layouts/NextTimeLayout";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import HomePage from "./pages/HomePage";
@@ -84,7 +86,7 @@ const router = createBrowserRouter([
     path: "/next-time",
     element: <NextTimeLayout />,
     children: [
-      { index: true, element: <Navigate to="context" replace /> },
+      { index: true, element: <NextTimeIndexRedirect /> },
       { path: "context", element: <ContextFlowPage /> },
       { path: "next-me", element: <NextMeLoadingPage /> },
       { path: "recommend", element: <RecommendPage /> },

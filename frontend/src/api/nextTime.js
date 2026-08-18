@@ -79,26 +79,83 @@ export const startNextTimeMission = async (sessionId) => {
     return response.data.data;
 };
 
-export const mapRecommendedMission = (data) => ({
-    id: data.mission.id,
-    code: data.mission.code,
-    title: data.mission.name,
-    description: data.reason,
-    missionDescription: data.mission.description,
-    durationSeconds: data.mission.estimatedSeconds,
-    whyThisText: data.reason,
-    completionCriteria: data.mission.completionCriteria,
-    source: data.source,
-    recommendedAt: data.recommendedAt,
+export const completeNextTimeMission = async (sessionId) => {
+    const response = await axiosInstance.post(
+        `/next-time/sessions/${sessionId}/mission/complete`,
+    );
+    return response.data.data;
+};
+
+export const NEXT_TIME_STATUS_ORDER = [
+    "CREATED",
+    "CONTEXT_SAVED",
+    "MISSION_RECOMMENDED",
+    "MISSION_STARTED",
+    "MISSION_COMPLETED",
+];
+
+export const NEXT_TIME_STATUS_PATHS = {
+    CREATED: "/next-time/context",
+    CONTEXT_SAVED: "/next-time/next-me",
+    MISSION_RECOMMENDED: "/next-time/recommend",
+    MISSION_STARTED: "/next-time/mission",
+    MISSION_COMPLETED: "/next-time/record",
+    RESULT_RECORDED: "/next-time/complete",
+};
+
+export const getNextTimePathByStatus = (status) =>
+    NEXT_TIME_STATUS_PATHS[status] ?? NEXT_TIME_STATUS_PATHS.CREATED;
+
+export const isNextTimeStatusAfter = (status, baselineStatus) => {
+    const statusIndex = NEXT_TIME_STATUS_ORDER.indexOf(status);
+    const baselineIndex = NEXT_TIME_STATUS_ORDER.indexOf(baselineStatus);
+    return statusIndex !== -1 && baselineIndex !== -1 && statusIndex > baselineIndex;
+};
+
+const findContextOptionBy = (stepId, predicate) =>
+    CONTEXT_STEPS.find((step) => step.id === stepId)?.options.find(predicate);
+
+export const mapContextAnswersFromSession = (session) => ({
+    situationIntensity:
+        findContextOptionBy(
+            "intensity",
+            (option) => option.cravingBefore === session?.cravingBefore,
+        )?.value ?? null,
+    location:
+        findContextOptionBy(
+            "location",
+            (option) =>
+                option.contextId === session?.location?.id ||
+                option.value === session?.location?.name,
+        )?.value ?? null,
+    moment:
+        findContextOptionBy(
+            "moment",
+            (option) =>
+                option.contextId === session?.trigger?.id ||
+                option.value === session?.trigger?.name,
+        )?.value ?? null,
 });
 
-export const mapStartedMission = (data) => ({
-    id: data.mission.id,
-    code: data.mission.code,
-    title: data.mission.name,
-    missionDescription: data.mission.description,
-    durationSeconds: data.mission.estimatedSeconds,
-    completionCriteria: data.mission.completionCriteria,
-    startedAt: data.startedAt,
-    status: data.status,
-});
+export const mapMissionFromSession = (data) => {
+    if (!data?.mission) return null;
+
+    return {
+        id: data.mission.id,
+        code: data.mission.code,
+        title: data.mission.name,
+        description: data.reason ?? data.mission.description,
+        missionDescription: data.mission.description,
+        durationSeconds: data.mission.estimatedSeconds,
+        whyThisText: data.reason,
+        completionCriteria: data.mission.completionCriteria,
+        source: data.source,
+        recommendedAt: data.recommendedAt,
+        startedAt: data.startedAt ?? data.missionStartedAt,
+        status: data.status,
+    };
+};
+
+export const mapRecommendedMission = (data) => mapMissionFromSession(data);
+
+export const mapStartedMission = (data) => mapMissionFromSession(data);

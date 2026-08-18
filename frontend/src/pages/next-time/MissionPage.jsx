@@ -1,10 +1,18 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useNextTime } from "../../contexts/NextTimeContext";
+import useAsync from "../../hooks/useAsync";
+import useNextTimeStatusRedirect from "../../hooks/useNextTimeStatusRedirect";
+import {
+  completeNextTimeMission,
+  getNextTimePathByStatus,
+  isNextTimeStatusAfter,
+} from "../../api/nextTime";
 import Header from "../../components/next-time/Header";
 import CircularTimer from "../../components/next-time/CircularTimer";
 import WhyThisBox from "../../components/next-time/WhyThisBox";
+import ApiStatusView from "../../components/common/ApiStatusView";
 
 function splitMissionTitle(title) {
   const splitIndex = title.search(/\d+분/);
@@ -25,7 +33,8 @@ function getRemainingSeconds(durationSeconds, startedAt) {
 
 function MissionPage() {
   const navigate = useNavigate();
-  const { recommendedMission } = useNextTime();
+  const { session, sessionId, recommendedMission, setSession } = useNextTime();
+  useNextTimeStatusRedirect("MISSION_STARTED");
   const {
     title,
     missionDescription,
@@ -35,12 +44,90 @@ function MissionPage() {
   } = recommendedMission;
   const titleLines = splitMissionTitle(title);
   const missionDescriptionLines = missionDescription?.split("\n") ?? [];
+  const { isLoading, error, execute, refetch } = useAsync(
+    completeNextTimeMission,
+    { immediate: false },
+  );
+  const hasRequestedCompleteRef = useRef(false);
 
   const [remainingSeconds, setRemainingSeconds] = useState(() =>
     getRemainingSeconds(durationSeconds, startedAt),
   );
 
+  const goToRecord = useCallback(
+    (completedSession) => {
+      if (completedSession) {
+        setSession((prev) => ({ ...(prev ?? {}), ...completedSession }));
+      }
+      navigate("/next-time/record", { replace: true });
+    },
+    [navigate, setSession],
+  );
+
+  const completeMission = useCallback(async () => {
+    if (isLoading) return;
+
+    if (!sessionId) {
+      console.error("세션 ID가 없어 미션을 완료할 수 없습니다.");
+      return;
+    }
+
+    if (isNextTimeStatusAfter(session?.status, "MISSION_STARTED")) {
+      const path = getNextTimePathByStatus(session.status);
+      console.log("세션이 이미 미션 시작 이후 단계라 미션 완료를 건너뜁니다.", {
+        sessionId,
+        status: session.status,
+        path,
+        session,
+      });
+      if (session.status === "MISSION_COMPLETED") {
+        goToRecord(session);
+        return;
+      }
+      navigate(path, { replace: true });
+      return;
+    }
+
+    console.log("미션을 완료합니다.", { sessionId });
+    const result = await execute(sessionId);
+    if (!result) {
+      console.error("미션 완료에 실패했습니다.");
+      return;
+    }
+
+    console.log("미션을 완료했습니다.", {
+      sessionId: result.sessionId,
+      status: result.status,
+      mission: result.mission,
+      startedAt: result.startedAt,
+      completedAt: result.completedAt,
+      result,
+    });
+    goToRecord(result);
+  }, [execute, goToRecord, isLoading, navigate, session, sessionId]);
+
+  const handleRetry = async () => {
+    console.log("미션 완료를 다시 시도합니다.", { sessionId });
+    const result = await refetch();
+    if (!result) {
+      console.error("미션 완료에 실패했습니다.");
+      return;
+    }
+
+    console.log("미션을 완료했습니다.", {
+      sessionId: result.sessionId,
+      status: result.status,
+      mission: result.mission,
+      startedAt: result.startedAt,
+      completedAt: result.completedAt,
+      result,
+    });
+    goToRecord(result);
+  };
+
   useEffect(() => {
+    if (remainingSeconds <= 0) return;
+
     const intervalId = setInterval(() => {
       setRemainingSeconds((prev) => {
         if (prev <= 1) {
@@ -55,20 +142,31 @@ function MissionPage() {
   }, []);
 
   useEffect(() => {
-    if (remainingSeconds <= 0) {
-      navigate("/next-time/record", { replace: true });
-    }
-  }, [remainingSeconds, navigate]);
+    if (remainingSeconds > 0 || hasRequestedCompleteRef.current) return;
+
+    hasRequestedCompleteRef.current = true;
+    completeMission();
+  }, [completeMission, remainingSeconds]);
 
   const handleBack = () => {
+    if (isLoading) return;
     navigate("/next-time/recommend", { replace: true });
   };
 
   const handleSkip = () => {
+    if (isLoading) return;
     navigate("/next-time/record", { replace: true });
   };
 
   return (
+    <ApiStatusView
+      variant="dark"
+      isLoading={isLoading}
+      error={error}
+      onRetry={handleRetry}
+      loadingTitle="미션을 완료하는 중이에요"
+      errorTitle="미션을 완료하지 못했어요"
+    >
     <PageContainer>
       <Header title="NEXT TIME" onBack={handleBack} />
 
@@ -106,6 +204,7 @@ function MissionPage() {
         </BottomArea>
       </AllContent>
     </PageContainer>
+    </ApiStatusView>
   );
 }
 

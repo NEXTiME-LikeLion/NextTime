@@ -4,9 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { useElementHeight } from "../../hooks/useElementHeight";
 import { useNextTime } from "../../contexts/NextTimeContext";
 import useAsync from "../../hooks/useAsync";
+import useNextTimeStatusRedirect from "../../hooks/useNextTimeStatusRedirect";
 import { CONTEXT_STEPS } from "../../data/nextTimeSteps";
 import {
   buildNextTimeContextBody,
+  getNextTimePathByStatus,
   saveNextTimeContext,
 } from "../../api/nextTime";
 import Header from "../../components/next-time/Header";
@@ -34,6 +36,7 @@ function ContextFlowPage() {
   const navigate = useNavigate();
   const nextTime = useNextTime();
   const { session, sessionId, setSession } = nextTime;
+  useNextTimeStatusRedirect("CREATED");
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const { isLoading, error, execute, refetch } = useAsync(saveNextTimeContext, {
     immediate: false,
@@ -82,12 +85,14 @@ function ContextFlowPage() {
     }
 
     if (session?.status && session.status !== "CREATED") {
+      const path = getNextTimePathByStatus(session.status);
       console.log("세션이 CREATED 상태가 아니라 상황 저장을 건너뜁니다.", {
         sessionId,
         status: session.status,
+        path,
         session,
       });
-      goToNextMe(session);
+      navigate(path, { replace: true });
       return;
     }
 

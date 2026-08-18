@@ -5,10 +5,13 @@ import { useNextTime } from "../../contexts/NextTimeContext";
 import { NEXT_ME_LOADING } from "../../data/nextTimeMock";
 import {
   generateFutureVoice,
+  getNextTimePathByStatus,
   getNextTimeRecommendation,
+  isNextTimeStatusAfter,
   mapRecommendedMission,
 } from "../../api/nextTime";
 import useAsync from "../../hooks/useAsync";
+import useNextTimeStatusRedirect from "../../hooks/useNextTimeStatusRedirect";
 import Header from "../../components/next-time/Header";
 import MascotCharacter from "../../components/next-time/MascotCharacter";
 import ApiStatusView from "../../components/common/ApiStatusView";
@@ -31,8 +34,9 @@ const waitRemainingLoadingTime = async (startedAt) => {
 
 function NextMeLoadingPage() {
   const navigate = useNavigate();
-  const { sessionId, setSession, setFutureVoice, setRecommendedMission } =
+  const { session, sessionId, setSession, setFutureVoice, setRecommendedMission } =
     useNextTime();
+  useNextTimeStatusRedirect("CONTEXT_SAVED");
   const [voice, setVoice] = useState(null);
   const [barStage, setBarStage] = useState("min");
   const [barKey, setBarKey] = useState(0);
@@ -90,8 +94,10 @@ function NextMeLoadingPage() {
     (recommendation) => {
       const mission = mapRecommendedMission(recommendation);
       setSession((prev) => ({ ...(prev ?? {}), ...recommendation }));
-      setRecommendedMission(mission);
-      console.log("추천 화면으로 이동합니다.", { mission });
+      if (mission) {
+        setRecommendedMission(mission);
+        console.log("추천 화면으로 이동합니다.", { mission });
+      }
       navigate("/next-time/recommend", { replace: true });
     },
     [navigate, setRecommendedMission, setSession],
@@ -111,6 +117,16 @@ function NextMeLoadingPage() {
       console.error(
         "세션 ID가 없어 미래의 목소리와 추천 미션을 요청할 수 없습니다.",
       );
+      return;
+    }
+
+    if (isNextTimeStatusAfter(session?.status, "CONTEXT_SAVED")) {
+      const path = getNextTimePathByStatus(session.status);
+      console.log("이미 추천이 끝난 세션이라 미래의 목소리 요청을 건너뜁니다.", {
+        sessionId,
+        status: session.status,
+        path,
+      });
       return;
     }
 
@@ -135,10 +151,15 @@ function NextMeLoadingPage() {
     return () => {
       cancelled = true;
     };
-  }, [execute, goToRecommend, sessionId]);
+  }, [execute, goToRecommend, session?.status, sessionId]);
 
   const handleRetry = async () => {
     if (!sessionId) return;
+
+    if (isNextTimeStatusAfter(session?.status, "CONTEXT_SAVED")) {
+      navigate(getNextTimePathByStatus(session.status), { replace: true });
+      return;
+    }
 
     apiReadyRef.current = false;
     setBarStage("min");
