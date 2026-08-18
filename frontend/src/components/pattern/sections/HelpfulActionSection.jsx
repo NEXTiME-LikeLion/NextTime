@@ -1,31 +1,30 @@
 import styled from "styled-components";
 import { SectionTitle } from "./RecentChangeSection";
 
-// TODO: API 연동 시 교체
-const fitActions = [
-  {
-    label: "흡연구역에서 벗어나 걷기",
-    totalCount: 3,
-    overcomeCount: 2,
-    detail: "흡연하지 않았어요",
-    variant: "best",
-  },
-  {
-    label: "물 마시고 심호흡 하기",
-    totalCount: 2,
-    overcomeCount: 1,
-    detail: "흡연 욕구가 줄어들었어요",
-    variant: "normal",
-  },
-];
+function mapAction(action, index) {
+  const canShowResult = (action.resultCount ?? 0) >= 2;
 
-function HelpfulActionSection() {
+  return {
+    id: action.missionId ?? action.code ?? action.name,
+    label: action.name,
+    totalCount: canShowResult ? action.resultCount : action.evaluationCount,
+    overcomeCount: canShowResult
+      ? action.avoidedImmediateSmokingCount
+      : action.helpfulCount,
+    detail: canShowResult ? "바로 피우지 않았어요" : "도움이 됐어요",
+    variant: index === 0 ? "best" : "normal",
+  };
+}
+
+function HelpfulActionSection({ actions = [] }) {
+  const fitActions = actions.map(mapAction);
+
   return (
     <Section>
       <SectionTitle>나와 잘 맞았던 행동</SectionTitle>
       <ActionList>
         {fitActions.map((action) => (
-          <ActionItem key={action.label}>
+          <ActionItem key={action.id}>
             <CommonText $variant={action.variant}>{action.label}</CommonText>
             <ActionText>
               <CommonText $variant={action.variant}>

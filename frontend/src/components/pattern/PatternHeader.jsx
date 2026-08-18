@@ -17,15 +17,49 @@ function BoldText({ text }) {
   );
 }
 
-function PatternHeader() {
-  // TODO: API 연동 시 교체
-  const myPattern = {
-    title: "퇴근 직후에 가장 흔들렸어요",
-    subTitle: "기록한 욕구 8번 중 5번, 특히 흡연구역 근처에서 강했어요",
-    solution: "흡연구역에서 먼저 벗어나보세요!",
-    similarPattern:
-      "비슷한 상황에서 장소를 옮긴 **3번 중 2번**은 바로 흡연으로 이어지지 않았어요",
-  };
+function formatHourRange(slot) {
+  if (slot?.startHour == null || slot?.endHour == null) return null;
+  return `${slot.startHour}~${slot.endHour}시`;
+}
+
+function buildWeeklyPatternCopy(overview) {
+  const insight = overview?.insight;
+  const trigger = insight?.topTrigger;
+  const location = insight?.topLocation;
+  const timeSlot = insight?.topTimeSlot;
+  const hourRange = formatHourRange(timeSlot);
+  const recentResultCount = overview?.recentResultCount;
+  const topAction = overview?.effectiveActions?.[0];
+
+  const title = trigger
+    ? `${trigger.name} 가장 흔들렸어요`
+    : hourRange
+      ? `${hourRange}에 가장 흔들렸어요`
+      : "이번 주 패턴이 보이기 시작했어요";
+
+  const subParts = [];
+  if (recentResultCount && trigger?.count != null) {
+    subParts.push(`기록한 욕구 ${recentResultCount}번 중 ${trigger.count}번`);
+  }
+  if (location?.name) {
+    subParts.push(`특히 ${location.name}에서 많았어요`);
+  } else if (hourRange) {
+    subParts.push(`특히 ${hourRange}에 많았어요`);
+  }
+  const subTitle = subParts.join(", ");
+
+  const solution = topAction?.name ?? null;
+  const similarPattern =
+    topAction?.resultCount != null &&
+    topAction?.avoidedImmediateSmokingCount != null
+      ? `비슷한 상황에서 ${topAction.name}를 했을 때 **${topAction.resultCount}번 중 ${topAction.avoidedImmediateSmokingCount}번**은 바로 흡연으로 이어지지 않았어요`
+      : null;
+
+  return { title, subTitle, solution, similarPattern };
+}
+
+function PatternHeader({ overview }) {
+  const myPattern = buildWeeklyPatternCopy(overview);
 
   return (
     <>
@@ -35,19 +69,25 @@ function PatternHeader() {
         <TextBlock>
           <Label>이번 주 패턴</Label>
           <Title>{myPattern.title}</Title>
-          <SubTitle>{myPattern.subTitle}</SubTitle>
+          {myPattern.subTitle ? <SubTitle>{myPattern.subTitle}</SubTitle> : null}
         </TextBlock>
         <Mascot src={mascotPattern} alt="" />
       </MiddleBlock>
 
-      <BottomBlock>
-        <Solution>
-          이럴 땐 <Emphasis>{myPattern.solution}</Emphasis>
-        </Solution>
-        <SimilarPattern>
-          <BoldText text={myPattern.similarPattern} />
-        </SimilarPattern>
-      </BottomBlock>
+      {myPattern.solution || myPattern.similarPattern ? (
+        <BottomBlock>
+          {myPattern.solution ? (
+            <Solution>
+              이럴 땐 <Emphasis>{myPattern.solution}</Emphasis>
+            </Solution>
+          ) : null}
+          {myPattern.similarPattern ? (
+            <SimilarPattern>
+              <BoldText text={myPattern.similarPattern} />
+            </SimilarPattern>
+          ) : null}
+        </BottomBlock>
+      ) : null}
     </>
   );
 }
