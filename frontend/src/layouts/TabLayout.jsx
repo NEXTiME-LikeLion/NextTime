@@ -37,5 +37,8 @@ const TabContainer = styled.div`
 const MainContent = styled.div`
   position: relative;
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 `;

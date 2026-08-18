@@ -35,7 +35,8 @@ const Container = styled.div`
   justify-content: center;
   gap: 2.25rem;
   width: 100%;
-  padding-inline: 2.5625rem;
+  min-height: 100%;
+  padding-inline: 1.3125rem;
 `;
 
 const Hero = styled.div`
