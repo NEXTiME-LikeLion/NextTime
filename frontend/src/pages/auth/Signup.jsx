@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signUp, resendSignUpCode } from "aws-amplify/auth";
+import { signUp, resendSignUpCode, confirmSignUp } from "aws-amplify/auth";
 import * as S from "./Signup.styles";
 
 const Signup = () => {

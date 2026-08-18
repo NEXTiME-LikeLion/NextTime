@@ -1,8 +1,8 @@
 export const SMOKING_FREQUENCY_MAP = {
     "5개비 이하": "UP_TO_5",
     "6~10개비": "SIX_TO_TEN",
-    "11~20개비": "ELEVEN_TO_FIFTEEN", // TODO: 서버 5단계 vs 화면 4단계 불일치 확인 필요
-    "20개비 이상": "TWENTY_ONE_OR_MORE", // TODO: 마찬가지
+    "11~20개비": "ELEVEN_TO_FIFTEEN",
+    "20개비 이상": "TWENTY_ONE_OR_MORE",
 };
 
 export const SMOKING_CONTEXT_MAP = {
@@ -11,8 +11,8 @@ export const SMOKING_CONTEXT_MAP = {
     "식사 후": "AFTER_MEAL",
     "술자리에서": "DRINKING_OR_SOCIAL",
     "쉬고 있을 때": "BOREDOM_OR_HABIT",
-    "다른 사람이 피우러 갈 때": "OTHER", // TODO: 확인 필요
-    "이동할 때": "OTHER", // TODO: 확인 필요
+    "다른 사람이 피우러 갈 때": "OTHER",
+    "이동할 때": "OTHER",
     "기타": "OTHER",
 };
 
