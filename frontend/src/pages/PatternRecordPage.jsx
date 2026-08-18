@@ -219,14 +219,7 @@ function PatternRecordPage() {
 
   // 빠른 흡연 기록 모달
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { toast, showToast } = useToast();
-
-  const handleSubmit = (selected) => {
-    // TODO: API 연동 - reason 전송 코드 추가
-    console.log("기록된 이유:", selected);
-    showToast("기록했어요. 다음 추천에 반영할게요.");
-    setIsModalOpen(false);
-  };
+  const { toast } = useToast();
 
   return (
     <PageContainer>
@@ -253,7 +246,6 @@ function PatternRecordPage() {
       <SmokingLogModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmit}
       />
 
       <RecordDetailSheet

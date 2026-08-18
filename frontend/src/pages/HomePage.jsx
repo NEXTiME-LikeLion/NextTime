@@ -6,9 +6,7 @@ import useAsync from "../hooks/useAsync";
 import { getHome } from "../api/home";
 
 function HomePage() {
-  const { data: homeData, isLoading, error, refetch } = useAsync(() =>
-    getHome().then((res) => res.data.data),
-  );
+  const { data: homeData, isLoading, error, refetch } = useAsync(getHome);
 
   return (
     <ApiStatusView
@@ -17,10 +15,12 @@ function HomePage() {
       onRetry={refetch}
       loadingTitle="홈을 불러오는 중이에요"
     >
-      <TabMainLayout
-        header={<HomeHeader nextMe={homeData.nextMe} />}
-        content={<HomeContent todaySummary={homeData.todaySummary} />}
-      />
+      {homeData ? (
+        <TabMainLayout
+          header={<HomeHeader nextMe={homeData.nextMe} />}
+          content={<HomeContent todaySummary={homeData.todaySummary} />}
+        />
+      ) : null}
     </ApiStatusView>
   );
 }

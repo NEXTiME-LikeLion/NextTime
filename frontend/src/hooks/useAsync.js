@@ -8,12 +8,15 @@ function useAsync(asyncFn, { immediate = true } = {}) {
   const asyncFnRef = useRef(asyncFn);
   asyncFnRef.current = asyncFn;
 
-  const execute = useCallback(async () => {
+  const lastArgsRef = useRef([]);
+
+  const execute = useCallback(async (...args) => {
+    lastArgsRef.current = args;
     setIsLoading(true);
     setError(null);
 
     try {
-      const result = await asyncFnRef.current();
+      const result = await asyncFnRef.current(...args);
       setData(result);
       return result;
     } catch (err) {
@@ -26,13 +29,24 @@ function useAsync(asyncFn, { immediate = true } = {}) {
     }
   }, []);
 
+  const refetch = useCallback(
+    () => execute(...lastArgsRef.current),
+    [execute],
+  );
+
+  const reset = useCallback(() => {
+    setData(null);
+    setError(null);
+    setIsLoading(false);
+  }, []);
+
   useEffect(() => {
     if (immediate) {
       execute();
     }
   }, [immediate, execute]);
 
-  return { data, isLoading, error, refetch: execute };
+  return { data, isLoading, error, execute, refetch, reset };
 }
 
 export default useAsync;

@@ -1,19 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import Modal from "./Modal";
 import PrimaryButton from "../common/PrimaryButton";
+import ApiStatusView from "./ApiStatusView";
+import {
+  SMOKING_TRIGGER_OPTIONS,
+  createSmokingRecord,
+} from "../../api/smokingRecords";
+import { useToast } from "../../contexts/ToastContext";
+import useAsync from "../../hooks/useAsync";
 
-const REASONS = [
-  "업무·공부 후",
-  "식사 후",
-  "스트레스",
-  "술자리·모임",
-  "심심함·습관",
-  "기타",
-];
+function SmokingLogModal({ isOpen, onClose, onSuccess }) {
+  const [selectedId, setSelectedId] = useState("");
+  const { showToast } = useToast();
+  const { data, isLoading, error, execute, refetch, reset } = useAsync(
+    createSmokingRecord,
+    { immediate: false },
+  );
 
-function SmokingLogModal({ isOpen, onClose, onSubmit }) {
-  const [selected, setSelected] = useState("");
+  useEffect(() => {
+    if (isOpen) return;
+    setSelectedId("");
+    reset();
+  }, [isOpen, reset]);
+
   const now = new Date();
   const timeText = now.toLocaleTimeString("ko-KR", {
     hour: "2-digit",
@@ -21,55 +31,80 @@ function SmokingLogModal({ isOpen, onClose, onSubmit }) {
   });
 
   const handleModalClose = () => {
-    setSelected("");
+    if (isLoading) return;
     onClose();
   };
 
-  const handleModalSubmit = () => {
-    setSelected("");
-    onSubmit(selected);
+  const handleModalSubmit = async () => {
+    if (isLoading) return;
+
+    const record = await execute(selectedId);
+    if (!record) return;
+
+    onClose();
+    showToast("기록했어요. 다음 추천에 반영할게요.");
+    onSuccess?.(record);
   };
 
   return (
     <Modal isOpen={isOpen} onClose={handleModalClose}>
-      <Title>방금 피운 담배를 기록할까요?</Title>
+      <ApiStatusView
+        variant="embed"
+        isLoading={isLoading || Boolean(data)}
+        error={error}
+        onRetry={refetch}
+        loadingTitle="기록하는 중이에요"
+        errorTitle="기록에 실패했어요"
+      >
+        <FormStack>
+          <Title>방금 피운 담배를 기록할까요?</Title>
 
-      <TimeBlock>
-        <TimeLabel>기록 시각</TimeLabel>
-        <Time>{timeText} (자동)</Time>
-      </TimeBlock>
+          <TimeBlock>
+            <TimeLabel>기록 시각</TimeLabel>
+            <Time>{timeText} (자동)</Time>
+          </TimeBlock>
 
-      <QuestionBlock>
-        <QuestionLabel>어떤 상황이었나요? (선택)</QuestionLabel>
-        <OptionGrid>
-          {REASONS.map((reason) => (
-            <OptionButton
-              key={reason}
-              type="button"
-              $active={selected === reason}
-              onClick={() =>
-                setSelected((prev) => (prev === reason ? "" : reason))
-              }
-            >
-              {reason}
-            </OptionButton>
-          ))}
-        </OptionGrid>
-      </QuestionBlock>
+          <QuestionBlock>
+            <QuestionLabel>어떤 상황이었나요? (선택)</QuestionLabel>
+            <OptionGrid>
+              {SMOKING_TRIGGER_OPTIONS.map((option) => (
+                <OptionButton
+                  key={option.id}
+                  type="button"
+                  $active={selectedId === option.id}
+                  onClick={() =>
+                    setSelectedId((prev) =>
+                      prev === option.id ? "" : option.id,
+                    )
+                  }
+                >
+                  {option.label}
+                </OptionButton>
+              ))}
+            </OptionGrid>
+          </QuestionBlock>
 
-      <ButtonBlock>
-        <PrimaryButton type="button" onClick={handleModalSubmit}>
-          기록하기
-        </PrimaryButton>
-        <SkipButton type="button" onClick={handleModalClose}>
-          건너뛰기
-        </SkipButton>
-      </ButtonBlock>
+          <ButtonBlock>
+            <PrimaryButton type="button" onClick={handleModalSubmit}>
+              기록하기
+            </PrimaryButton>
+            <SkipButton type="button" onClick={handleModalClose}>
+              건너뛰기
+            </SkipButton>
+          </ButtonBlock>
+        </FormStack>
+      </ApiStatusView>
     </Modal>
   );
 }
 
 export default SmokingLogModal;
+
+const FormStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
 
 const Title = styled.p`
   color: ${({ theme }) => theme.colors.bg1};

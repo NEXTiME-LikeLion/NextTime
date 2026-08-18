@@ -1,21 +1,26 @@
 import mascotLoading from "../../assets/mascot-loading.svg";
 import styled from "styled-components";
+import { getApiErrorMessage } from "../../api/getApiErrorMessage";
 
 function ApiStatusView({
   isLoading,
   error,
   onRetry,
+  variant = "page",
   loadingTitle = "불러오는 중이에요",
   loadingDescription = "잠시만 기다려주세요.",
   errorTitle = "불러오기에 실패했어요",
-  errorDescription = "일시적인 오류가 발생했어요.\n잠시 후 다시 시도해주세요.",
+  errorDescription,
   children,
 }) {
+  const resolvedErrorDescription =
+    errorDescription ?? getApiErrorMessage(error);
+
   if (isLoading) {
     return (
-      <StatusScreen>
+      <StatusScreen $variant={variant}>
         <StatusContent>
-          <Mascot src={mascotLoading} alt="" />
+          <Mascot src={mascotLoading} alt="" $variant={variant} />
           <StatusTitle>{loadingTitle}</StatusTitle>
           <StatusDesc>{loadingDescription}</StatusDesc>
         </StatusContent>
@@ -25,10 +30,10 @@ function ApiStatusView({
 
   if (error) {
     return (
-      <StatusScreen>
+      <StatusScreen $variant={variant}>
         <StatusContent>
           <StatusTitle>{errorTitle}</StatusTitle>
-          <StatusDesc>{errorDescription}</StatusDesc>
+          <StatusDesc>{resolvedErrorDescription}</StatusDesc>
           {onRetry && (
             <RetryButton type="button" onClick={onRetry}>
               다시 시도
@@ -49,9 +54,13 @@ const StatusScreen = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100%;
-  padding: var(--safe-top) 1.25rem var(--safe-bottom);
-  background-color: ${({ theme }) => theme.colors.bg0};
+  min-height: ${({ $variant }) => ($variant === "embed" ? "12rem" : "100%")};
+  padding: ${({ $variant }) =>
+    $variant === "embed"
+      ? "0.5rem 0"
+      : "var(--safe-top) 1.25rem var(--safe-bottom)"};
+  background-color: ${({ $variant, theme }) =>
+    $variant === "embed" ? "transparent" : theme.colors.bg0};
 `;
 
 const StatusContent = styled.div`
@@ -65,7 +74,7 @@ const StatusContent = styled.div`
 `;
 
 const Mascot = styled.img`
-  width: 7.5rem;
+  width: ${({ $variant }) => ($variant === "embed" ? "5rem" : "7.5rem")};
   height: auto;
   margin-bottom: 0.5rem;
   object-fit: contain;

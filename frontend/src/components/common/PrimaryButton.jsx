@@ -1,8 +1,8 @@
 import styled from "styled-components";
 
-function PrimaryButton({ children, onClick, type = "button" }) {
+function PrimaryButton({ children, onClick, type = "button", disabled = false }) {
   return (
-    <Button type={type} onClick={onClick}>
+    <Button type={type} onClick={onClick} disabled={disabled}>
       {children}
     </Button>
   );
@@ -20,7 +20,8 @@ const Button = styled.button`
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.4;
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
+  opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
 
   display: flex;
   justify-content: center;

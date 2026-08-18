@@ -1,5 +1,6 @@
 import axiosInstance from "./axiosInstance";
 
 export const getHome = async () => {
-    return await axiosInstance.get("/home");
-}
+    const response = await axiosInstance.get("/home");
+    return response.data.data;
+};
