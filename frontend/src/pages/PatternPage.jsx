@@ -27,11 +27,13 @@ function PatternPage() {
       {overview ? (
         isReady ? (
           <TabMainLayout
+            scrollEntirePage
             header={<PatternHeader overview={overview} />}
             content={<PatternContent overview={overview} />}
           />
         ) : (
           <TabMainLayout
+            scrollEntirePage
             header={<PatternEmptyHeader />}
             content={
               <PatternEmptyContent

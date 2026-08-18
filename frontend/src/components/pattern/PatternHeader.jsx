@@ -2,21 +2,6 @@ import styled from "styled-components";
 import mascotPattern from "../../assets/mascot-pattern.svg";
 import PatternTopBlock from "./PatternTopBlock";
 
-function BoldText({ text }) {
-  const parts = text.split(/(\*\*.*?\*\*)/g);
-  return (
-    <>
-      {parts.map((part, i) =>
-        part.startsWith("**") && part.endsWith("**") ? (
-          <Bold key={i}>{part.slice(2, -2)}</Bold>
-        ) : (
-          part
-        ),
-      )}
-    </>
-  );
-}
-
 function formatHourRange(slot) {
   if (slot?.startHour == null || slot?.endHour == null) return null;
   return `${slot.startHour}~${slot.endHour}시`;
@@ -52,7 +37,11 @@ function buildWeeklyPatternCopy(overview) {
   const similarPattern =
     topAction?.resultCount != null &&
     topAction?.avoidedImmediateSmokingCount != null
-      ? `비슷한 상황에서 ${topAction.name}를 했을 때 **${topAction.resultCount}번 중 ${topAction.avoidedImmediateSmokingCount}번**은 바로 흡연으로 이어지지 않았어요`
+      ? {
+          actionName: topAction.name,
+          resultCount: topAction.resultCount,
+          avoidedCount: topAction.avoidedImmediateSmokingCount,
+        }
       : null;
 
   return { title, subTitle, solution, similarPattern };
@@ -83,7 +72,12 @@ function PatternHeader({ overview }) {
           ) : null}
           {myPattern.similarPattern ? (
             <SimilarPattern>
-              <BoldText text={myPattern.similarPattern} />
+              비슷한 상황에서 {myPattern.similarPattern.actionName}를 했을 때{" "}
+              <Bold>
+                {myPattern.similarPattern.resultCount}번 중{" "}
+                {myPattern.similarPattern.avoidedCount}번
+              </Bold>
+              은 바로 흡연으로 이어지지 않았어요
             </SimilarPattern>
           ) : null}
         </BottomBlock>
@@ -170,7 +164,5 @@ const SimilarPattern = styled.p`
 `;
 
 const Bold = styled.span`
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.875rem;
   font-weight: 700;
 `;
