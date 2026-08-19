@@ -6,11 +6,21 @@ export const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   background-color: ${({ theme }) => theme.colors.white};
-  overflow-y: auto;
+  overflow: hidden;
+`;
+
+export const StatusArea = styled.div`
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 `;
 
 export const Content = styled.div`
+  flex: 1;
+  min-height: 0;
   padding: 0 20px 40px;
+  overflow-y: auto;
 `;
 
 export const SectionLabel = styled.p`

@@ -28,6 +28,12 @@ export const CHANGE_GOAL_MAP = {
     "아직 정하지 못했어요": "UNDECIDED",
 };
 
+export const CHANGE_GOAL_LABEL_MAP = {
+    QUIT: "완전히 끊고 싶어요",
+    REDUCE: "우선 줄여가고 싶어요",
+    UNDECIDED: "아직 정하지 못했어요",
+};
+
 export const CHANGE_REASON_MAP = {
     "체력·건강": "HEALTH_FITNESS",
     "가족·사람": "FAMILY_PEOPLE",
