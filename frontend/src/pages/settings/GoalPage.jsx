@@ -9,7 +9,7 @@ import mascotEconomy from "../../assets/mascot-economy.webp";
 import mascotGrowth from "../../assets/mascot-growth.webp";
 import mascotRelationship from "../../assets/mascot-relationship.webp";
 import mascotSelfEfficacy from "../../assets/mascot-self-efficacy.webp";
-import { applyGoalUpdate, getNextMe, updateGoal } from "../../api/goal";
+import { getNextMe, updateGoal } from "../../api/goal";
 import { CHANGE_GOAL_LABEL_MAP } from "../../api/onboardingMappers";
 import * as S from "./GoalPage.styles";
 
@@ -37,22 +37,7 @@ const getMascotByTheme = (theme) => {
   }
 };
 
-const getSheetValue = (key, goalData) => {
-  if (!goalData) return "";
-
-  switch (key) {
-    case "changeGoal":
-      return goalData.changeGoal || "";
-    case "nextMe":
-      return goalData.nextMe || "";
-    case "motivation":
-      return goalData.decisionTrigger || goalData.motivation || "";
-    case "leftMessage":
-      return goalData.leftMessage || "";
-    default:
-      return "";
-  }
-};
+const getSheetValue = (key, goalData) => goalData?.[key] || "";
 
 const fetchNextMe = async () => {
   console.log("나의 목표를 조회합니다.");
@@ -110,10 +95,6 @@ const GoalPage = () => {
     },
   };
 
-  const applyUpdatedGoal = (result) => {
-    setData((prev) => applyGoalUpdate(prev, result));
-  };
-
   const handleRetry = async () => {
     if (updateError) {
       console.log("나의 목표 수정을 다시 시도합니다.");
@@ -123,7 +104,7 @@ const GoalPage = () => {
         return;
       }
       console.log("나의 목표를 수정했습니다.", result);
-      applyUpdatedGoal(result);
+      setData(result);
       return;
     }
 
@@ -159,7 +140,7 @@ const GoalPage = () => {
     }
 
     console.log("나의 목표를 수정했습니다.", result);
-    applyUpdatedGoal(result);
+    setData(result);
   };
 
   const currentConfig = activeSheet ? sheetConfig[activeSheet] : null;
@@ -202,10 +183,10 @@ const GoalPage = () => {
               <S.SectionLabel>나의 NEXT ME</S.SectionLabel>
               <S.NextMeCard>
                 <S.NextMeLabel>NEXT ME</S.NextMeLabel>
-                <S.NextMeText>{data.headline}</S.NextMeText>
+                <S.NextMeText>{data.nextMe}</S.NextMeText>
 
                 <S.NextMeSubLabel>내가 남긴 말</S.NextMeSubLabel>
-                <S.NextMeSubText>{data.messageToFutureSelf}</S.NextMeSubText>
+                <S.NextMeSubText>{data.leftMessage}</S.NextMeSubText>
 
                 <S.MascotImage src={mascotImage} alt="" />
               </S.NextMeCard>
@@ -216,7 +197,7 @@ const GoalPage = () => {
               <S.Divider />
 
               <S.SectionLabel>나의 동기</S.SectionLabel>
-              <S.BodyText>{data.decisionTrigger}</S.BodyText>
+              <S.BodyText>{data.motivation}</S.BodyText>
               <S.EditButtonRight onClick={() => setActiveSheet("motivation")}>
                 수정하기
               </S.EditButtonRight>
@@ -224,7 +205,7 @@ const GoalPage = () => {
               <S.Divider />
 
               <S.SectionLabel>내가 남긴 말</S.SectionLabel>
-              <S.BodyText>"{data.messageToFutureSelf}"</S.BodyText>
+              <S.BodyText>"{data.leftMessage}"</S.BodyText>
               <S.EditButtonRight onClick={() => setActiveSheet("leftMessage")}>
                 수정하기
               </S.EditButtonRight>
