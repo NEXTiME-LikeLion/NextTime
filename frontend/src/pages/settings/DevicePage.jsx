@@ -5,6 +5,7 @@ import deviceImg from "../../assets/device.svg";
 import device2Img from "../../assets/device2.svg";
 import { getMqttStatus } from "../../api/mqttStatus";
 import { connectButtonEvents } from "../../api/buttonEvents";
+import PushNotificationSection from "./PushNotificationSection";
 
 const DevicePage = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -104,6 +105,8 @@ const DevicePage = () => {
           </S.FooterNote>
         </S.EmptyContent>
       )}
+
+      <PushNotificationSection />
     </S.Wrapper>
   );
 };
