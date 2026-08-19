@@ -1,0 +1,52 @@
+## Vercel Git 연동은 Organization이 아니라 fork한 jiminxha 개인 레포에 연결되어 있음
+## Organization에서 대상 브랜치에 push(merge)되면, 같은 브랜치를 fork에 force-push 한다.
+## fork 브랜치가 갱신되면 Vercel Git 연동이 자동 재배포한다.
+##
+## Production 전환:
+## - Organization main → fork main 싱크
+## - Vercel Production Branch를 fork의 main으로 변경한 뒤 재배포
+##
+## frontend 브랜치도 전환 기간 동안 계속 싱크한다.
+## Vercel Production을 main으로 바꾼 뒤에는 frontend 트리거를 제거해도 된다.
+
+name: Vercel Sync
+
+on:
+  push:
+    branches: ["frontend", "main"]
+
+concurrency:
+  group: vercel-sync-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  sync-to-fork:
+    if: github.repository == 'NEXTiME-LikeLion/NextTime'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Test fork repository access
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_ACTIONS }}
+        run: |
+          echo "Testing access to jiminxha/NextTime..."
+
+          git ls-remote \
+            "https://x-access-token:${GH_TOKEN}@github.com/jiminxha/NextTime.git"
+
+          echo "✅ Successfully accessed jiminxha/NextTime"
+
+      - name: Push current branch to fork
+        env:
+          AUTO_ACTIONS: ${{ secrets.AUTO_ACTIONS }}
+        run: |
+          git remote add fork \
+            "https://x-access-token:${AUTO_ACTIONS}@github.com/jiminxha/NextTime.git"
+
+          git push fork "HEAD:${{ github.ref_name }}" --force

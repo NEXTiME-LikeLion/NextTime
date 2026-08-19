@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <!-- user-scalable=no: iOS가 가로 오버플로/제스처로 자동 줌하면 하단 여백이 생김 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#00D579" />
+
+  <!-- iOS 홈화면 앱(standalone). Safari 탭에서 여는 동안에는 URL바가 그대로 보임 -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NEXTiME" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <title>NEXTiME</title>
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var standalone =
+        window.navigator.standalone === true ||
+        window.matchMedia("(display-mode: standalone)").matches;
+      if (standalone) root.classList.add("standalone");
+
+      function appHeight() {
+        var inner = window.innerHeight;
+        var vv = window.visualViewport;
+        var height = inner;
+
+        if (vv && Math.abs(vv.scale - 1) < 0.01) {
+          height = Math.max(height, Math.round(vv.height + vv.offsetTop));
+        }
+
+        if (standalone) {
+          var portrait = window.matchMedia("(orientation: portrait)").matches;
+          var screenH = portrait
+            ? Math.max(screen.width, screen.height)
+            : Math.min(screen.width, screen.height);
+          var keyboardOpen = screenH - inner > 120;
+          if (!keyboardOpen) height = Math.max(height, screenH);
+        }
+
+        root.style.setProperty("--app-height", height + "px");
+      }
+
+      appHeight();
+      window.addEventListener("resize", appHeight);
+      window.addEventListener("orientationchange", appHeight);
+      window.addEventListener("pageshow", appHeight);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", appHeight);
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>
