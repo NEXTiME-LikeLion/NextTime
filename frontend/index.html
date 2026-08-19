@@ -24,9 +24,24 @@
 <body>
   <div id="root"></div>
   <script>
-    if (window.navigator.standalone || window.matchMedia("(display-mode: standalone)").matches) {
-      document.documentElement.classList.add("standalone");
-    }
+    (function () {
+      var standalone =
+        window.navigator.standalone ||
+        window.matchMedia("(display-mode: standalone)").matches;
+      if (standalone) document.documentElement.classList.add("standalone");
+
+      function setAppHeight() {
+        document.documentElement.style.setProperty(
+          "--app-height",
+          window.innerHeight + "px"
+        );
+      }
+      setAppHeight();
+      window.addEventListener("resize", setAppHeight);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", setAppHeight);
+      }
+    })();
   </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
