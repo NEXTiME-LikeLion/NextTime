@@ -119,6 +119,16 @@ public class NextMeGeneration {
         return messageToFutureSelf;
     }
 
+    public List<ChangeReason> getChangeReasons() {
+        return changeReason2 == null
+                ? List.of(changeReason1)
+                : List.of(changeReason1, changeReason2);
+    }
+
+    public String getCustomReason() {
+        return customReason;
+    }
+
     public void updateGoal(String nextMe, String motivation, String leftMessage) {
         if (nextMe != null) {
             this.futureSelf = nextMe;

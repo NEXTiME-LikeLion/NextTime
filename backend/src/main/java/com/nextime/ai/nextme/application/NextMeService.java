@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -54,7 +55,8 @@ public class NextMeService {
                         .orElse(null),
                 request.decisionTrigger().trim(),
                 request.futureSelf().trim(),
-                request.messageToFutureSelf().trim()
+                request.messageToFutureSelf().trim(),
+                List.of()
         ), request.changeReasons());
 
         NextMeGeneration generation = new NextMeGeneration(
@@ -70,6 +72,45 @@ public class NextMeService {
                 result.source()
         );
         return generationRepository.save(generation);
+    }
+
+    @Transactional
+    public NextMeGeneration regenerateGoal(
+            UUID userId,
+            OnboardingGoal changeGoal,
+            NextMeGeneration current,
+            String nextMe,
+            String motivation,
+            String leftMessage,
+            List<String> updatedFields
+    ) {
+        List<ChangeReason> changeReasons = current.getChangeReasons();
+        String customReason = current.getCustomReason();
+        NextMePromptInput input = new NextMePromptInput(
+                reasonTexts(changeReasons, customReason),
+                changeGoal == null ? null : changeGoal.name(),
+                motivation,
+                nextMe,
+                leftMessage,
+                updatedFields
+        );
+        GenerationResult result = generateGoalUpdateWithFallback(
+                input,
+                current.getNextBudTheme()
+        );
+
+        return generationRepository.save(new NextMeGeneration(
+                userId,
+                changeReasons,
+                customReason,
+                result.startReason(),
+                result.headline(),
+                result.leftMessage(),
+                result.headline(),
+                result.startReason(),
+                result.nextBudTheme(),
+                result.source()
+        ));
     }
 
     @Transactional(readOnly = true)
@@ -133,6 +174,7 @@ public class NextMeService {
             return new GenerationResult(
                     headline,
                     startReason,
+                    truncate(normalizeGeneratedText(clientResult.leftMessage()), 100),
                     clientResult.nextBudTheme(),
                     GenerationSource.AI
             );
@@ -140,6 +182,91 @@ public class NextMeService {
             log.warn("NEXT ME AI 생성 실패. 기본 문구를 사용합니다: {}", exception.getMessage());
             return fallbackResult(input, selectedReasons.getFirst());
         }
+    }
+
+    private GenerationResult generateGoalUpdateWithFallback(
+            NextMePromptInput input,
+            NextBudTheme currentTheme
+    ) {
+        try {
+            NextMeClientResult clientResult = aiClient.generate(input);
+            if (clientResult.fallbackUsed()) {
+                return goalUpdateFallbackResult(input, currentTheme);
+            }
+            String headline = truncate(normalizeGeneratedText(clientResult.headline()), 36);
+            String startReason = truncate(normalizeGeneratedText(clientResult.startReason()), 24);
+            String leftMessage = truncate(normalizeGeneratedText(clientResult.leftMessage()), 100);
+            if (headline.isEmpty() || startReason.isEmpty() || leftMessage.isEmpty()) {
+                throw new IllegalStateException("목표 수정 AI 결과에 빈 값이 있습니다.");
+            }
+            if (clientResult.nextBudTheme() == null) {
+                throw new IllegalStateException("nextbud_theme이 비어 있습니다.");
+            }
+            NextBudTheme resolvedTheme = resolveThemeFromUpdatedFields(input)
+                    .orElse(clientResult.nextBudTheme());
+            return new GenerationResult(
+                    headline,
+                    startReason,
+                    leftMessage,
+                    resolvedTheme,
+                    GenerationSource.AI
+            );
+        } catch (RuntimeException exception) {
+            log.warn("목표 수정 NEXT ME AI 생성 실패. 기존 입력을 사용합니다: {}", exception.getMessage());
+            return goalUpdateFallbackResult(input, currentTheme);
+        }
+    }
+
+    private GenerationResult goalUpdateFallbackResult(
+            NextMePromptInput input,
+            NextBudTheme currentTheme
+    ) {
+        return new GenerationResult(
+                truncate(input.futureSelf(), 36),
+                truncate(input.decisionTrigger(), 24),
+                truncate(input.messageToFutureSelf(), 100),
+                resolveThemeFromUpdatedFields(input).orElse(currentTheme),
+                GenerationSource.FALLBACK
+        );
+    }
+
+    private Optional<NextBudTheme> resolveThemeFromUpdatedFields(NextMePromptInput input) {
+        String updatedText = input.updatedFields().stream()
+                .map(field -> switch (field) {
+                    case "nextMe" -> input.futureSelf();
+                    case "motivation" -> input.decisionTrigger();
+                    case "leftMessage" -> input.messageToFutureSelf();
+                    default -> "";
+                })
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::toLowerCase)
+                .reduce("", (left, right) -> left + " " + right);
+
+        if (containsAny(updatedText, "돈", "비용", "담뱃값", "절약", "저축", "지출", "경제", "아끼")) {
+            return Optional.of(NextBudTheme.NEXTBUD_ECONOMY_01);
+        }
+        if (containsAny(updatedText, "건강", "체력", "운동", "숨", "러닝", "수영", "몸", "회복")) {
+            return Optional.of(NextBudTheme.NEXTBUD_HEALTH_01);
+        }
+        if (containsAny(updatedText, "가족", "사람", "아이", "임신", "자녀", "친구", "연인")) {
+            return Optional.of(NextBudTheme.NEXTBUD_RELATIONSHIP_01);
+        }
+        if (containsAny(updatedText, "자유", "냄새", "외모", "자신감", "통제", "주도")) {
+            return Optional.of(NextBudTheme.NEXTBUD_SELF_EFFICACY_01);
+        }
+        if (containsAny(updatedText, "취미", "일상", "성장", "집중", "공부", "업무", "기록")) {
+            return Optional.of(NextBudTheme.NEXTBUD_GROWTH_01);
+        }
+        return Optional.empty();
+    }
+
+    private boolean containsAny(String text, String... keywords) {
+        for (String keyword : keywords) {
+            if (text.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isThemeCompatible(NextBudTheme theme, List<ChangeReason> reasons) {
@@ -153,6 +280,7 @@ public class NextMeService {
         return new GenerationResult(
                 truncate(input.futureSelf(), 36),
                 truncate(input.decisionTrigger(), 24),
+                truncate(input.messageToFutureSelf(), 100),
                 fallbackTheme(primaryReason),
                 GenerationSource.FALLBACK
         );
@@ -192,6 +320,7 @@ public class NextMeService {
     private record GenerationResult(
             String headline,
             String startReason,
+            String leftMessage,
             NextBudTheme nextBudTheme,
             GenerationSource source
     ) {

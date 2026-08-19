@@ -168,6 +168,7 @@ class UserControllerSecurityTest {
                 .thenReturn(new GoalResponse(
                         OnboardingGoal.QUIT,
                         "러닝할 때 먼저 멈추지 않는 나",
+                        com.nextime.ai.nextme.domain.NextBudTheme.NEXTBUD_HEALTH_01,
                         "체력을 되찾고 싶어요.",
                         "포기하지 말자."
                 ));
@@ -183,7 +184,8 @@ class UserControllerSecurityTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.changeGoal").value("QUIT"))
-                .andExpect(jsonPath("$.data.nextMe").value("러닝할 때 먼저 멈추지 않는 나"));
+                .andExpect(jsonPath("$.data.nextMe").value("러닝할 때 먼저 멈추지 않는 나"))
+                .andExpect(jsonPath("$.data.nextBudTheme").value("NEXTBUD_HEALTH_01"));
     }
 
     @Test

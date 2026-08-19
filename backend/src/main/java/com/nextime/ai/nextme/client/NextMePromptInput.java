@@ -7,6 +7,7 @@ public record NextMePromptInput(
         String changeGoal,
         String decisionTrigger,
         String futureSelf,
-        String messageToFutureSelf
+        String messageToFutureSelf,
+        List<String> updatedFields
 ) {
 }
