@@ -36,7 +36,7 @@ public class NextMeController {
     }
 
     @GetMapping
-    ApiResponse<NextMeResponse> getLatest(@CurrentUser AuthenticatedUser currentUser) {
-        return ApiResponse.success(NextMeResponse.from(nextMeService.getLatest(currentUser.userId())));
+    ApiResponse<NextMeDetailResponse> getLatest(@CurrentUser AuthenticatedUser currentUser) {
+        return ApiResponse.success(NextMeDetailResponse.from(nextMeService.getLatest(currentUser.userId())));
     }
 }

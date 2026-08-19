@@ -79,7 +79,10 @@ class NextMeControllerTest {
                 .andExpect(jsonPath("$.data.headline").value("건강하고 자유로운 나"))
                 .andExpect(jsonPath("$.data.start_reason").value("숨이 차서 시작한 변화"))
                 .andExpect(jsonPath("$.data.nextbud_theme").value("NEXTBUD_HEALTH_01"))
-                .andExpect(jsonPath("$.data.source").value("AI"));
+                .andExpect(jsonPath("$.data.source").value("AI"))
+                .andExpect(jsonPath("$.data.decisionTrigger").doesNotExist())
+                .andExpect(jsonPath("$.data.futureSelf").doesNotExist())
+                .andExpect(jsonPath("$.data.messageToFutureSelf").doesNotExist());
     }
 
     @Test
@@ -94,7 +97,10 @@ class NextMeControllerTest {
                 .andExpect(jsonPath("$.data.message").doesNotExist())
                 .andExpect(jsonPath("$.data.headline").value("건강하고 자유로운 나"))
                 .andExpect(jsonPath("$.data.start_reason").value("숨이 차서 시작한 변화"))
-                .andExpect(jsonPath("$.data.nextbud_theme").value("NEXTBUD_HEALTH_01"));
+                .andExpect(jsonPath("$.data.nextbud_theme").value("NEXTBUD_HEALTH_01"))
+                .andExpect(jsonPath("$.data.decisionTrigger").value("계단을 오를 때 숨이 차서 변화를 결심했어요."))
+                .andExpect(jsonPath("$.data.futureSelf").value("건강하고 자유롭게 생활하는 사람이 되고 싶어요."))
+                .andExpect(jsonPath("$.data.messageToFutureSelf").value("오늘 시작한 마음을 잊지 말자."));
     }
 
     @Test
@@ -133,6 +139,9 @@ class NextMeControllerTest {
         when(generation.getNextBudTheme()).thenReturn(NextBudTheme.NEXTBUD_HEALTH_01);
         when(generation.getSource()).thenReturn(GenerationSource.AI);
         when(generation.getCreatedAt()).thenReturn(Instant.parse("2026-08-16T00:00:00Z"));
+        when(generation.getDecisionTrigger()).thenReturn("계단을 오를 때 숨이 차서 변화를 결심했어요.");
+        when(generation.getFutureSelf()).thenReturn("건강하고 자유롭게 생활하는 사람이 되고 싶어요.");
+        when(generation.getMessageToFutureSelf()).thenReturn("오늘 시작한 마음을 잊지 말자.");
         return generation;
     }
 
