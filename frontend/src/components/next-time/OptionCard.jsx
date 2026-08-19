@@ -9,7 +9,7 @@ function OptionCard({ label, mood = "neutral", selected = false, onClick }) {
       onClick={onClick}
       aria-pressed={selected}
     >
-      <MascotCharacter mood={mood} size="sm" />
+      <MascotCharacter mood={mood} size="sm" priority />
       <Label>{label}</Label>
     </Card>
   );

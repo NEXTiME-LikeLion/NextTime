@@ -1,9 +1,9 @@
 import styled from "styled-components";
-import mascotNeutral from "../../assets/mascot-neutral.svg";
-import mascotCraving from "../../assets/mascot-craving.svg";
-import mascotUrgent from "../../assets/mascot-urgent.svg";
-import mascotRun from "../../assets/mascot-run.svg";
-import mascotSuccess from "../../assets/mascot-success.svg";
+import mascotNeutral from "../../assets/mascot-neutral.png";
+import mascotCraving from "../../assets/mascot-craving.png";
+import mascotUrgent from "../../assets/mascot-urgent.png";
+import mascotRun from "../../assets/mascot-run.png";
+import mascotSuccess from "../../assets/mascot-success.png";
 
 const MOOD_ASSETS = {
   neutral: mascotNeutral,
@@ -20,7 +20,12 @@ const SIZE_MAP = {
   llg: { width: "10rem", height: "13.75rem" },
 };
 
-function MascotCharacter({ mood = "neutral", size = "md", alt = "" }) {
+function MascotCharacter({
+  mood = "neutral",
+  size = "md",
+  alt = "",
+  priority = false,
+}) {
   const src = MOOD_ASSETS[mood];
 
   if (!src) {
@@ -31,6 +36,9 @@ function MascotCharacter({ mood = "neutral", size = "md", alt = "" }) {
     <Image
       src={src}
       alt={alt}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      fetchPriority={priority ? "high" : "auto"}
       $width={SIZE_MAP[size].width}
       $height={SIZE_MAP[size].height}
     />
