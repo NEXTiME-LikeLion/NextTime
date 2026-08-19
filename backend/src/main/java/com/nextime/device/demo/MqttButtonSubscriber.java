@@ -1,5 +1,6 @@
 package com.nextime.device.demo;
 
+import com.nextime.push.WebPushService;
 import jakarta.annotation.PreDestroy;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -23,6 +24,7 @@ public class MqttButtonSubscriber implements MqttCallbackExtended {
     private static final Logger log = LoggerFactory.getLogger(MqttButtonSubscriber.class);
 
     private final ButtonEventStream eventStream;
+    private final WebPushService webPushService;
     private final String brokerUrl;
     private final String clientId;
     private final String topic;
@@ -32,11 +34,13 @@ public class MqttButtonSubscriber implements MqttCallbackExtended {
 
     public MqttButtonSubscriber(
             ButtonEventStream eventStream,
+            WebPushService webPushService,
             @Value("${mqtt.broker-url}") String brokerUrl,
             @Value("${mqtt.client-id}") String clientId,
             @Value("${mqtt.topic}") String topic
     ) {
         this.eventStream = eventStream;
+        this.webPushService = webPushService;
         this.brokerUrl = brokerUrl;
         this.clientId = clientId;
         this.topic = topic;
@@ -89,6 +93,7 @@ public class MqttButtonSubscriber implements MqttCallbackExtended {
 
         log.info("ESP32 버튼 신호 수신: topic={}, payload={}", receivedTopic, payload);
         eventStream.publish(event);
+        webPushService.notifyButtonPressed();
     }
 
     @Override

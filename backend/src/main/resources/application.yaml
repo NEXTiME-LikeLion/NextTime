@@ -34,3 +34,9 @@ mqtt:
   broker-url: ${MQTT_BROKER_URL:tcp://localhost:1883}
   client-id: ${MQTT_CLIENT_ID:nextime-backend-demo}
   topic: ${MQTT_TOPIC:esp32/button}
+
+# Demo deployment defaults. Move the private key to a CI/CD secret before public production use.
+web-push:
+  public-key: ${WEB_PUSH_PUBLIC_KEY:BHthC4Gfm778RfmayKaoPUGZxAVGtflbb0fwYke-sCq18vpaijdjXK7ullma8YnkQ5DVUNM5h0W8X2MjZXZvwfY}
+  private-key: ${WEB_PUSH_PRIVATE_KEY:5ZP3hfPt1jL7Qf60PY6ISCHuEmndVE9SlHygjIJZCvQ}
+  subject: ${WEB_PUSH_SUBJECT:mailto:nextime@example.com}
