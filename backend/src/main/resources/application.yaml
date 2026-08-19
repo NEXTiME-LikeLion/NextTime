@@ -31,9 +31,9 @@ app:
       base-url: ${OPENAI_BASE_URL:https://api.openai.com}
 
 mqtt:
-  broker-url: ${MQTT_BROKER_URL:tcp://broker.emqx.io:1883}
-  client-id: ${MQTT_CLIENT_ID:nextime-backend-inha02-e9b53d4b}
-  topic: ${MQTT_TOPIC:nextime/inha02/e9b53d4b/button}
+  broker-url: ssl://broker.emqx.io:8883
+  client-id: nextime-backend-inha02-e9b53d4b
+  topic: nextime/inha02/e9b53d4b/button
 
 # Demo deployment defaults. Move the private key to a CI/CD secret before public production use.
 web-push:
