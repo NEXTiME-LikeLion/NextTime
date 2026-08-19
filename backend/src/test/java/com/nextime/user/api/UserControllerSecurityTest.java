@@ -9,6 +9,8 @@ import com.nextime.security.SecurityConfig;
 import com.nextime.user.application.UserRegistrationResult;
 import com.nextime.user.application.UserRegistrationService;
 import com.nextime.user.application.OnboardingService;
+import com.nextime.user.application.GoalService;
+import com.nextime.user.domain.OnboardingGoal;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -59,6 +61,9 @@ class UserControllerSecurityTest {
 
     @MockitoBean
     private ExcludedMissionService excludedMissionService;
+
+    @MockitoBean
+    private GoalService goalService;
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
@@ -152,6 +157,33 @@ class UserControllerSecurityTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.onboardingCompleted").value(true))
                 .andExpect(jsonPath("$.data.updatedAt").value("2026-08-16T01:00:00Z"));
+    }
+
+    @Test
+    void goalUpdateReturns200() throws Exception {
+        User user = userFixture();
+        when(userRepository.findByCognitoSub("cognito-sub-123")).thenReturn(Optional.of(user));
+        when(goalService.update(org.mockito.ArgumentMatchers.eq(user.getId()),
+                org.mockito.ArgumentMatchers.any(GoalRequest.class)))
+                .thenReturn(new GoalResponse(
+                        OnboardingGoal.QUIT,
+                        "러닝할 때 먼저 멈추지 않는 나",
+                        "체력을 되찾고 싶어요.",
+                        "포기하지 말자."
+                ));
+
+        mockMvc.perform(post("/users/me/goal")
+                        .with(jwt().jwt(token -> token.subject("cognito-sub-123")))
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "changeGoal": "QUIT",
+                                  "nextMe": "러닝할 때 먼저 멈추지 않는 나"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.changeGoal").value("QUIT"))
+                .andExpect(jsonPath("$.data.nextMe").value("러닝할 때 먼저 멈추지 않는 나"));
     }
 
     @Test

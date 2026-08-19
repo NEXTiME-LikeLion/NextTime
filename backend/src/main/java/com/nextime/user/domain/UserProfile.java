@@ -62,6 +62,10 @@ public class UserProfile {
         this.difficultMoment = difficultMoment;
     }
 
+    public void updateGoal(OnboardingGoal goal) {
+        this.goal = goal;
+    }
+
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();

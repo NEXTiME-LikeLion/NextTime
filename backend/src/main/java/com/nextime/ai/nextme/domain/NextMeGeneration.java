@@ -119,6 +119,24 @@ public class NextMeGeneration {
         return messageToFutureSelf;
     }
 
+    public void updateGoal(String nextMe, String motivation, String leftMessage) {
+        if (nextMe != null) {
+            this.futureSelf = nextMe;
+            this.headline = truncate(nextMe, 36);
+        }
+        if (motivation != null) {
+            this.decisionTrigger = motivation;
+        }
+        if (leftMessage != null) {
+            this.messageToFutureSelf = leftMessage;
+        }
+    }
+
+    private String truncate(String value, int maxLength) {
+        int length = value.codePointCount(0, value.length());
+        return length <= maxLength ? value : value.substring(0, value.offsetByCodePoints(0, maxLength));
+    }
+
     public String getStartReason() {
         return startReason;
     }
