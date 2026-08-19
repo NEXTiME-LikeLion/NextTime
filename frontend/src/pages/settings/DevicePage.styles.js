@@ -6,6 +6,7 @@ export const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   background-color: ${({ theme }) => theme.colors.white};
+  overflow-y: auto;
 `;
 
 /* ── 연결됨 ── */
@@ -158,4 +159,38 @@ export const FooterNote = styled.p`
   font-size: 12px;
   color: #b2b2b2;
   text-align: center;
+`;
+
+export const NotificationSection = styled.div`
+  padding: 24px 20px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+export const NotificationTitle = styled.h3`
+  font-size: 16px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.bg_black};
+`;
+
+export const NotificationMessage = styled.p`
+  font-size: 14px;
+  line-height: 1.4;
+  color: ${({ theme }) => theme.colors.gray};
+`;
+
+export const NotificationButton = styled.button`
+  width: 100%;
+  height: 56px;
+  border-radius: 16px;
+  border: ${({ $secondary }) => ($secondary ? "1px solid #191B241A" : "none")};
+  background-color: ${({ theme, $secondary }) =>
+    $secondary ? theme.colors.white : theme.colors.primary};
+  color: ${({ theme, $secondary }) =>
+    $secondary ? theme.colors.gray : theme.colors.white};
+  font-size: 16px;
+  font-weight: 600;
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
+  opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
 `;
