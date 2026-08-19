@@ -1,14 +1,11 @@
 import { Outlet } from "react-router-dom";
 import styled from "styled-components";
 import logoSvg from "../assets/logo2.svg";
-import statusBarImg from "../assets/statusbar.svg";
 
 export const AuthLayout = ({ logoMarginTop = 140, bottomPadding = 40 }) => {
   return (
     <PageWrapper>
       <Container $bottomPadding={bottomPadding}>
-        <StatusBarImage src={statusBarImg} alt="" />
-
         <Header $marginTop={logoMarginTop}>
           <LogoImage src={logoSvg} alt="NEXTIME" />
         </Header>
