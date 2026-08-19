@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import BackHeader from "../../components/common/BackHeader";
 import EditSheet from "../../components/common/EditSheet";
 import ApiStatusView from "../../components/common/ApiStatusView";
@@ -9,14 +9,14 @@ import mascotEconomy from "../../assets/mascot-economy.svg";
 import mascotGrowth from "../../assets/mascot-growth.svg";
 import mascotRelationship from "../../assets/mascot-relationship.svg";
 import mascotSelfEfficacy from "../../assets/mascot-self-efficacy.svg";
-import { getNextMe, updateChangeGoal, updateNextMe } from "../../api/goal";
+import { applyGoalUpdate, getNextMe, updateGoal } from "../../api/goal";
 import { CHANGE_GOAL_LABEL_MAP } from "../../api/onboardingMappers";
 import * as S from "./GoalPage.styles";
 
 const DESIRED_CHANGE_OPTIONS = [
-  { label: "완전히 끊고 싶어요", value: "완전히 끊고 싶어요" },
-  { label: "우선 줄여가고 싶어요", value: "우선 줄여가고 싶어요" },
-  { label: "아직 정하지 못했어요", value: "아직 정하지 못했어요" },
+  { label: "완전히 끊고 싶어요", value: "QUIT" },
+  { label: "우선 줄여가고 싶어요", value: "REDUCE" },
+  { label: "아직 정하지 못했어요", value: "UNDECIDED" },
 ];
 
 const getMascotByTheme = (theme) => {
@@ -37,6 +37,23 @@ const getMascotByTheme = (theme) => {
   }
 };
 
+const getSheetValue = (key, goalData) => {
+  if (!goalData) return "";
+
+  switch (key) {
+    case "changeGoal":
+      return goalData.changeGoal || "";
+    case "nextMe":
+      return goalData.nextMe || "";
+    case "motivation":
+      return goalData.motivation || "";
+    case "leftMessage":
+      return goalData.leftMessage || "";
+    default:
+      return "";
+  }
+};
+
 const fetchNextMe = async () => {
   console.log("나의 목표를 조회합니다.");
   try {
@@ -50,29 +67,14 @@ const fetchNextMe = async () => {
 };
 
 const GoalPage = () => {
-  const { data, isLoading, error, refetch } = useAsync(fetchNextMe);
-  const [fullAnswers, setFullAnswers] = useState(null);
-  const [goal, setGoal] = useState({
-    desiredChange: "",
-    nextMe: "",
-    motivation: "",
-    leftMessage: "",
-  });
+  const { data, isLoading, error, refetch, setData } = useAsync(fetchNextMe);
+  const {
+    isLoading: isUpdating,
+    error: updateError,
+    execute: executeUpdate,
+    refetch: retryUpdate,
+  } = useAsync(updateGoal, { immediate: false });
   const [activeSheet, setActiveSheet] = useState(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("onboardingAnswers");
-    if (saved) {
-      const answers = JSON.parse(saved);
-      setFullAnswers(answers);
-      setGoal({
-        desiredChange: answers.desiredChange || "",
-        nextMe: answers.nextMe || "",
-        motivation: answers.motivation || "",
-        leftMessage: answers.leftMessage || "",
-      });
-    }
-  }, []);
 
   const mascotImage = useMemo(
     () => getMascotByTheme(data?.nextBudTheme),
@@ -80,7 +82,7 @@ const GoalPage = () => {
   );
 
   const sheetConfig = {
-    desiredChange: {
+    changeGoal: {
       type: "radio",
       title: "어떤 변화를 원하시나요?",
       options: DESIRED_CHANGE_OPTIONS,
@@ -108,34 +110,60 @@ const GoalPage = () => {
     },
   };
 
-  const handleRetry = () => {
+  const applyUpdatedGoal = (result) => {
+    setData((prev) => applyGoalUpdate(prev, result));
+  };
+
+  const handleRetry = async () => {
+    if (updateError) {
+      console.log("나의 목표 수정을 다시 시도합니다.");
+      const result = await retryUpdate();
+      if (!result) {
+        console.error("나의 목표 수정에 실패했습니다.");
+        return;
+      }
+      console.log("나의 목표를 수정했습니다.", result);
+      applyUpdatedGoal(result);
+      return;
+    }
+
     console.log("나의 목표 조회를 다시 시도합니다.");
     refetch();
   };
 
   const handleSubmit = (key) => async (newValue) => {
-    const updatedGoal = { ...goal, [key]: newValue };
-    const updatedFullAnswers = { ...fullAnswers, [key]: newValue };
+    if (isUpdating) return;
 
-    setGoal(updatedGoal);
-    setFullAnswers(updatedFullAnswers);
-    localStorage.setItem(
-      "onboardingAnswers",
-      JSON.stringify(updatedFullAnswers),
-    );
+    const nextValue =
+      key === "changeGoal" ? newValue : String(newValue ?? "").trim();
 
-    try {
-      if (key === "desiredChange") {
-        await updateChangeGoal(updatedFullAnswers, newValue);
-      } else {
-        await updateNextMe(updatedFullAnswers);
-      }
-    } catch (saveError) {
-      console.error("나의 목표 저장 실패:", saveError);
+    if (key !== "changeGoal" && !nextValue) {
+      console.error("나의 목표 수정에 실패했습니다. 수정할 값은 비어 있을 수 없습니다.");
+      return;
     }
+
+    if (nextValue === getSheetValue(key, data)) {
+      console.log("수정할 목표 정보가 없어 요청을 건너뜁니다.", {
+        key,
+        nextValue,
+      });
+      return;
+    }
+
+    const body = { [key]: nextValue };
+    console.log("나의 목표를 수정합니다.", body);
+    const result = await executeUpdate(body);
+    if (!result) {
+      console.error("나의 목표 수정에 실패했습니다.");
+      return;
+    }
+
+    console.log("나의 목표를 수정했습니다.", result);
+    applyUpdatedGoal(result);
   };
 
   const currentConfig = activeSheet ? sheetConfig[activeSheet] : null;
+  const showUpdateStatus = isUpdating || Boolean(updateError);
 
   return (
     <S.Wrapper>
@@ -143,10 +171,19 @@ const GoalPage = () => {
 
       <S.StatusArea>
         <ApiStatusView
-          isLoading={isLoading && !data}
-          error={!data ? error : null}
+          isLoading={(isLoading && !data) || isUpdating}
+          error={!data ? error : updateError}
           onRetry={handleRetry}
-          loadingTitle="나의 목표를 불러오는 중이에요"
+          loadingTitle={
+            isUpdating
+              ? "나의 목표를 저장하는 중이에요"
+              : "나의 목표를 불러오는 중이에요"
+          }
+          errorTitle={
+            updateError
+              ? "나의 목표를 저장하지 못했어요"
+              : "불러오기에 실패했어요"
+          }
         >
           {data ? (
             <S.Content>
@@ -155,7 +192,7 @@ const GoalPage = () => {
                 <S.RowText>
                   {CHANGE_GOAL_LABEL_MAP[data.changeGoal] || data.changeGoal}
                 </S.RowText>
-                <S.EditButton onClick={() => setActiveSheet("desiredChange")}>
+                <S.EditButton onClick={() => setActiveSheet("changeGoal")}>
                   수정하기
                 </S.EditButton>
               </S.Row>
@@ -196,14 +233,14 @@ const GoalPage = () => {
         </ApiStatusView>
       </S.StatusArea>
 
-      {currentConfig && (
+      {currentConfig && !showUpdateStatus && (
         <EditSheet
           type={currentConfig.type}
           title={currentConfig.title}
           description={currentConfig.description}
           options={currentConfig.options}
           placeholder={currentConfig.placeholder}
-          initialValue={goal[activeSheet]}
+          initialValue={getSheetValue(activeSheet, data)}
           onClose={() => setActiveSheet(null)}
           onSubmit={handleSubmit(activeSheet)}
         />
