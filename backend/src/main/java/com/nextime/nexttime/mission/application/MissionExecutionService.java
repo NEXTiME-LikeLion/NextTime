@@ -68,11 +68,11 @@ public class MissionExecutionService {
         if (session.getStatus() == CANCELLED && session.getMissionSkippedAt() != null) {
             return MissionSkipResponse.from(session);
         }
-        if (session.getStatus() != MISSION_RECOMMENDED) {
+        if (session.getStatus() != MISSION_RECOMMENDED && session.getStatus() != MISSION_STARTED) {
             throw conflict(
                     session.getStatus().ordinal() < MISSION_RECOMMENDED.ordinal()
                             ? "건너뛸 행동 미션이 없습니다."
-                            : "미션을 시작한 후에는 건너뛸 수 없습니다."
+                            : "현재 상태에서는 미션을 건너뛸 수 없습니다."
             );
         }
 
