@@ -66,7 +66,7 @@ const OnboardingPage = () => {
   };
 
   return (
-    <>
+    <S.Page>
       <BackHeader
         rightContent={`${stepIndex + 1} / ${totalSteps}`}
         onBack={handleBack}
@@ -180,7 +180,7 @@ const OnboardingPage = () => {
           {stepIndex < totalSteps - 1 ? "다음" : "완료"}
         </S.NextButton>
       </S.Wrapper>
-    </>
+    </S.Page>
   );
 };
 

@@ -1,7 +1,17 @@
 import styled from "styled-components";
 
+export const Page = styled.div`
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: ${({ theme }) => theme.colors.white};
+  overflow: hidden;
+`;
 
 export const ProgressBarTrack = styled.div`
+  flex-shrink: 0;
   width: 100%;
   height: 4px;
   border-radius: 2px;
@@ -20,8 +30,9 @@ export const ProgressBarFill = styled.div`
 `;
 
 export const Wrapper = styled.div`
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  height: 100%;
   padding: 0px 20px 40px;
   box-sizing: border-box;
   background-color: ${({ theme }) => theme.colors.white};
