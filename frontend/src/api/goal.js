@@ -39,6 +39,7 @@ export const applyGoalUpdate = (current = {}, updated = {}) => {
             updated.nextMe != null
                 ? String(updated.nextMe).slice(0, HEADLINE_MAX_LENGTH)
                 : current.headline ?? "",
+        nextBudTheme: updated.nextBudTheme ?? current.nextBudTheme ?? "",
         motivation,
         decisionTrigger: updated.motivation ?? current.decisionTrigger ?? "",
         leftMessage,

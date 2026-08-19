@@ -1,7 +1,8 @@
 package com.nextime.user.application;
 
+import com.nextime.ai.nextme.application.NextMeService;
 import com.nextime.ai.nextme.domain.NextMeGeneration;
-import com.nextime.ai.nextme.domain.NextMeGenerationRepository;
+import com.nextime.ai.nextme.domain.NextBudTheme;
 import com.nextime.common.error.BusinessException;
 import com.nextime.user.api.GoalRequest;
 import com.nextime.user.api.GoalResponse;
@@ -31,21 +32,33 @@ class GoalServiceTest {
     @Mock
     private UserProfileRepository userProfileRepository;
     @Mock
-    private NextMeGenerationRepository generationRepository;
+    private NextMeService nextMeService;
     @InjectMocks
     private GoalService service;
 
     @Test
     void updatesOnlyProvidedValues() {
         UserProfile profile = mock(UserProfile.class);
-        NextMeGeneration generation = mock(NextMeGeneration.class);
+        NextMeGeneration current = mock(NextMeGeneration.class);
+        NextMeGeneration generated = mock(NextMeGeneration.class);
         when(userProfileRepository.findById(USER_ID)).thenReturn(Optional.of(profile));
-        when(generationRepository.findFirstByUserIdOrderByCreatedAtDesc(USER_ID))
-                .thenReturn(Optional.of(generation));
+        when(nextMeService.getLatest(USER_ID)).thenReturn(current);
         when(profile.getGoal()).thenReturn(OnboardingGoal.QUIT);
-        when(generation.getFutureSelf()).thenReturn("새로운 NEXT ME");
-        when(generation.getDecisionTrigger()).thenReturn("기존 동기");
-        when(generation.getMessageToFutureSelf()).thenReturn("기존 메시지");
+        when(current.getDecisionTrigger()).thenReturn("기존 동기");
+        when(current.getMessageToFutureSelf()).thenReturn("기존 메시지");
+        when(nextMeService.regenerateGoal(
+                USER_ID,
+                OnboardingGoal.QUIT,
+                current,
+                "새로운 NEXT ME",
+                "기존 동기",
+                "기존 메시지",
+                java.util.List.of("changeGoal", "nextMe")
+        )).thenReturn(generated);
+        when(generated.getHeadline()).thenReturn("AI가 다듬은 NEXT ME");
+        when(generated.getNextBudTheme()).thenReturn(NextBudTheme.NEXTBUD_HEALTH_01);
+        when(generated.getDecisionTrigger()).thenReturn("AI가 다듬은 동기");
+        when(generated.getMessageToFutureSelf()).thenReturn("AI가 다듬은 메시지");
 
         GoalResponse response = service.update(
                 USER_ID,
@@ -53,9 +66,18 @@ class GoalServiceTest {
         );
 
         verify(profile).updateGoal(OnboardingGoal.QUIT);
-        verify(generation).updateGoal("새로운 NEXT ME", null, null);
-        assertThat(response.nextMe()).isEqualTo("새로운 NEXT ME");
-        assertThat(response.motivation()).isEqualTo("기존 동기");
+        verify(nextMeService).regenerateGoal(
+                USER_ID,
+                OnboardingGoal.QUIT,
+                current,
+                "새로운 NEXT ME",
+                "기존 동기",
+                "기존 메시지",
+                java.util.List.of("changeGoal", "nextMe")
+        );
+        assertThat(response.nextMe()).isEqualTo("AI가 다듬은 NEXT ME");
+        assertThat(response.nextBudTheme()).isEqualTo(NextBudTheme.NEXTBUD_HEALTH_01);
+        assertThat(response.motivation()).isEqualTo("AI가 다듬은 동기");
     }
 
     @Test

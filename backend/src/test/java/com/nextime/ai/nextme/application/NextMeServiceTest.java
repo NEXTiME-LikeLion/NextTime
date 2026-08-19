@@ -50,6 +50,7 @@ class NextMeServiceTest {
                 .thenReturn(NextMeClientResult.ai(
                         "건강하고 자유로운 나",
                         "숨이 차서 시작한 변화",
+                        "오늘의 선택을 기억하자.",
                         NextBudTheme.NEXTBUD_HEALTH_01
                 ));
         when(generationRepository.save(any(NextMeGeneration.class)))
@@ -72,6 +73,7 @@ class NextMeServiceTest {
                 .thenReturn(NextMeClientResult.ai(
                         "건강하고 자유로운 나",
                         "숨이 차서 시작한 변화",
+                        "오늘의 선택을 기억하자.",
                         NextBudTheme.NEXTBUD_ECONOMY_01
                 ));
         when(generationRepository.save(any(NextMeGeneration.class)))
@@ -89,6 +91,7 @@ class NextMeServiceTest {
                 .thenReturn(NextMeClientResult.ai(
                         "건강하고 자유로운 일상을 오랫동안 꾸준하게 살아가는 미래의 나",
                         "계단을 오를 때 숨이 차서 변화를 시작해야겠다고 느낀 순간",
+                        "오늘의 선택을 기억하자.",
                         NextBudTheme.NEXTBUD_HEALTH_01
                 ));
         when(generationRepository.save(any(NextMeGeneration.class)))
@@ -99,6 +102,50 @@ class NextMeServiceTest {
         assertThat(result.getSource()).isEqualTo(GenerationSource.AI);
         assertThat(result.getHeadline().codePointCount(0, result.getHeadline().length())).isLessThanOrEqualTo(36);
         assertThat(result.getStartReason().codePointCount(0, result.getStartReason().length())).isLessThanOrEqualTo(24);
+    }
+
+    @Test
+    void regeneratesGoalFieldsAndThemeFromAiResult() {
+        NextMeGeneration current = new NextMeGeneration(
+                USER_ID,
+                List.of(ChangeReason.HEALTH_FITNESS),
+                null,
+                "기존 동기",
+                "기존 미래 모습",
+                "기존 메시지",
+                "기존 NEXT ME",
+                "기존 동기",
+                NextBudTheme.NEXTBUD_HEALTH_01,
+                GenerationSource.AI
+        );
+        when(aiClient.generate(any(NextMePromptInput.class)))
+                .thenReturn(NextMeClientResult.ai(
+                        "비용 걱정 없이 여유로운 나",
+                        "생활비를 아끼고 싶어요.",
+                        "담배 대신 나를 위해 저축하자.",
+                        NextBudTheme.NEXTBUD_HEALTH_01
+                ));
+        when(generationRepository.save(any(NextMeGeneration.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        NextMeGeneration result = service.regenerateGoal(
+                USER_ID,
+                com.nextime.user.domain.OnboardingGoal.QUIT,
+                current,
+                "돈이 없어서 담뱃값을 아끼고 싶은 나",
+                "담뱃값이 아까워요.",
+                "저축을 시작하자.",
+                List.of("nextMe")
+        );
+
+        assertThat(result.getFutureSelf()).isEqualTo("비용 걱정 없이 여유로운 나");
+        assertThat(result.getDecisionTrigger()).isEqualTo("생활비를 아끼고 싶어요.");
+        assertThat(result.getMessageToFutureSelf()).isEqualTo("담배 대신 나를 위해 저축하자.");
+        assertThat(result.getNextBudTheme()).isEqualTo(NextBudTheme.NEXTBUD_ECONOMY_01);
+        assertThat(result.getSource()).isEqualTo(GenerationSource.AI);
+        ArgumentCaptor<NextMePromptInput> input = ArgumentCaptor.forClass(NextMePromptInput.class);
+        verify(aiClient).generate(input.capture());
+        assertThat(input.getValue().updatedFields()).containsExactly("nextMe");
     }
 
     @Test

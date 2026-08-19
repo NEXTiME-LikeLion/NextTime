@@ -39,7 +39,7 @@ class OpenAiNextMeClientTest {
                               "content": [
                                 {
                                   "type": "output_text",
-                                  "text": "{\\\"headline\\\":\\\"건강한 미래의 나\\\",\\\"start_reason\\\":\\\"숨이 차서 시작한 변화\\\",\\\"nextbud_theme\\\":\\\"NEXTBUD_HEALTH_01\\\"}"
+                                  "text": "{\\\"headline\\\":\\\"건강한 미래의 나\\\",\\\"start_reason\\\":\\\"숨이 차서 시작한 변화\\\",\\\"left_message\\\":\\\"오늘의 선택을 기억하자.\\\",\\\"nextbud_theme\\\":\\\"NEXTBUD_HEALTH_01\\\"}"
                                 }
                               ]
                             }
@@ -52,11 +52,13 @@ class OpenAiNextMeClientTest {
                 "REDUCE",
                 "계단을 오를 때 숨이 찼어요.",
                 "건강하게 사는 사람",
-                "오늘의 선택을 기억하자."
+                "오늘의 선택을 기억하자.",
+                List.of()
         ));
 
         assertThat(result.headline()).isEqualTo("건강한 미래의 나");
         assertThat(result.startReason()).isEqualTo("숨이 차서 시작한 변화");
+        assertThat(result.leftMessage()).isEqualTo("오늘의 선택을 기억하자.");
         assertThat(result.nextBudTheme()).isEqualTo(NextBudTheme.NEXTBUD_HEALTH_01);
         assertThat(result.fallbackUsed()).isFalse();
         server.verify();
