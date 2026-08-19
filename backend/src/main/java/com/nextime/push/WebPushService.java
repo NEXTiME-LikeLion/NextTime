@@ -9,28 +9,25 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 
 @Service
 public class WebPushService {
 
     private static final Logger log = LoggerFactory.getLogger(WebPushService.class);
-    private static final List<String> ALLOWED_USER_EMAILS = List.of(
-            "test2@example.com",
-            "bella020207@naver.com"
-    );
-
     private final WebPushSubscriptionRepository repository;
+    private final WebPushAudience audience;
     private final PushService pushService;
     private final ObjectMapper objectMapper;
 
     public WebPushService(
             WebPushSubscriptionRepository repository,
+            WebPushAudience audience,
             PushService pushService,
             ObjectMapper objectMapper
     ) {
         this.repository = repository;
+        this.audience = audience;
         this.pushService = pushService;
         this.objectMapper = objectMapper;
     }
@@ -39,7 +36,7 @@ public class WebPushService {
         byte[] payload = payload();
 
         for (WebPushSubscription subscription
-                : repository.findAllByAllowedUserEmails(ALLOWED_USER_EMAILS)) {
+                : repository.findAllByAllowedUserEmails(audience.emails())) {
             try {
                 Notification notification = new Notification(
                         subscription.getEndpoint(),
