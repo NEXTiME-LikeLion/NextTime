@@ -104,7 +104,7 @@ function SmokingLogModal({
               기록하기
             </PrimaryButton>
             <SkipButton type="button" onClick={handleModalClose}>
-              건너뛰기
+              취소
             </SkipButton>
           </ButtonBlock>
         </FormStack>
