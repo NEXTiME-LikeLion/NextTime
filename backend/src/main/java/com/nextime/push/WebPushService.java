@@ -63,10 +63,10 @@ public class WebPushService {
             return objectMapper.writeValueAsBytes(Map.of(
                     "title", "NEXTiME",
                     "body", "버튼이 눌렸습니다.",
-                    "url", "/main"
+                    "url", "/next-time"
             ));
         } catch (Exception exception) {
-            return "{\"title\":\"NEXTiME\",\"body\":\"버튼이 눌렸습니다.\",\"url\":\"/main\"}"
+            return "{\"title\":\"NEXTiME\",\"body\":\"버튼이 눌렸습니다.\",\"url\":\"/next-time\"}"
                     .getBytes(StandardCharsets.UTF_8);
         }
     }
