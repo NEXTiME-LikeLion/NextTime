@@ -5,6 +5,7 @@ import deviceImg from "../../assets/device.svg";
 import device2Img from "../../assets/device2.svg";
 import { getMqttStatus } from "../../api/mqttStatus";
 import { connectButtonEvents } from "../../api/buttonEvents";
+import { debugError, debugLog } from "../../api/debugLog";
 import PushNotificationSection from "./PushNotificationSection";
 
 const DevicePage = () => {
@@ -14,14 +15,19 @@ const DevicePage = () => {
   // 페이지 진입 시 현재 연결 상태 확인
   useEffect(() => {
     const checkStatus = async () => {
+      debugLog("SSE", "MQTT 상태 조회 시작");
       try {
         const status = await getMqttStatus();
+        debugLog("SSE", "MQTT 상태 조회 성공", status);
         setIsConnected(status.connected);
         if (status.lastEvent && typeof status.lastEvent === "object") {
           setLastEvent(status.lastEvent);
         }
       } catch (error) {
-        console.error("기기 상태 조회 실패:", error);
+        debugError("SSE", "기기 상태 조회 실패", error, {
+          status: error?.response?.status,
+          data: error?.response?.data,
+        });
       }
     };
 
@@ -32,15 +38,20 @@ const DevicePage = () => {
   useEffect(() => {
     let disconnect;
 
+    debugLog("SSE", "기기 화면 SSE 연결 시도");
     connectButtonEvents((event) => {
-      console.log("버튼 신호 수신:", event);
+      debugLog("SSE", "기기 화면에서 버튼 신호 반영", event);
       setLastEvent(event);
       setIsConnected(true);
     }).then((cleanup) => {
       disconnect = cleanup;
+      debugLog("SSE", "기기 화면 SSE 연결 함수 준비 완료");
+    }).catch((error) => {
+      debugError("SSE", "기기 화면 SSE 연결 실패", error);
     });
 
     return () => {
+      debugLog("SSE", "기기 화면 이탈 - SSE 해제");
       if (disconnect) disconnect();
     };
   }, []);
