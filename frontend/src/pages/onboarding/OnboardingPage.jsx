@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ChipButton from "../../components/common/ChipButton";
 import BackHeader from "../../components/common/BackHeader";
@@ -9,10 +9,15 @@ const CUSTOM_INPUT_LABEL = "+ 직접 입력하기";
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
+  const wrapperRef = useRef(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [customInputs, setCustomInputs] = useState({});
   const [focusedKey, setFocusedKey] = useState(null);
+
+  useEffect(() => {
+    wrapperRef.current?.scrollTo(0, 0);
+  }, [stepIndex]);
 
   const step = ONBOARDING_STEPS[stepIndex];
   const totalSteps = ONBOARDING_STEPS.length;
@@ -76,7 +81,8 @@ const OnboardingPage = () => {
         <S.ProgressBarFill $progress={progress} />
       </S.ProgressBarTrack>
 
-      <S.Wrapper>
+      <S.Wrapper ref={wrapperRef}>
+
         <S.Title>
           {step.title.split("\n").map((line, i) => (
             <span key={i}>
