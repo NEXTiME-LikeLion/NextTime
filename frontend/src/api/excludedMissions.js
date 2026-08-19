@@ -8,6 +8,6 @@ export const getExcludedMissions = async () => {
 
 // 다시 추천받기
 export const restoreMission = async (missionId) => {
-    const response = await axiosInstance.put(`/users/me/excluded-missions/${missionId}`);
+    const response = await axiosInstance.delete(`/users/me/excluded-missions/${missionId}`);
     return response.data.data;
 };

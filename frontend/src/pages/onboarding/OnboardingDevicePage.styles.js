@@ -15,7 +15,9 @@ export const Content = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
   padding: 0 20px;
+  box-sizing: border-box;
 `;
 
 export const DeviceIcon = styled.img`
@@ -50,8 +52,10 @@ export const SubDescription = styled.p`
 `;
 
 export const ConnectButton = styled.button`
+  display: block;
   width: 100%;
-  max-width: 363px;
+  max-width: 100%;
+  align-self: stretch;
   height: 56px;
   border: none;
   border-radius: 16px;
@@ -109,8 +113,10 @@ export const StatusTitle = styled.h2`
 `;
 
 export const HomeButton = styled.button`
+  display: block;
   margin-top: 0.5rem;
   width: 100%;
+  max-width: 100%;
   height: 3rem;
   border: none;
   border-radius: 1rem;

@@ -10,7 +10,9 @@ export const Wrapper = styled.div`
 `;
 
 export const Content = styled.div`
+  width: 100%;
   padding: 40px 20px 40px;
+  box-sizing: border-box;
 `;
 
 export const Title = styled.h1`
@@ -29,7 +31,7 @@ export const Description = styled.p`
 
 export const NextMeCard = styled.div`
   position: relative;
-  width: 357px;
+  width: 100%;
   min-height: 244px;
   background-color: #00d579;
   border-radius: 24px;
@@ -107,8 +109,9 @@ export const MemoryText = styled.p`
 `;
 
 export const StartButton = styled.button`
+  display: block;
   width: 100%;
-  max-width: 363px;
+  max-width: 100%;
   height: 56px;
   border: none;
   border-radius: 16px;
