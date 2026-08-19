@@ -15,6 +15,7 @@ import CircularTimer from "../../components/next-time/CircularTimer";
 import PrimaryButton from "../../components/next-time/PrimaryButton";
 import ApiStatusView from "../../components/common/ApiStatusView";
 import useSkipNextTimeMission from "../../hooks/useSkipNextTimeMission";
+import useRewindNextTimeSession from "../../hooks/useRewindNextTimeSession";
 
 function splitMissionTitle(title) {
   if (!title) return [""];
@@ -47,8 +48,14 @@ function RecommendPage() {
     isLoading: isSkipping,
     error: skipError,
   } = useSkipNextTimeMission({ isBusy: isStarting });
-  const isLoading = isStarting || isSkipping;
-  const error = skipError || startError;
+  const {
+    rewind,
+    retry: retryRewind,
+    isLoading: isRewinding,
+    error: rewindError,
+  } = useRewindNextTimeSession({ isBusy: isStarting || isSkipping });
+  const isLoading = isStarting || isSkipping || isRewinding;
+  const error = rewindError || skipError || startError;
 
   const [bottomAreaRef, bottomAreaHeight] = useElementHeight();
 
@@ -107,6 +114,11 @@ function RecommendPage() {
   };
 
   const handleRetry = async () => {
+    if (rewindError) {
+      await retryRewind();
+      return;
+    }
+
     if (skipError) {
       await retrySkip();
       return;
@@ -135,7 +147,7 @@ function RecommendPage() {
 
   const handleBack = () => {
     if (isLoading) return;
-    navigate("/next-time/context", { replace: true });
+    rewind();
   };
 
   return (
@@ -145,10 +157,18 @@ function RecommendPage() {
       error={error}
       onRetry={handleRetry}
       loadingTitle={
-        isSkipping ? "미션을 건너뛰는 중이에요" : "미션을 시작하는 중이에요"
+        isRewinding
+          ? "이전 화면으로 돌아가는 중이에요"
+          : isSkipping
+            ? "미션을 건너뛰는 중이에요"
+            : "미션을 시작하는 중이에요"
       }
       errorTitle={
-        skipError ? "미션을 건너뛰지 못했어요" : "미션을 시작하지 못했어요"
+        rewindError
+          ? "이전 화면으로 돌아가지 못했어요"
+          : skipError
+            ? "미션을 건너뛰지 못했어요"
+            : "미션을 시작하지 못했어요"
       }
     >
     <PageContainer>

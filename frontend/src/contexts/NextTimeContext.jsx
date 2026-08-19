@@ -47,6 +47,13 @@ export const NextTimeProvider = ({ children, initialSession = null }) => {
     setRecordAnswers(initialRecordAnswers);
   }, []);
 
+  const applyRewind = useCallback((rewoundSession) => {
+    setSession(rewoundSession ?? null);
+    setFutureVoice(null);
+    setRecommendedMission(MOCK_RECOMMENDATION);
+    setRecordAnswers(initialRecordAnswers);
+  }, []);
+
   const value = useMemo(
     () => ({
       session,
@@ -66,6 +73,7 @@ export const NextTimeProvider = ({ children, initialSession = null }) => {
       setRecordAnswers,
       updateRecordAnswer,
       resetFlow,
+      applyRewind,
     }),
     [
       session,
@@ -77,6 +85,7 @@ export const NextTimeProvider = ({ children, initialSession = null }) => {
       recordAnswers,
       updateRecordAnswer,
       resetFlow,
+      applyRewind,
     ],
   );
 

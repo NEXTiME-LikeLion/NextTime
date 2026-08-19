@@ -117,6 +117,13 @@ export const skipNextTimeMission = async (sessionId) => {
     return response.data.data;
 };
 
+export const rewindNextTimeSession = async (sessionId) => {
+    const response = await axiosInstance.post(
+        `/next-time/sessions/${sessionId}/rewind`,
+    );
+    return response.data.data;
+};
+
 const findRecordOption = (fieldId, value) =>
     RECORD_OPTIONS[fieldId]?.options.find((option) => option.value === value);
 
