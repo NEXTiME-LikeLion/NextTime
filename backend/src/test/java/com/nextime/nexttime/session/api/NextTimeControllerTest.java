@@ -3,6 +3,7 @@ package com.nextime.nexttime.session.api;
 import com.nextime.common.config.WebConfig;
 import com.nextime.common.error.GlobalExceptionHandler;
 import com.nextime.nexttime.session.application.NextTimeService;
+import com.nextime.nexttime.domain.NextTimeSession;
 import com.nextime.nexttime.domain.NextTimeSessionStatus;
 import com.nextime.security.CurrentUserArgumentResolver;
 import com.nextime.security.RestAuthenticationEntryPoint;
@@ -48,11 +49,11 @@ class NextTimeControllerTest {
     @Test
     void rewindsSession() throws Exception {
         authenticate();
-        when(nextTimeService.rewind(USER_ID, SESSION_ID)).thenReturn(new NextTimeSessionResponse(
-                SESSION_ID,
-                NextTimeSessionStatus.CREATED,
-                Instant.parse("2026-08-16T14:20:00Z")
-        ));
+        NextTimeSession session = mock(NextTimeSession.class);
+        when(session.getId()).thenReturn(SESSION_ID);
+        when(session.getStatus()).thenReturn(NextTimeSessionStatus.CREATED);
+        when(session.getCreatedAt()).thenReturn(Instant.parse("2026-08-16T14:20:00Z"));
+        when(nextTimeService.rewind(USER_ID, SESSION_ID)).thenReturn(new NextTimeSessionResponse(session));
 
         mockMvc.perform(post(path("rewind")).with(jwt().jwt(token -> token.subject("cognito-sub"))))
                 .andExpect(status().isOk())
