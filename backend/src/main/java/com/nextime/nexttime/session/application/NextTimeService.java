@@ -109,6 +109,19 @@ public class NextTimeService {
         return NextTimeContextResponse.from(session, location, trigger);
     }
 
+    /** NEXT TIME 흐름을 다시 시작하기 위해 세션 상태와 결과를 초기화 **/
+    @Transactional
+    public NextTimeSessionResponse rewind(UUID userId, UUID sessionId) {
+        NextTimeSession session = nextTimeSessionRepository.findByIdAndUser_Id(sessionId, userId)
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.RESOURCE_NOT_FOUND,
+                        "NEXT TIME 세션을 찾을 수 없습니다."
+                ));
+
+        session.rewind(Instant.now());
+        return new NextTimeSessionResponse(session);
+    }
+
     private SmokingContext findActiveContext(
             UUID contextId,
             SmokingContextType type,
