@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import mascotRunImg from "../../assets/mascot-run.svg";
+import mascotRunImg from "../../assets/mascot-run.webp";
 import * as S from "./OnboardingCompletePage.styles";
 
 const OnboardingCompletePage = () => {

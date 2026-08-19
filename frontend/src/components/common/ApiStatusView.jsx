@@ -1,4 +1,4 @@
-import mascotLoading from "../../assets/mascot-loading.svg";
+import mascotLoading from "../../assets/mascot-loading.webp";
 import styled from "styled-components";
 import { getApiErrorMessage } from "../../api/getApiErrorMessage";
 
