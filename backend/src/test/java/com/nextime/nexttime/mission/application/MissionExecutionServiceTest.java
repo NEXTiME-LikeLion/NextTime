@@ -135,14 +135,25 @@ class MissionExecutionServiceTest {
     }
 
     @Test
-    void rejectsSkipAfterStart() {
+    void allowsSkipAfterStart() {
         NextTimeSession session = recommendedSession();
         stubSession(session);
         service.start(USER_ID, SESSION_ID);
 
+        var response = service.skip(USER_ID, SESSION_ID);
+
+        assertThat(response.status()).isEqualTo(CANCELLED);
+        assertThat(response.skippedAt()).isNotNull();
+    }
+
+    @Test
+    void rejectsSkipBeforeRecommendation() {
+        NextTimeSession session = contextSavedSession();
+        stubSession(session);
+
         assertThatThrownBy(() -> service.skip(USER_ID, SESSION_ID))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("미션을 시작한 후에는 건너뛸 수 없습니다.");
+                .hasMessage("건너뛸 행동 미션이 없습니다.");
     }
 
     @Test
