@@ -44,4 +44,12 @@ public class NextTimeController {
         return ApiResponse.success(response);
     }
 
+    @PostMapping("/{sessionId}/rewind")
+    public ApiResponse<NextTimeSessionResponse> rewind(
+            @CurrentUser AuthenticatedUser currentUser,
+            @PathVariable UUID sessionId
+    ) {
+        return ApiResponse.success(nextTimeService.rewind(currentUser.userId(), sessionId));
+    }
+
 }

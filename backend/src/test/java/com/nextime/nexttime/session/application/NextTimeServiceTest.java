@@ -2,6 +2,7 @@ package com.nextime.nexttime.session.application;
 
 import com.nextime.common.error.BusinessException;
 import com.nextime.nexttime.session.api.NextTimeContextResponse;
+import com.nextime.nexttime.session.api.NextTimeSessionResponse;
 import com.nextime.nexttime.session.api.SaveNextTimeContextRequest;
 import com.nextime.nexttime.domain.NextTimeSession;
 import com.nextime.nexttime.domain.NextTimeSessionRepository;
@@ -123,6 +124,43 @@ class NextTimeServiceTest {
         ))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("현재 상태에서는 흡연 상황을 저장할 수 없습니다.");
+    }
+
+    @Test
+    void rewindsSessionToAllowContextResave() {
+        UUID userId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID locationId = UUID.randomUUID();
+        UUID triggerId = UUID.randomUUID();
+        NextTimeSession session = new NextTimeSession(mock(User.class));
+        session.saveContext(
+                MEDIUM,
+                mock(SmokingContext.class),
+                mock(SmokingContext.class),
+                java.time.Instant.now()
+        );
+        when(nextTimeSessionRepository.findByIdAndUser_Id(sessionId, userId))
+                .thenReturn(Optional.of(session));
+
+        NextTimeSessionResponse rewinded = nextTimeService.rewind(userId, sessionId);
+
+        assertThat(rewinded.getStatus().name()).isEqualTo("CREATED");
+        verify(nextTimeSessionRepository).findByIdAndUser_Id(sessionId, userId);
+
+        SmokingContext location = context(locationId, "HOME", "집");
+        SmokingContext trigger = context(triggerId, "STRESS", "스트레스");
+        stubContext(locationId, LOCATION, location);
+        stubContext(triggerId, TRIGGER, trigger);
+
+        NextTimeContextResponse response = nextTimeService.saveContext(
+                userId,
+                sessionId,
+                new SaveNextTimeContextRequest(HIGH, locationId, triggerId)
+        );
+
+        assertThat(response.status()).isEqualTo(CONTEXT_SAVED);
+        assertThat(response.location().id()).isEqualTo(locationId);
+        assertThat(response.trigger().id()).isEqualTo(triggerId);
     }
 
     private void stubContext(

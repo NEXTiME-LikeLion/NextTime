@@ -165,6 +165,39 @@ public class NextTimeSession {
         this.updatedAt = savedAt;
     }
 
+    public void rewind(Instant rewoundAt) {
+        this.status = CREATED;
+        this.cravingBefore = null;
+        this.cravingAfter = null;
+        this.missionHelpfulness = null;
+        this.recommendationSource = null;
+        this.recommendedMission = null;
+        this.missionCodeSnapshot = null;
+        this.missionNameSnapshot = null;
+        this.missionDescriptionSnapshot = null;
+        this.completionCriteriaSnapshot = null;
+        this.estimatedSecondsSnapshot = null;
+        this.recommendationReason = null;
+        this.recommendedAt = null;
+        this.missionStartedAt = null;
+        this.missionCompletedAt = null;
+        this.missionSkippedAt = null;
+        this.result = null;
+        this.resultRecordedAt = null;
+        this.resultFeedback = null;
+        this.resultMemorySummary = null;
+        this.resultMemorySource = null;
+        this.futureVoiceHook = null;
+        this.futureVoiceAcknowledge = null;
+        this.futureVoiceReason = null;
+        this.futureVoiceClosing = null;
+        this.futureVoiceSource = null;
+        this.futureVoiceGeneratedAt = null;
+        this.contexts.clear();
+        this.contextSavedAt = null;
+        this.updatedAt = rewoundAt;
+    }
+
     public SmokingContext contextOf(SmokingContextType type) {
         return contexts.stream()
                 .filter(context -> context.getContextType() == type)

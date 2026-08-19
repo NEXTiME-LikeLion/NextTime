@@ -35,25 +35,17 @@ class ResultPersistenceService {
         if (session.getStatus() == RESULT_RECORDED) {
             return new PersistedResult(NextTimeResultResponse.from(session), null, false);
         }
-        if (session.getStatus() == CANCELLED) {
+        if (session.getStatus() != MISSION_COMPLETED && session.getStatus() != CANCELLED) {
             throw new BusinessException(
                     ErrorCode.CONFLICT,
-                    "건너뛴 미션에는 결과를 기록할 수 없습니다."
-            );
-        }
-        if (session.getStatus() != MISSION_COMPLETED) {
-            throw new BusinessException(
-                    ErrorCode.CONFLICT,
-                    "행동 미션을 완료한 후 결과를 기록해 주세요."
+                    "행동 미션을 완료하거나 건너뛴 후 결과를 기록해 주세요."
             );
         }
 
         String feedback = normalizeOptional(request.feedback());
         String trigger = session.contextOf(SmokingContextType.TRIGGER).getName();
         String location = session.contextOf(SmokingContextType.LOCATION).getName();
-        String fallbackSummary = trigger + " " + session.getMissionNameSnapshot()
-                + "를 했고, 결과는 " + resultLabel(request) + ". "
-                + "이번 미션은 " + helpfulnessRecordClause(request) + " 기록했어요.";
+        String fallbackSummary = buildFallbackSummary(session, request, trigger);
 
         session.recordResult(
                 request.result(),
@@ -70,7 +62,7 @@ class ResultPersistenceService {
                 location,
                 cravingBeforeLabel(session),
                 session.getMissionNameSnapshot(),
-                "완료",
+                missionStatusLabel(session),
                 resultLabel(request),
                 cravingAfterLabel(request),
                 helpfulnessLabel(request),
@@ -137,6 +129,25 @@ class ResultPersistenceService {
             case NEUTRAL -> "잘 모르겠다고";
             case NOT_FIT -> "나랑은 안 맞는다고";
         };
+    }
+
+    private String buildFallbackSummary(
+            NextTimeSession session,
+            RecordNextTimeResultRequest request,
+            String trigger
+    ) {
+        if (session.getStatus() == CANCELLED) {
+            return trigger + " 상황에서 행동 미션은 건너뛰었고, 결과는 "
+                    + resultLabel(request) + ". "
+                    + "이번 기록은 " + helpfulnessRecordClause(request) + " 남겼어요.";
+        }
+        return trigger + " " + session.getMissionNameSnapshot()
+                + "를 했고, 결과는 " + resultLabel(request) + ". "
+                + "이번 미션은 " + helpfulnessRecordClause(request) + " 기록했어요.";
+    }
+
+    private String missionStatusLabel(NextTimeSession session) {
+        return session.getStatus() == CANCELLED ? "건너뜀" : "완료";
     }
 
     private String normalizeOptional(String value) {
