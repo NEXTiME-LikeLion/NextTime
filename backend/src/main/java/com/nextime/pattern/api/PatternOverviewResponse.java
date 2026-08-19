@@ -4,6 +4,7 @@ import com.nextime.nexttime.domain.CravingAfter;
 import com.nextime.nexttime.domain.CravingBefore;
 import com.nextime.nexttime.domain.CravingChange;
 import com.nextime.nexttime.domain.NextTimeResult;
+import com.nextime.smokingrecord.api.RecordDetailResponse.RecordType;
 
 import java.time.Instant;
 import java.util.List;
@@ -98,6 +99,7 @@ public record PatternOverviewResponse(
 
     public record RecentRecord(
             UUID recordId,
+            RecordType recordType,
             Instant recordedAt,
             ContextSummary trigger,
             MissionSummary mission,

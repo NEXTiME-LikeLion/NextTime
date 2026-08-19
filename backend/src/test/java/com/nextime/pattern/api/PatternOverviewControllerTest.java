@@ -115,6 +115,7 @@ class PatternOverviewControllerTest {
                 List.of(trigger),
                 List.of(new PatternOverviewResponse.RecentRecord(
                         recordId,
+                        com.nextime.smokingrecord.api.RecordDetailResponse.RecordType.NEXT_TIME,
                         Instant.parse("2026-08-17T09:24:00Z"),
                         new PatternOverviewResponse.ContextSummary(triggerId, "AFTER_WORK", "일·공부가 끝난 뒤"),
                         new PatternOverviewResponse.MissionSummary(missionId, "SHORT_WALK", "잠깐 걷기"),
