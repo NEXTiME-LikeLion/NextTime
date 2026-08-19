@@ -267,8 +267,8 @@ public class NextTimeSession {
             ResultMemorySource memorySource,
             Instant recordedAt
     ) {
-        if (status != NextTimeSessionStatus.MISSION_COMPLETED) {
-            throw new IllegalStateException("완료한 미션에만 결과를 기록할 수 있습니다.");
+        if (status != NextTimeSessionStatus.MISSION_COMPLETED && status != NextTimeSessionStatus.CANCELLED) {
+            throw new IllegalStateException("완료하거나 건너뛴 미션에만 결과를 기록할 수 있습니다.");
         }
 
         this.result = result;

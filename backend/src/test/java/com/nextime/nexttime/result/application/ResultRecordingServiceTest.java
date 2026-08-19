@@ -127,9 +127,13 @@ class ResultRecordingServiceTest {
         session.skipMission(Instant.now());
         stubSession(session);
 
-        assertThatThrownBy(() -> service.record(USER_ID, SESSION_ID, validRequest(null)))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("건너뛴 미션에는 결과를 기록할 수 없습니다.");
+        when(resultMemoryAiClient.generate(any())).thenReturn(ResultMemoryClientResult.fallback());
+
+        var response = service.record(USER_ID, SESSION_ID, validRequest(null));
+
+        assertThat(response.status()).isEqualTo(RESULT_RECORDED);
+        assertThat(response.memorySource()).isEqualTo(ResultMemorySource.FALLBACK);
+        assertThat(response.memorySummary()).contains("행동 미션은 건너뛰었고");
     }
 
     @Test
