@@ -7,6 +7,7 @@ import useNextTimeStatusRedirect from "../../hooks/useNextTimeStatusRedirect";
 import {
   buildNextTimeResultBody,
   getNextTimePathByStatus,
+  isNextTimeRecordableStatus,
   isNextTimeStatusAfter,
   saveNextTimeResult,
 } from "../../api/nextTime";
@@ -97,7 +98,10 @@ function RecordPage() {
       return;
     }
 
-    if (isNextTimeStatusAfter(session?.status, "MISSION_COMPLETED")) {
+    if (
+      !isNextTimeRecordableStatus(session?.status) &&
+      isNextTimeStatusAfter(session?.status, "MISSION_COMPLETED")
+    ) {
       const path = getNextTimePathByStatus(session.status);
       console.log("세션이 이미 결과 기록 이후 단계라 저장을 건너뜁니다.", {
         sessionId,

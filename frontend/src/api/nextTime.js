@@ -166,7 +166,7 @@ export const NEXT_TIME_STATUS_PATHS = {
     MISSION_STARTED: "/next-time/mission",
     MISSION_COMPLETED: "/next-time/record",
     RESULT_RECORDED: "/next-time/complete",
-    CANCELLED: "/main",
+    CANCELLED: "/next-time/record",
 };
 
 export const getNextTimePathByStatus = (status) =>
@@ -177,6 +177,9 @@ export const isNextTimeStatusAfter = (status, baselineStatus) => {
     const baselineIndex = NEXT_TIME_STATUS_ORDER.indexOf(baselineStatus);
     return statusIndex !== -1 && baselineIndex !== -1 && statusIndex > baselineIndex;
 };
+
+export const isNextTimeRecordableStatus = (status) =>
+    status === "MISSION_COMPLETED" || status === "CANCELLED";
 
 const findContextOptionBy = (stepId, predicate) =>
     CONTEXT_STEPS.find((step) => step.id === stepId)?.options.find(predicate);
