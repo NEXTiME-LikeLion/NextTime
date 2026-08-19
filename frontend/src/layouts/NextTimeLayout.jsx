@@ -33,4 +33,5 @@ const LayoutContainer = styled.div`
   overflow: hidden;
   background: ${({ theme }) => theme.colors.bg_black};
   padding-top: max(var(--safe-top), env(safe-area-inset-top, 0px));
+  padding-bottom: max(var(--safe-bottom), env(safe-area-inset-bottom, 0px));
 `;

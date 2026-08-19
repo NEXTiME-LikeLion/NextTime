@@ -22,7 +22,14 @@
   padding: 0;
 }
 
-html,
+html {
+  width: 100%;
+  height: 100%;
+  height: -webkit-fill-available;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
 body {
   width: 100%;
   height: 100%;
@@ -30,9 +37,6 @@ body {
   min-height: -webkit-fill-available;
   overflow: hidden;
   background-color: #ffffff;
-}
-
-body {
   display: flex;
   justify-content: center;
   font-family:
@@ -53,7 +57,8 @@ select {
 #root {
   width: 100%;
   max-width: 430px;
-  height: 100dvh; /* iOS 주소창 유무에 흔들리지 않는 동적 뷰포트 높이 */
+  height: 100%;
+  height: var(--app-height, 100dvh);
   min-height: 100%;
   min-height: -webkit-fill-available;
   display: flex;
@@ -66,17 +71,61 @@ select {
   --safe-right: env(safe-area-inset-right, 0px);
 }
 
-/* iOS 홈화면 앱으로 열렸을 때만 노치 inset이 의미 있음. Safari 탭에서는 0 */
+#root > * {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+/* iOS 홈화면 앱: 노치 inset만 최소 보정. 하단은 env 값을 그대로 써서 이중 여백을 만들지 않음 */
 @media (display-mode: standalone) {
   :root,
   #root {
     --safe-top: max(env(safe-area-inset-top, 0px), 47px);
-    --safe-bottom: max(env(safe-area-inset-bottom, 0px), 34px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    min-height: -webkit-fill-available;
+  }
+
+  #root {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: min(100%, 430px);
+    height: auto;
+    min-height: 0;
+    margin-inline: auto;
   }
 }
 
 html.standalone,
 html.standalone #root {
   --safe-top: max(env(safe-area-inset-top, 0px), 47px);
-  --safe-bottom: max(env(safe-area-inset-bottom, 0px), 34px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html.standalone,
+html.standalone body,
+html.standalone #root {
+  height: 100%;
+  min-height: -webkit-fill-available;
+}
+
+html.standalone #root {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: min(100%, 430px);
+  height: auto;
+  margin-inline: auto;
+  min-height: 0;
 }

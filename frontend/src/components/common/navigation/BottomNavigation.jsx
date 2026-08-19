@@ -25,13 +25,11 @@ export default BottomNavigation;
 const NavContainer = styled.div`
   display: flex;
   width: 100%;
-  height: calc(
-    3.23rem + max(var(--safe-bottom), env(safe-area-inset-bottom, 0px))
-  );
+  flex-shrink: 0;
   padding-top: 0.625rem;
   padding-bottom: max(var(--safe-bottom), env(safe-area-inset-bottom, 0px));
   align-items: flex-start;
-  flex-shrink: 0;
+  box-sizing: border-box;
 
   border-top: 0.669px solid rgba(44, 44, 48, 0.2);
   background: ${({ theme }) => theme.colors.white};
