@@ -103,7 +103,7 @@ export const NextMeText = styled.p`
   color: #ffffff;
   margin-bottom: 16px;
   max-width: 60%;
-  word-break: break-all;
+  word-break: keep-all;
 `;
 
 export const NextMeSubLabel = styled.p`
@@ -119,6 +119,7 @@ export const NextMeSubText = styled.p`
   color: #FEFEFE;
   max-width: 55%;
   font-weight: 400;
+  word-break: keep-all;
 `;
 
 export const MascotImage = styled.img`
