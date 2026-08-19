@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import deviceIconImg from "../../assets/device.svg";
-import mascotLoading from "../../assets/mascot-loading.svg";
+import mascotLoading from "../../assets/mascot-loading.webp";
 import * as S from "./OnboardingDevicePage.styles";
 
 const SEARCH_DURATION_MS = 4000;

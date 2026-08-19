@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import mascotPattern from "../../assets/mascot-pattern.svg";
+import mascotPattern from "../../assets/mascot-pattern.webp";
 import PatternTopBlock from "./PatternTopBlock";
 
 function formatHourRange(slot) {

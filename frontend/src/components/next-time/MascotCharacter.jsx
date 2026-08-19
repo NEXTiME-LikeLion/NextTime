@@ -1,9 +1,9 @@
 import styled from "styled-components";
-import mascotNeutral from "../../assets/mascot-neutral.png";
-import mascotCraving from "../../assets/mascot-craving.png";
-import mascotUrgent from "../../assets/mascot-urgent.png";
-import mascotRun from "../../assets/mascot-run.png";
-import mascotSuccess from "../../assets/mascot-success.png";
+import mascotNeutral from "../../assets/mascot-neutral.webp";
+import mascotCraving from "../../assets/mascot-craving.webp";
+import mascotUrgent from "../../assets/mascot-urgent.webp";
+import mascotRun from "../../assets/mascot-run.webp";
+import mascotSuccess from "../../assets/mascot-success.webp";
 
 const MOOD_ASSETS = {
   neutral: mascotNeutral,

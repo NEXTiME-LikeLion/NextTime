@@ -22,7 +22,7 @@ self.addEventListener("push", (event) => {
   let data = {
     title: "NEXTiME",
     body: "버튼이 눌렸습니다.",
-    url: "/main",
+    url: "/next-time",
   };
 
   if (event.data) {
@@ -32,6 +32,7 @@ self.addEventListener("push", (event) => {
       data = {
         ...data,
         ...JSON.parse(rawText),
+        url: "/next-time",
       };
       console.log("[NEXTiME][SW] push payload", data);
     } catch (error) {
@@ -68,7 +69,7 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const targetUrl = new URL(
-    event.notification.data?.url ?? "/main",
+    event.notification.data?.url ?? "/next-time",
     self.location.origin,
   ).href;
 

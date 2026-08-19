@@ -1,10 +1,10 @@
 import styled from "styled-components";
-import mascot from "../../assets/mascot.svg";
-import mascotHealth from "../../assets/mascot-run.svg";
-import mascotEconomy from "../../assets/mascot-economy.svg";
-import mascotGrowth from "../../assets/mascot-growth.svg";
-import mascotRelationship from "../../assets/mascot-relationship.svg";
-import mascotSelfEfficacy from "../../assets/mascot-self-efficacy.svg";
+import mascot from "../../assets/mascot.webp";
+import mascotHealth from "../../assets/mascot-run.webp";
+import mascotEconomy from "../../assets/mascot-economy.webp";
+import mascotGrowth from "../../assets/mascot-growth.webp";
+import mascotRelationship from "../../assets/mascot-relationship.webp";
+import mascotSelfEfficacy from "../../assets/mascot-self-efficacy.webp";
 import {useMemo} from "react";
 
 function HomeHeader({ nextMe }) {

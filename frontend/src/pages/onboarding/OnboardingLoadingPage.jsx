@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import mascotImg from "../../assets/mascot-loading.svg";
+import mascotImg from "../../assets/mascot-loading.webp";
 import { saveOnboarding } from "../../api/saveOnboarding";
 import { generateNextMe } from "../../api/generateNextMe";
 import { saveCopingProfile } from "../../api/saveCopingProfile";

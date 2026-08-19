@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import mascot from "../../../assets/mascot.svg";
+import mascot from "../../../assets/mascot.webp";
 
 function PatternEmptyContent({ recordCount, requiredCount }) {
   const ratio = requiredCount > 0 ? recordCount / requiredCount : 0;
