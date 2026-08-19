@@ -6,9 +6,8 @@ import OnboardingDevicePage from "./pages/onboarding/OnboardingDevicePage";
 import { createBrowserRouter } from "react-router-dom";
 import TabLayout from "./layouts/TabLayout";
 import AuthLayout from "./layouts/AuthLayout";
-import NextTimeLayout, {
-  NextTimeIndexRedirect,
-} from "./layouts/NextTimeLayout";
+import NextTimeLayout from "./layouts/NextTimeLayout";
+import NextTimeEntryPage from "./pages/next-time/NextTimeEntryPage";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import HomePage from "./pages/HomePage";
@@ -84,15 +83,19 @@ const router = createBrowserRouter([
   },
   {
     path: "/next-time",
-    element: <NextTimeLayout />,
     children: [
-      { index: true, element: <NextTimeIndexRedirect /> },
-      { path: "context", element: <ContextFlowPage /> },
-      { path: "next-me", element: <NextMeLoadingPage /> },
-      { path: "recommend", element: <RecommendPage /> },
-      { path: "mission", element: <MissionPage /> },
-      { path: "record", element: <RecordPage /> },
-      { path: "complete", element: <CompletePage /> },
+      { index: true, element: <NextTimeEntryPage /> },
+      {
+        element: <NextTimeLayout />,
+        children: [
+          { path: "context", element: <ContextFlowPage /> },
+          { path: "next-me", element: <NextMeLoadingPage /> },
+          { path: "recommend", element: <RecommendPage /> },
+          { path: "mission", element: <MissionPage /> },
+          { path: "record", element: <RecordPage /> },
+          { path: "complete", element: <CompletePage /> },
+        ],
+      },
     ],
   },
 ]);

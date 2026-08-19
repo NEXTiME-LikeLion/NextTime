@@ -2,6 +2,7 @@ import axiosInstance from "./axiosInstance";
 import { getHome } from "./home";
 import { CONTEXT_STEPS } from "../data/nextTimeSteps";
 import { FEEDBACK_MAX_LENGTH, RECORD_OPTIONS } from "../data/nextTimeRecord";
+import { debugLog } from "./debugLog";
 
 const findContextOption = (stepId, value) =>
     CONTEXT_STEPS.find((step) => step.id === stepId)?.options.find(
@@ -32,6 +33,45 @@ export const resolveNextTimeSession = async (activeSession) => {
             }
         }
         throw error;
+    }
+};
+
+export const startFreshNextTimeSession = async () => {
+    debugLog("IoT", "새 NEXT TIME 세션 시작 시도");
+
+    try {
+        const session = await createNextTimeSession();
+        debugLog("IoT", "새 세션 생성 완료", {
+            sessionId: session?.sessionId,
+            status: session?.status,
+        });
+        return session;
+    } catch (error) {
+        if (error?.response?.status !== 409) {
+            throw error;
+        }
+
+        debugLog("IoT", "진행 중 세션이 있어 초기화합니다.");
+        const home = await getHome();
+        const activeSession = home?.activeNextTimeSession;
+        if (!activeSession?.sessionId) {
+            throw error;
+        }
+
+        if (activeSession.status === "CREATED") {
+            debugLog("IoT", "기존 세션이 CREATED라 그대로 사용합니다.", {
+                sessionId: activeSession.sessionId,
+                status: activeSession.status,
+            });
+            return activeSession;
+        }
+
+        const rewound = await rewindNextTimeSession(activeSession.sessionId);
+        debugLog("IoT", "기존 세션 초기화 완료", {
+            sessionId: rewound?.sessionId,
+            status: rewound?.status,
+        });
+        return rewound;
     }
 };
 
