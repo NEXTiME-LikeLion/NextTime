@@ -3,11 +3,13 @@ import HomeHeader from "../components/home/HomeHeader";
 import HomeContent from "../components/home/HomeContent";
 import ApiStatusView from "../components/common/ApiStatusView";
 import useAsync from "../hooks/useAsync";
+import useRefetchOnVisit from "../hooks/useRefetchOnVisit";
 import useStartNextTime from "../hooks/useStartNextTime";
 import { getHome } from "../api/home";
 
 function HomePage() {
   const { data: homeData, isLoading, error, refetch, setData } = useAsync(getHome);
+  useRefetchOnVisit(refetch);
   const {
     start: startNextTime,
     isLoading: isStarting,

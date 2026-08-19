@@ -12,19 +12,26 @@ import {
 } from "../../api/nextTime";
 import useAsync from "../../hooks/useAsync";
 import useNextTimeStatusRedirect from "../../hooks/useNextTimeStatusRedirect";
+import useRewindNextTimeSession from "../../hooks/useRewindNextTimeSession";
 import Header from "../../components/next-time/Header";
 import MascotCharacter from "../../components/next-time/MascotCharacter";
 import ApiStatusView from "../../components/common/ApiStatusView";
 
 const MIN_LOADING_MS = 5000;
+const VOICE_HOLD_MS = 3500;
 const MIN_BAR_PERCENT = 38;
+const COMPLETE_BAR_MS = 550;
+const COMPLETE_HOLD_MS = 120;
+const DOT_OFFSET = "0.1875rem";
 
-const waitRemainingLoadingTime = async (startedAt) => {
+const waitRemainingTime = async (startedAt, minMs, label) => {
+  if (startedAt == null) return;
+
   const elapsedMs = Math.round(performance.now() - startedAt);
-  const remainingMs = Math.max(0, MIN_LOADING_MS - elapsedMs);
-  console.log("로딩 화면을 최소 시간만큼 유지합니다.", {
+  const remainingMs = Math.max(0, minMs - elapsedMs);
+  console.log(label, {
     elapsedMs,
-    minLoadingMs: MIN_LOADING_MS,
+    minMs,
     remainingMs,
   });
 
@@ -32,23 +39,49 @@ const waitRemainingLoadingTime = async (startedAt) => {
   await new Promise((resolve) => setTimeout(resolve, remainingMs));
 };
 
+const waitRemainingLoadingTime = (startedAt) =>
+  waitRemainingTime(
+    startedAt,
+    MIN_LOADING_MS,
+    "로딩 화면을 최소 시간만큼 유지합니다.",
+  );
+
+const waitRemainingVoiceHoldTime = (startedAt) =>
+  waitRemainingTime(
+    startedAt,
+    VOICE_HOLD_MS,
+    "미래의 목소리를 확인할 시간을 유지합니다.",
+  );
+
 function NextMeLoadingPage() {
   const navigate = useNavigate();
   const { session, sessionId, setSession, setFutureVoice, setRecommendedMission } =
     useNextTime();
   useNextTimeStatusRedirect("CONTEXT_SAVED");
+  const {
+    rewind,
+    retry: retryRewind,
+    isLoading: isRewinding,
+    error: rewindError,
+    hasStartedRef: hasRewindStartedRef,
+  } = useRewindNextTimeSession();
   const [voice, setVoice] = useState(null);
   const [barStage, setBarStage] = useState("min");
   const [barKey, setBarKey] = useState(0);
   const apiReadyRef = useRef(false);
   const hasNavigatedRef = useRef(false);
+  const isCompletingBarRef = useRef(false);
   const loadRequestRef = useRef(null);
+  const voiceDisplayedAtRef = useRef(null);
+  const loadingBarTrackRef = useRef(null);
+  const loadingBarFillRef = useRef(null);
+  const loadingBarDotRef = useRef(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
 
   const applyRecommendation = useCallback(
     (recommendation) => {
-      if (!recommendation) return null;
+      if (!recommendation || hasRewindStartedRef.current) return null;
 
       const mission = mapRecommendedMission(recommendation);
       setSession((prev) => ({
@@ -61,15 +94,18 @@ function NextMeLoadingPage() {
       }
       return mission;
     },
-    [setRecommendedMission, setSession],
+    [hasRewindStartedRef, setRecommendedMission, setSession],
   );
 
   const loadVoiceAndRecommendation = useCallback(
     async (id) => {
       setVoice(null);
+      voiceDisplayedAtRef.current = null;
 
       console.log("미래의 목소리를 생성합니다.", { sessionId: id });
       const voiceResult = await generateFutureVoice(id);
+      if (hasRewindStartedRef.current) return null;
+
       const { elapsedMs, ...sessionVoice } = voiceResult;
       console.log("미래의 목소리를 생성했습니다.", {
         sessionId: sessionVoice.sessionId,
@@ -80,6 +116,7 @@ function NextMeLoadingPage() {
       });
 
       setVoice(sessionVoice);
+      voiceDisplayedAtRef.current = performance.now();
       setFutureVoice(sessionVoice);
       setSession((prev) => ({
         ...(prev ?? {}),
@@ -89,6 +126,8 @@ function NextMeLoadingPage() {
 
       console.log("추천 미션을 요청합니다.", { sessionId: id });
       const recommendation = await getNextTimeRecommendation(id);
+      if (hasRewindStartedRef.current) return null;
+
       console.log("추천 미션을 받았습니다.", {
         sessionId: recommendation.sessionId,
         status: recommendation.status,
@@ -101,7 +140,12 @@ function NextMeLoadingPage() {
       applyRecommendation(recommendation);
       return recommendation;
     },
-    [applyRecommendation, setFutureVoice, setSession],
+    [
+      applyRecommendation,
+      hasRewindStartedRef,
+      setFutureVoice,
+      setSession,
+    ],
   );
 
   const { error, execute, refetch } = useAsync(
@@ -119,7 +163,7 @@ function NextMeLoadingPage() {
 
   const goToRecommend = useCallback(
     (recommendation) => {
-      if (hasNavigatedRef.current) return;
+      if (hasNavigatedRef.current || hasRewindStartedRef.current) return;
 
       const mission = applyRecommendation(recommendation);
       const nextSession = {
@@ -136,7 +180,70 @@ function NextMeLoadingPage() {
         state: { session: nextSession },
       });
     },
-    [applyRecommendation, navigate, setSession],
+    [applyRecommendation, hasRewindStartedRef, navigate, setSession],
+  );
+
+  const waitForLoadingBarComplete = useCallback(async () => {
+    const fill = loadingBarFillRef.current;
+    const track = loadingBarTrackRef.current;
+    const dot = loadingBarDotRef.current;
+
+    if (!fill || !track) return;
+
+    isCompletingBarRef.current = true;
+
+    const trackWidth = track.getBoundingClientRect().width;
+    const fillWidth = fill.getBoundingClientRect().width;
+    const fromPercent =
+      trackWidth > 0
+        ? Math.min(99.5, Math.max(0, (fillWidth / trackWidth) * 100))
+        : MIN_BAR_PERCENT;
+
+    console.log("로딩 바를 끝까지 채웁니다.", {
+      fromPercent: Math.round(fromPercent),
+      completeMs: COMPLETE_BAR_MS,
+    });
+
+    fill.style.animation = "none";
+    fill.style.transition = "none";
+    fill.style.width = `${fromPercent}%`;
+
+    if (dot) {
+      dot.style.animation = "none";
+      dot.style.transition = "none";
+      dot.style.left = `calc(${fromPercent}% - ${DOT_OFFSET})`;
+    }
+
+    await new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          fill.style.transition = `width ${COMPLETE_BAR_MS}ms ease-out`;
+          fill.style.width = "100%";
+          if (dot) {
+            dot.style.transition = `left ${COMPLETE_BAR_MS}ms ease-out`;
+            dot.style.left = `calc(100% - ${DOT_OFFSET})`;
+          }
+          window.setTimeout(resolve, COMPLETE_BAR_MS + COMPLETE_HOLD_MS);
+        });
+      });
+    });
+  }, []);
+
+  const finishThenGoToRecommend = useCallback(
+    async (recommendation, startedAt, isCancelled) => {
+      if (hasRewindStartedRef.current || !recommendation) return;
+
+      apiReadyRef.current = true;
+      await waitRemainingLoadingTime(startedAt);
+      await waitRemainingVoiceHoldTime(voiceDisplayedAtRef.current);
+      if (isCancelled?.() || hasRewindStartedRef.current) return;
+
+      await waitForLoadingBarComplete();
+      if (isCancelled?.() || hasRewindStartedRef.current) return;
+
+      goToRecommend(recommendation);
+    },
+    [goToRecommend, hasRewindStartedRef, waitForLoadingBarComplete],
   );
 
   const startLoad = useCallback(
@@ -161,8 +268,11 @@ function NextMeLoadingPage() {
 
   useEffect(() => {
     apiReadyRef.current = false;
+    isCompletingBarRef.current = false;
     const timerId = setTimeout(() => {
-      if (!apiReadyRef.current) setBarStage("extra");
+      if (!apiReadyRef.current && !isCompletingBarRef.current) {
+        setBarStage("extra");
+      }
     }, MIN_LOADING_MS);
 
     return () => clearTimeout(timerId);
@@ -175,6 +285,8 @@ function NextMeLoadingPage() {
       );
       return;
     }
+
+    if (hasRewindStartedRef.current) return;
 
     if (isNextTimeStatusAfter(sessionRef.current?.status, "CONTEXT_SAVED")) {
       const path = getNextTimePathByStatus(sessionRef.current.status);
@@ -196,6 +308,7 @@ function NextMeLoadingPage() {
     const { promise, startedAt } = startLoad(requestedSessionId);
 
     promise.then(async (recommendation) => {
+      if (hasRewindStartedRef.current) return;
       if (requestedSessionId !== sessionRef.current?.sessionId) return;
 
       if (!recommendation) {
@@ -203,22 +316,34 @@ function NextMeLoadingPage() {
         return;
       }
 
-      apiReadyRef.current = true;
-      await waitRemainingLoadingTime(startedAt);
-      if (cancelled || requestedSessionId !== sessionRef.current?.sessionId) {
-        return;
-      }
-
-      goToRecommend(recommendation);
+      await finishThenGoToRecommend(
+        recommendation,
+        startedAt,
+        () =>
+          cancelled || requestedSessionId !== sessionRef.current?.sessionId,
+      );
     });
 
     return () => {
       cancelled = true;
     };
-  }, [applyRecommendation, goToRecommend, navigate, sessionId, startLoad]);
+  }, [
+    applyRecommendation,
+    finishThenGoToRecommend,
+    navigate,
+    sessionId,
+    startLoad,
+  ]);
 
   const handleRetry = async () => {
+    if (rewindError) {
+      await retryRewind();
+      return;
+    }
+
     if (!sessionId) return;
+
+    if (hasRewindStartedRef.current) return;
 
     if (isNextTimeStatusAfter(session?.status, "CONTEXT_SAVED")) {
       applyRecommendation(session);
@@ -231,6 +356,8 @@ function NextMeLoadingPage() {
 
     apiReadyRef.current = false;
     hasNavigatedRef.current = false;
+    isCompletingBarRef.current = false;
+    voiceDisplayedAtRef.current = null;
     setBarStage("min");
     setBarKey((prev) => prev + 1);
     setVoice(null);
@@ -244,28 +371,35 @@ function NextMeLoadingPage() {
       promise,
     };
     const recommendation = await promise;
+    if (hasRewindStartedRef.current) return;
     if (!recommendation) {
       console.error("미래의 목소리 또는 추천 미션 요청에 실패했습니다.");
       return;
     }
 
-    apiReadyRef.current = true;
-    await waitRemainingLoadingTime(startedAt);
-    goToRecommend(recommendation);
+    await finishThenGoToRecommend(recommendation, startedAt);
   };
 
   const handleBack = () => {
-    navigate("/next-time/context", { replace: true });
+    if (isRewinding) return;
+    rewind();
   };
 
   return (
     <ApiStatusView
       variant="dark"
-      isLoading={false}
-      error={missingSessionError || error}
-      onRetry={sessionId ? handleRetry : undefined}
+      isLoading={isRewinding}
+      error={rewindError || missingSessionError || error}
+      onRetry={
+        rewindError ? retryRewind : sessionId ? handleRetry : undefined
+      }
+      loadingTitle="이전 화면으로 돌아가는 중이에요"
       errorTitle={
-        voice ? "행동 추천에 실패했어요" : "미래의 목소리를 만들지 못했어요"
+        rewindError
+          ? "이전 화면으로 돌아가지 못했어요"
+          : voice
+            ? "행동 추천에 실패했어요"
+            : "미래의 목소리를 만들지 못했어요"
       }
     >
       <PageContainer>
@@ -292,10 +426,18 @@ function NextMeLoadingPage() {
         </Content>
 
         <BottomArea>
-          <LoadingBarTrack>
+          <LoadingBarTrack ref={loadingBarTrackRef}>
             <LoadingBarBg />
-            <LoadingBarFill key={`fill-${barKey}`} $stage={barStage} />
-            <LoadingBarDot key={`dot-${barKey}`} $stage={barStage} />
+            <LoadingBarFill
+              ref={loadingBarFillRef}
+              key={`fill-${barKey}`}
+              $stage={barStage}
+            />
+            <LoadingBarDot
+              ref={loadingBarDotRef}
+              key={`dot-${barKey}`}
+              $stage={barStage}
+            />
           </LoadingBarTrack>
           <LoadingText>{NEXT_ME_LOADING.statusText}</LoadingText>
         </BottomArea>

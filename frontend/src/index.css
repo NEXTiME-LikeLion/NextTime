@@ -6,6 +6,16 @@
   --safe-right: env(safe-area-inset-right, 0px);
 }
 
+/* iOS 11.0–11.2: env() 이전 API */
+@supports (padding-top: constant(safe-area-inset-top)) {
+  :root {
+    --safe-top: constant(safe-area-inset-top);
+    --safe-bottom: constant(safe-area-inset-bottom);
+    --safe-left: constant(safe-area-inset-left);
+    --safe-right: constant(safe-area-inset-right);
+  }
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -44,4 +54,9 @@ select {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* 앱 뷰포트 기준으로 다시 바인딩해 SPA 이동 후에도 inset이 유지되게 함 */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }

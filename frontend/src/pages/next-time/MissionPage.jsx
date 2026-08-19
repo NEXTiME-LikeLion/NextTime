@@ -14,6 +14,7 @@ import CircularTimer from "../../components/next-time/CircularTimer";
 import WhyThisBox from "../../components/next-time/WhyThisBox";
 import ApiStatusView from "../../components/common/ApiStatusView";
 import useSkipNextTimeMission from "../../hooks/useSkipNextTimeMission";
+import useRewindNextTimeSession from "../../hooks/useRewindNextTimeSession";
 
 function splitMissionTitle(title) {
   if (!title) return [""];
@@ -61,8 +62,15 @@ function MissionPage() {
     isLoading: isSkipping,
     error: skipError,
   } = useSkipNextTimeMission({ isBusy: isCompleting });
-  const isLoading = isCompleting || isSkipping;
-  const error = skipError || completeError;
+  const {
+    rewind,
+    retry: retryRewind,
+    isLoading: isRewinding,
+    error: rewindError,
+    hasStartedRef: hasRewindStartedRef,
+  } = useRewindNextTimeSession({ isBusy: isCompleting || isSkipping });
+  const isLoading = isCompleting || isSkipping || isRewinding;
+  const error = rewindError || skipError || completeError;
   const hasRequestedCompleteRef = useRef(false);
 
   const [remainingSeconds, setRemainingSeconds] = useState(() =>
@@ -80,7 +88,7 @@ function MissionPage() {
   );
 
   const completeMission = useCallback(async () => {
-    if (isLoading) return;
+    if (isLoading || hasRewindStartedRef.current) return;
 
     if (!sessionId) {
       console.error("세션 ID가 없어 미션을 완료할 수 없습니다.");
@@ -119,9 +127,22 @@ function MissionPage() {
       result,
     });
     goToRecord(result);
-  }, [execute, goToRecord, isLoading, navigate, session, sessionId]);
+  }, [
+    execute,
+    goToRecord,
+    hasRewindStartedRef,
+    isLoading,
+    navigate,
+    session,
+    sessionId,
+  ]);
 
   const handleRetry = async () => {
+    if (rewindError) {
+      await retryRewind();
+      return;
+    }
+
     if (skipError) {
       await retrySkip();
       return;
@@ -165,7 +186,10 @@ function MissionPage() {
     if (
       remainingSeconds > 0 ||
       isSkipping ||
+      isRewinding ||
+      hasRewindStartedRef.current ||
       skipError ||
+      rewindError ||
       hasRequestedCompleteRef.current
     ) {
       return;
@@ -173,11 +197,18 @@ function MissionPage() {
 
     hasRequestedCompleteRef.current = true;
     completeMission();
-  }, [completeMission, isSkipping, remainingSeconds, skipError]);
+  }, [
+    completeMission,
+    isRewinding,
+    isSkipping,
+    remainingSeconds,
+    rewindError,
+    skipError,
+  ]);
 
   const handleBack = () => {
     if (isLoading) return;
-    navigate("/next-time/recommend", { replace: true });
+    rewind();
   };
 
   const handleSkip = () => {
@@ -191,10 +222,18 @@ function MissionPage() {
       error={error}
       onRetry={handleRetry}
       loadingTitle={
-        isSkipping ? "미션을 건너뛰는 중이에요" : "미션을 완료하는 중이에요"
+        isRewinding
+          ? "이전 화면으로 돌아가는 중이에요"
+          : isSkipping
+            ? "미션을 건너뛰는 중이에요"
+            : "미션을 완료하는 중이에요"
       }
       errorTitle={
-        skipError ? "미션을 건너뛰지 못했어요" : "미션을 완료하지 못했어요"
+        rewindError
+          ? "이전 화면으로 돌아가지 못했어요"
+          : skipError
+            ? "미션을 건너뛰지 못했어요"
+            : "미션을 완료하지 못했어요"
       }
     >
     <PageContainer>

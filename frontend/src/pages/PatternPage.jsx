@@ -5,6 +5,7 @@ import PatternEmptyHeader from "../components/pattern/empty/PatternEmptyHeader";
 import PatternEmptyContent from "../components/pattern/empty/PatternEmptyContent";
 import ApiStatusView from "../components/common/ApiStatusView";
 import useAsync from "../hooks/useAsync";
+import useRefetchOnVisit from "../hooks/useRefetchOnVisit";
 import usePatternSummary from "../hooks/usePatternSummary";
 import { getPatternOverview } from "../api/pattern";
 
@@ -15,6 +16,7 @@ function PatternPage() {
     error,
     refetch,
   } = useAsync(getPatternOverview);
+  useRefetchOnVisit(refetch);
   const { isReady, recordCount, requiredCount } = usePatternSummary(overview);
 
   return (

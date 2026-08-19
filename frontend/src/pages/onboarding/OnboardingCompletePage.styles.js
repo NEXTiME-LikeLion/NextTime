@@ -4,6 +4,7 @@ export const Wrapper = styled.div`
   width: 100%;
   background-color: ${({ theme }) => theme.colors.white};
   overflow-y: auto;
+  padding-top: max(var(--safe-top), env(safe-area-inset-top, 0px));
 `;
 
 export const Content = styled.div`

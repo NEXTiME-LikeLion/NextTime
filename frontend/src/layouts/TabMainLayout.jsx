@@ -1,10 +1,24 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+
+const SAFE_TOP = "max(var(--safe-top), env(safe-area-inset-top, 0px))";
+
+const hideScrollbar = css`
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
 
 function TabMainLayout({ header, content, scrollEntirePage = false }) {
   return (
-    <ScreenContainer $scrollEntirePage={scrollEntirePage}>
-      <Header>{header}</Header>
-      <Content $scrollEntirePage={scrollEntirePage}>{content}</Content>
+    <ScreenContainer>
+      <SafeTop />
+      <ScrollBody $scrollEntirePage={scrollEntirePage}>
+        <Header>{header}</Header>
+        <Content $scrollEntirePage={scrollEntirePage}>{content}</Content>
+      </ScrollBody>
     </ScreenContainer>
   );
 }
@@ -17,22 +31,27 @@ const ScreenContainer = styled.div`
   flex: 1;
   min-height: 0;
   background-color: ${({ theme }) => theme.colors.primary};
+  overflow: hidden;
+`;
+
+const SafeTop = styled.div`
+  flex-shrink: 0;
+  height: ${SAFE_TOP};
+`;
+
+const ScrollBody = styled.div`
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow: ${({ $scrollEntirePage }) => ($scrollEntirePage ? "auto" : "hidden")};
 
-  ${({ $scrollEntirePage }) =>
-    $scrollEntirePage &&
-    `
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  `}
+  ${({ $scrollEntirePage }) => $scrollEntirePage && hideScrollbar}
 `;
 
 const Header = styled.div`
-  padding: var(--safe-top) 1.25rem 1rem 1.25rem;
+  flex-shrink: 0;
+  padding: 0 1.25rem 1rem 1.25rem;
 `;
 
 const Content = styled.div`

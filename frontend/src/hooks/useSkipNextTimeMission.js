@@ -2,19 +2,27 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNextTime } from "../contexts/NextTimeContext";
 import useAsync from "./useAsync";
-import { skipNextTimeMission } from "../api/nextTime";
+import {
+  isNextTimeRecordableStatus,
+  skipNextTimeMission,
+} from "../api/nextTime";
 
 function useSkipNextTimeMission({ isBusy = false } = {}) {
   const navigate = useNavigate();
-  const { session, sessionId, resetFlow } = useNextTime();
+  const { session, sessionId, setSession } = useNextTime();
   const { isLoading, error, execute, refetch } = useAsync(skipNextTimeMission, {
     immediate: false,
   });
 
-  const goHome = useCallback(() => {
-    resetFlow();
-    navigate("/main", { replace: true });
-  }, [navigate, resetFlow]);
+  const goToRecord = useCallback(
+    (skippedSession) => {
+      if (skippedSession) {
+        setSession((prev) => ({ ...(prev ?? {}), ...skippedSession }));
+      }
+      navigate("/next-time/record", { replace: true });
+    },
+    [navigate, setSession],
+  );
 
   const skip = useCallback(async () => {
     if (isLoading || isBusy) return;
@@ -24,14 +32,14 @@ function useSkipNextTimeMission({ isBusy = false } = {}) {
       return;
     }
 
-    if (session?.status === "CANCELLED") {
-      console.log("세션이 이미 건너뛴 상태라 홈으로 이동합니다.", {
+    if (isNextTimeRecordableStatus(session?.status)) {
+      console.log("세션이 이미 기록 가능한 상태라 건너뛰기를 다시 요청하지 않습니다.", {
         sessionId,
         status: session.status,
         skippedAt: session.skippedAt,
         session,
       });
-      goHome();
+      goToRecord(session);
       return;
     }
 
@@ -49,8 +57,8 @@ function useSkipNextTimeMission({ isBusy = false } = {}) {
       skippedAt: result.skippedAt,
       result,
     });
-    goHome();
-  }, [execute, goHome, isBusy, isLoading, session, sessionId]);
+    goToRecord(result);
+  }, [execute, goToRecord, isBusy, isLoading, session, sessionId]);
 
   const retry = useCallback(async () => {
     console.log("미션 건너뛰기를 다시 시도합니다.", { sessionId });
@@ -67,8 +75,8 @@ function useSkipNextTimeMission({ isBusy = false } = {}) {
       skippedAt: result.skippedAt,
       result,
     });
-    goHome();
-  }, [goHome, refetch, sessionId]);
+    goToRecord(result);
+  }, [goToRecord, refetch, sessionId]);
 
   return { skip, retry, isLoading, error };
 }

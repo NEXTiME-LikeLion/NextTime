@@ -9,21 +9,22 @@ import {
 function useNextTimeStatusRedirect(pageStatus) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { session, resetFlow } = useNextTime();
+  const { session } = useNextTime();
   const sessionStatus = session?.status;
 
   useEffect(() => {
     if (!sessionStatus) return;
 
     if (sessionStatus === "CANCELLED") {
-      const homePath = getNextTimePathByStatus("CANCELLED");
-      console.log("건너뛴 세션이라 홈으로 이동합니다.", {
+      const cancelledPath = getNextTimePathByStatus("CANCELLED");
+      if (pathname === cancelledPath) return;
+
+      console.log("건너뛴 세션이라 기록 화면으로 이동합니다.", {
         sessionStatus,
         from: pathname,
-        to: homePath,
+        to: cancelledPath,
       });
-      resetFlow();
-      navigate(homePath, { replace: true });
+      navigate(cancelledPath, { replace: true });
       return;
     }
 
@@ -40,7 +41,7 @@ function useNextTimeStatusRedirect(pageStatus) {
       to: targetPath,
     });
     navigate(targetPath, { replace: true });
-  }, [navigate, pageStatus, pathname, resetFlow, sessionStatus]);
+  }, [navigate, pageStatus, pathname, sessionStatus]);
 }
 
 export default useNextTimeStatusRedirect;
