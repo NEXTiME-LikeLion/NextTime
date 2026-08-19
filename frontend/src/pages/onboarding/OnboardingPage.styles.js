@@ -66,7 +66,9 @@ export const QuestionNote = styled.p`
 export const ChipGroup = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 7px;
+  width: 100%;
 `;
 
 export const ChipGrid = styled.div`
@@ -85,8 +87,8 @@ export const ChipGrid = styled.div`
 `;
 
 export const TextArea = styled.textarea`
+  display: block;
   width: 100%;
-  max-width: 363px;
   height: ${({ $height = 100 }) => $height}px;
   padding: 14px;
   border-radius: 12px;
@@ -113,7 +115,9 @@ export const TextArea = styled.textarea`
 `;
 
 export const NextButton = styled.button`
+  display: block;
   width: 100%;
+  max-width: 100%;
   height: 56px;
   border: none;
   border-radius: 16px;
