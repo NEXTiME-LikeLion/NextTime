@@ -285,15 +285,15 @@ function NextMeLoadingPage() {
             <>
               <TextGroup>
                 <HighlightLine $delay={0.4}>{voice.futureHook}</HighlightLine>
-                <BodyLine $delay={0.8}>{voice.acknowledge}</BodyLine>
-                <BoldLine $delay={1.2}>{voice.futureReason}</BoldLine>
+                <BodyLine $delay={0.9}>{voice.acknowledge}</BodyLine>
+                <BoldLine $delay={1.3}>{voice.futureReason}</BoldLine>
               </TextGroup>
 
-              <MascotWrap $delay={0}>
+              <MascotWrap $delay={1.6}>
                 <MascotCharacter mood="run" size="lg" priority />
               </MascotWrap>
 
-              <ClosingLine $delay={1.6}>{voice.closing}</ClosingLine>
+              <ClosingLine $delay={2.0}>{voice.closing}</ClosingLine>
             </>
           ) : null}
         </Content>
