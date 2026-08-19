@@ -19,18 +19,48 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
   <title>NEXTiME</title>
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var standalone =
+        window.navigator.standalone === true ||
+        window.matchMedia("(display-mode: standalone)").matches;
+      if (standalone) root.classList.add("standalone");
+
+      function appHeight() {
+        var inner = window.innerHeight;
+        var vv = window.visualViewport;
+        var height = inner;
+
+        if (vv && Math.abs(vv.scale - 1) < 0.01) {
+          height = Math.max(height, Math.round(vv.height + vv.offsetTop));
+        }
+
+        if (standalone) {
+          var portrait = window.matchMedia("(orientation: portrait)").matches;
+          var screenH = portrait
+            ? Math.max(screen.width, screen.height)
+            : Math.min(screen.width, screen.height);
+          var keyboardOpen = screenH - inner > 120;
+          if (!keyboardOpen) height = Math.max(height, screenH);
+        }
+
+        root.style.setProperty("--app-height", height + "px");
+      }
+
+      appHeight();
+      window.addEventListener("resize", appHeight);
+      window.addEventListener("orientationchange", appHeight);
+      window.addEventListener("pageshow", appHeight);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", appHeight);
+      }
+    })();
+  </script>
 </head>
 
 <body>
   <div id="root"></div>
-  <script>
-    (function () {
-      var standalone =
-        window.navigator.standalone ||
-        window.matchMedia("(display-mode: standalone)").matches;
-      if (standalone) document.documentElement.classList.add("standalone");
-    })();
-  </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 
