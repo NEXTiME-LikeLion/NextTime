@@ -6,6 +6,20 @@ import {
     CHANGE_GOAL_MAP,
 } from "./onboardingMappers";
 
+const normalizeNextMe = (data = {}) => ({
+    ...data,
+    changeGoal: data.changeGoal ?? "",
+    headline: data.headline ?? "",
+    startReason: data.startReason ?? data.start_reason ?? "",
+    nextBudTheme: data.nextBudTheme ?? data.nextbud_theme ?? "",
+    messageToFutureSelf: data.messageToFutureSelf ?? "",
+});
+
+export const getNextMe = async () => {
+    const response = await axiosInstance.get("/ai/onboarding/next-me");
+    return normalizeNextMe(response.data.data);
+};
+
 // 현재 원하는 변화(changeGoal) 저장 - PUT /users/me/onboarding 재사용
 export const updateChangeGoal = async (fullAnswers, newChangeGoal) => {
     const smokingContextCodes = (fullAnswers.cravingTriggers || [])

@@ -1,17 +1,60 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import deviceIconImg from "../../assets/device.svg";
+import mascotLoading from "../../assets/mascot-loading.svg";
 import * as S from "./OnboardingDevicePage.styles";
+
+const SEARCH_DURATION_MS = 4000;
 
 const OnboardingDevicePage = () => {
   const navigate = useNavigate();
+  const [step, setStep] = useState("idle");
+
+  useEffect(() => {
+    if (step !== "searching") return undefined;
+
+    const timer = setTimeout(() => {
+      setStep("notFound");
+    }, SEARCH_DURATION_MS);
+
+    return () => clearTimeout(timer);
+  }, [step]);
 
   const handleConnect = () => {
-    navigate("/main");
+    setStep("searching");
   };
 
   const handleSkip = () => {
     navigate("/main");
   };
+
+  const handleGoHome = () => {
+    navigate("/main");
+  };
+
+  if (step === "searching") {
+    return (
+      <S.StatusScreen>
+        <S.StatusContent>
+          <S.StatusMascot src={mascotLoading} alt="" />
+          <S.StatusTitle>기기를 찾고 있습니다.</S.StatusTitle>
+        </S.StatusContent>
+      </S.StatusScreen>
+    );
+  }
+
+  if (step === "notFound") {
+    return (
+      <S.StatusScreen>
+        <S.StatusContent>
+          <S.StatusTitle>화면에 연결할 기기가 없습니다.</S.StatusTitle>
+          <S.HomeButton type="button" onClick={handleGoHome}>
+            홈화면으로 이동
+          </S.HomeButton>
+        </S.StatusContent>
+      </S.StatusScreen>
+    );
+  }
 
   return (
     <S.Wrapper>
