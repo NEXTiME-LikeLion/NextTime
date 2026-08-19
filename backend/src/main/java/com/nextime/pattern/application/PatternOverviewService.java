@@ -14,9 +14,13 @@ import com.nextime.pattern.api.PatternOverviewResponse;
 import com.nextime.pattern.api.PatternOverviewResponse.*;
 import com.nextime.smokingcontext.domain.SmokingContext;
 import com.nextime.smokingcontext.domain.SmokingContextType;
+import com.nextime.smokingrecord.api.RecordDetailResponse.RecordType;
+import com.nextime.smokingrecord.domain.SmokingRecord;
+import com.nextime.smokingrecord.domain.SmokingRecordRepository;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.RESULT_RECORDED;
 
@@ -42,9 +47,11 @@ public class PatternOverviewService {
     private static final int MINIMUM_PATTERN_RECORD_COUNT = 5;
     private static final int EFFECTIVE_ACTION_LIMIT = 2;
     private static final int FREQUENT_TRIGGER_LIMIT = 3;
+    private static final int RECENT_RECORD_LIMIT = 3;
 
     private final UserRepository userRepository;
     private final NextTimeSessionRepository sessionRepository;
+    private final SmokingRecordRepository smokingRecordRepository;
     private final MissionRecommendationService recommendationService;
 
     @Transactional(readOnly = true)
@@ -79,11 +86,6 @@ public class PatternOverviewService {
             return insufficientOverview(windows, patternTarget.sessions().size());
         }
 
-        List<NextTimeSession> recentRecords = recentThirtyDayResults.stream()
-                .filter(this::hasPatternContext)
-                .limit(3)
-                .toList();
-
         return new PatternOverviewResponse(
                 new Period(SUPPORTED_PERIOD, windows.currentStart(), windows.currentEnd()),
                 DataStatus.AVAILABLE,
@@ -92,7 +94,7 @@ public class PatternOverviewService {
                 buildBehaviorChange(current, previous),
                 buildEffectiveActions(recentThirtyDayResults),
                 rankContexts(patternTarget.sessions(), SmokingContextType.TRIGGER, FREQUENT_TRIGGER_LIMIT),
-                recentRecords.stream().map(this::toRecentRecord).toList()
+                findRecentRecords(userId)
         );
     }
 
@@ -497,22 +499,63 @@ public class PatternOverviewService {
     }
 
     private RecentRecord toRecentRecord(NextTimeSession session) {
-        SmokingContext trigger = session.contextOf(SmokingContextType.TRIGGER);
+        SmokingContext trigger = session.getContexts().stream()
+                .filter(context -> context.getContextType() == SmokingContextType.TRIGGER)
+                .findFirst()
+                .orElse(null);
         Mission mission = session.getRecommendedMission();
         return new RecentRecord(
                 session.getId(),
+                RecordType.NEXT_TIME,
                 session.getResultRecordedAt(),
-                new ContextSummary(trigger.getId(), trigger.getCode(), trigger.getName()),
-                new MissionSummary(
-                        mission.getId(),
-                        session.getMissionCodeSnapshot(),
-                        session.getMissionNameSnapshot()
+                toContextSummary(trigger),
+                mission == null ? null : new MissionSummary(
+                    mission.getId(),
+                    session.getMissionCodeSnapshot(),
+                    session.getMissionNameSnapshot()
                 ),
                 session.getResult(),
                 session.getCravingBefore(),
                 session.getCravingAfter(),
                 CravingChange.between(session.getCravingBefore(), session.getCravingAfter())
         );
+    }
+
+    private List<RecentRecord> findRecentRecords(UUID userId) {
+        PageRequest page = PageRequest.of(0, RECENT_RECORD_LIMIT);
+        Stream<RecentRecord> manualRecords = smokingRecordRepository
+                .findByUser_IdOrderBySmokedAtDesc(userId, page)
+                .stream()
+                .map(this::toRecentRecord);
+        Stream<RecentRecord> nextTimeRecords = sessionRepository
+                .findByUser_IdAndStatusOrderByResultRecordedAtDesc(userId, RESULT_RECORDED, page)
+                .stream()
+                .map(this::toRecentRecord);
+
+        return Stream.concat(manualRecords, nextTimeRecords)
+                .sorted(Comparator.comparing(RecentRecord::recordedAt).reversed())
+                .limit(RECENT_RECORD_LIMIT)
+                .toList();
+    }
+
+    private RecentRecord toRecentRecord(SmokingRecord record) {
+        return new RecentRecord(
+                record.getId(),
+                RecordType.MANUAL_SMOKING,
+                record.getSmokedAt(),
+                toContextSummary(record.triggerOrNull()),
+                null,
+                NextTimeResult.SMOKED,
+                null,
+                null,
+                null
+        );
+    }
+
+    private ContextSummary toContextSummary(SmokingContext context) {
+        return context == null
+                ? null
+                : new ContextSummary(context.getId(), context.getCode(), context.getName());
     }
 
     private record ContextIdentity(UUID id, String code, String name) {

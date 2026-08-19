@@ -13,6 +13,8 @@ import com.nextime.pattern.api.PatternOverviewResponse.ChangeDirection;
 import com.nextime.pattern.api.PatternOverviewResponse.DataStatus;
 import com.nextime.smokingcontext.domain.SmokingContext;
 import com.nextime.smokingcontext.domain.SmokingContextType;
+import com.nextime.smokingrecord.domain.SmokingRecordRepository;
+import com.nextime.smokingrecord.domain.SmokingRecord;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.RESULT_RECORDED;
+import static com.nextime.smokingrecord.api.RecordDetailResponse.RecordType.MANUAL_SMOKING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +50,8 @@ class PatternOverviewServiceTest {
     private UserRepository userRepository;
     @Mock
     private NextTimeSessionRepository sessionRepository;
+    @Mock
+    private SmokingRecordRepository smokingRecordRepository;
     @Mock
     private MissionRecommendationService recommendationService;
 
@@ -72,7 +77,12 @@ class PatternOverviewServiceTest {
                         "정책 추천",
                         com.nextime.nexttime.domain.RecommendationSource.RULE
                 ));
-        service = new PatternOverviewService(userRepository, sessionRepository, recommendationService);
+        service = new PatternOverviewService(
+                userRepository,
+                sessionRepository,
+                smokingRecordRepository,
+                recommendationService
+        );
     }
 
     @Test
@@ -123,6 +133,18 @@ class PatternOverviewServiceTest {
                 .thenReturn(thirtyDayResults);
         when(sessionRepository.findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(eq(USER_ID), any()))
                 .thenReturn(List.of(current1, current2, current3, current4, current5));
+        when(sessionRepository.findByUser_IdAndStatusOrderByResultRecordedAtDesc(
+                eq(USER_ID), eq(RESULT_RECORDED), any()
+        )).thenReturn(List.of(current1, current2, current3));
+        SmokingRecord newestManual = mock(SmokingRecord.class);
+        Instant newestRecordedAt = LocalDate.now(SERVICE_ZONE)
+                .atTime(13, 0)
+                .atZone(SERVICE_ZONE)
+                .toInstant();
+        when(newestManual.getId()).thenReturn(UUID.randomUUID());
+        when(newestManual.getSmokedAt()).thenReturn(newestRecordedAt);
+        when(smokingRecordRepository.findByUser_IdOrderBySmokedAtDesc(eq(USER_ID), any()))
+                .thenReturn(List.of(newestManual));
         var response = service.getOverview(USER_ID);
 
         assertThat(response.dataStatus()).isEqualTo(DataStatus.AVAILABLE);
@@ -157,7 +179,9 @@ class PatternOverviewServiceTest {
         assertThat(response.frequentTriggers()).extracting("code")
                 .containsExactly("AFTER_WORK", "STRESS");
         assertThat(response.recentRecords()).hasSize(3);
-        assertThat(response.recentRecords().getFirst().recordId()).isEqualTo(current1.getId());
+        assertThat(response.recentRecords().getFirst().recordType()).isEqualTo(MANUAL_SMOKING);
+        assertThat(response.recentRecords()).extracting("recordId")
+                .contains(current1.getId(), current2.getId());
     }
 
     @Test
