@@ -12,6 +12,7 @@ import com.nextime.ai.nextme.domain.NextBudTheme;
 import com.nextime.common.error.BusinessException;
 import com.nextime.common.error.ErrorCode;
 import com.nextime.user.domain.UserProfileRepository;
+import com.nextime.user.domain.OnboardingGoal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -75,6 +76,13 @@ public class NextMeService {
     public NextMeGeneration getLatest(UUID userId) {
         return generationRepository.findFirstByUserIdOrderByCreatedAtDesc(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NEXT_ME_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public OnboardingGoal getChangeGoal(UUID userId) {
+        return userProfileRepository.findById(userId)
+                .map(profile -> profile.getGoal())
+                .orElse(null);
     }
 
     private void validateReasons(NextMeGenerateRequest request) {
