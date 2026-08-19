@@ -92,7 +92,7 @@ const MiddleBlock = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 2.25rem;
+  gap: 1.25rem;
   padding-bottom: 0.5rem;
   margin-top: 0.37rem;
 `;
@@ -127,10 +127,12 @@ const SubTitle = styled.p`
 `;
 
 const Mascot = styled.img`
-  width: 8.9375rem;
-  height: 8.4375rem;
+  width: min(8.9375rem, 34vw);
+  height: auto;
+  max-height: 8.4375rem;
   object-fit: contain;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 `;
 
 const BottomBlock = styled.div`

@@ -111,8 +111,11 @@ const Quote = styled.p`
 `;
 
 const Mascot = styled.img`
-  width: 9.4375rem;
-  height: 10.6875rem;
+  width: min(9.4375rem, 36vw);
+  height: auto;
+  max-height: 10.6875rem;
+  aspect-ratio: 151 / 171;
   object-fit: contain;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 `;
