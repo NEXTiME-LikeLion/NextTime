@@ -249,8 +249,8 @@ public class NextTimeSession {
     }
 
     public void skipMission(Instant skippedAt) {
-        if (status != NextTimeSessionStatus.MISSION_RECOMMENDED) {
-            throw new IllegalStateException("추천 완료 상태에서만 미션을 건너뛸 수 있습니다.");
+        if (status != NextTimeSessionStatus.MISSION_RECOMMENDED && status != NextTimeSessionStatus.MISSION_STARTED) {
+            throw new IllegalStateException("추천 완료 또는 진행 중 상태에서만 미션을 건너뛸 수 있습니다.");
         }
 
         this.status = NextTimeSessionStatus.CANCELLED;
