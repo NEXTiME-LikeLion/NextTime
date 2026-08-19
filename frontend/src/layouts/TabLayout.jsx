@@ -24,6 +24,7 @@ export default TabLayout;
 const TabContainer = styled.div`
   flex: 1;
   min-height: 0;
+  height: 100%;
   background-color: ${({ theme }) => theme.colors.bg0};
   display: flex;
   flex-direction: column;

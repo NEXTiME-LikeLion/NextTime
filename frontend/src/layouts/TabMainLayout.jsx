@@ -51,7 +51,8 @@ const ScrollBody = styled.div`
 
 const Header = styled.div`
   flex-shrink: 0;
-  padding: 0 1.25rem 1rem 1.25rem;
+  padding: 0 max(1.25rem, var(--safe-right), env(safe-area-inset-right, 0px))
+    1rem max(1.25rem, var(--safe-left), env(safe-area-inset-left, 0px));
 `;
 
 const Content = styled.div`
@@ -61,7 +62,8 @@ const Content = styled.div`
   min-height: ${({ $scrollEntirePage }) => ($scrollEntirePage ? "auto" : "0")};
   border-radius: 1rem 1rem 0 0;
   background-color: ${({ theme }) => theme.colors.bg0};
-  padding-inline: 1.25rem;
+  padding-inline: max(1.25rem, var(--safe-left), env(safe-area-inset-left, 0px))
+    max(1.25rem, var(--safe-right), env(safe-area-inset-right, 0px));
   overflow-y: ${({ $scrollEntirePage }) =>
     $scrollEntirePage ? "visible" : "auto"};
 `;

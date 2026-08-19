@@ -7,8 +7,8 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="stylesheet" as="style" crossorigin
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <!-- viewport-fit=cover: 노치/홈인디케이터까지 화면을 확장해야 env(safe-area-inset-*)가 생김 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- user-scalable=no: iOS가 가로 오버플로/제스처로 자동 줌하면 하단 여백이 생김 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#00D579" />
 
   <!-- iOS 홈화면 앱(standalone). Safari 탭에서 여는 동안에는 URL바가 그대로 보임 -->
@@ -29,18 +29,6 @@
         window.navigator.standalone ||
         window.matchMedia("(display-mode: standalone)").matches;
       if (standalone) document.documentElement.classList.add("standalone");
-
-      function setAppHeight() {
-        document.documentElement.style.setProperty(
-          "--app-height",
-          window.innerHeight + "px"
-        );
-      }
-      setAppHeight();
-      window.addEventListener("resize", setAppHeight);
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", setAppHeight);
-      }
     })();
   </script>
   <script type="module" src="/src/main.jsx"></script>
