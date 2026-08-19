@@ -1,14 +1,6 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { NextTimeProvider, useNextTime } from "../contexts/NextTimeContext";
-import { getNextTimePathByStatus } from "../api/nextTime";
-
-export function NextTimeIndexRedirect() {
-  const { session } = useNextTime();
-  const path = getNextTimePathByStatus(session?.status);
-
-  return <Navigate to={path} replace state={session ? { session } : undefined} />;
-}
+import { NextTimeProvider } from "../contexts/NextTimeContext";
 
 function NextTimeLayout() {
   const { state } = useLocation();
