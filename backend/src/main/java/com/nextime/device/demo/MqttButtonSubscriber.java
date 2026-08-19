@@ -10,18 +10,21 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class MqttButtonSubscriber implements MqttCallbackExtended {
 
     private static final Logger log = LoggerFactory.getLogger(MqttButtonSubscriber.class);
+    private static final String BROKER_URL = "ssl://broker.emqx.io:8883";
+    private static final String CLIENT_ID_PREFIX = "nextime-backend-inha02-e9b53d4b";
+    private static final String BUTTON_TOPIC = "nextime/inha02/e9b53d4b/button";
 
     private final ButtonEventStream eventStream;
     private final WebPushService webPushService;
@@ -34,16 +37,13 @@ public class MqttButtonSubscriber implements MqttCallbackExtended {
 
     public MqttButtonSubscriber(
             ButtonEventStream eventStream,
-            WebPushService webPushService,
-            @Value("${mqtt.broker-url}") String brokerUrl,
-            @Value("${mqtt.client-id}") String clientId,
-            @Value("${mqtt.topic}") String topic
+            WebPushService webPushService
     ) {
         this.eventStream = eventStream;
         this.webPushService = webPushService;
-        this.brokerUrl = brokerUrl;
-        this.clientId = clientId;
-        this.topic = topic;
+        this.brokerUrl = BROKER_URL;
+        this.clientId = CLIENT_ID_PREFIX;
+        this.topic = BUTTON_TOPIC;
     }
 
     @Scheduled(initialDelay = 500, fixedDelay = 3000)
@@ -54,7 +54,10 @@ public class MqttButtonSubscriber implements MqttCallbackExtended {
             }
 
             if (client == null) {
-                client = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
+                String uniqueClientId = clientId + "-" + UUID.randomUUID()
+                        .toString()
+                        .substring(0, 8);
+                client = new MqttClient(brokerUrl, uniqueClientId, new MemoryPersistence());
                 client.setCallback(this);
             }
 
