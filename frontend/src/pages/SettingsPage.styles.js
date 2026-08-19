@@ -3,9 +3,10 @@ import styled from "styled-components";
 export const Container = styled.div`
   width: 100%;
   height: 100%;
-  padding: 0 20px 0;
+  padding: max(var(--safe-top), env(safe-area-inset-top, 0px)) 20px 0;
   box-sizing: border-box;
   background-color: ${({ theme }) => theme.colors.white};
+  overflow-y: auto;
 `;
 
 export const PageTitle = styled.h1`

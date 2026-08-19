@@ -20,25 +20,29 @@ export const AuthLayout = ({ logoMarginTop = 140, bottomPadding = 40 }) => {
 
 const PageWrapper = styled.div`
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
   background-color: "#F7F7FA"; // FIX
 `;
 
 const Container = styled.div`
   width: 100%;
   max-width: 430px;
-  min-height: 100vh;
+  height: 100%;
   background-color: ${({ theme }) => theme.colors.white};
-  padding: ${({ $bottomPadding }) => `0 14px ${$bottomPadding}px`};
+  padding-top: max(var(--safe-top), env(safe-area-inset-top, 0px));
+  padding-right: 14px;
+  padding-bottom: ${({ $bottomPadding }) => `${$bottomPadding}px`};
+  padding-left: 14px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow-y: auto;
 
   @media (min-width: 431px) {
     min-height: 844px;
+    height: auto;
     border-radius: 24px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   }

@@ -29,6 +29,8 @@ const LayoutContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
+  overflow: hidden;
   background: ${({ theme }) => theme.colors.bg_black};
-  padding-top: var(--safe-top);
+  padding-top: max(var(--safe-top), env(safe-area-inset-top, 0px));
 `;

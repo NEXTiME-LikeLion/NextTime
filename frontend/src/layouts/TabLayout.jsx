@@ -22,16 +22,11 @@ export default TabLayout;
 
 const TabContainer = styled.div`
   flex: 1;
+  min-height: 0;
   background-color: ${({ theme }) => theme.colors.bg0};
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  overflow: hidden;
 `;
 
 const MainContent = styled.div`

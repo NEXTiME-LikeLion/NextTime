@@ -6,6 +6,7 @@ export const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   background-color: ${({ theme }) => theme.colors.white};
+  padding-top: max(var(--safe-top), env(safe-area-inset-top, 0px));
 `;
 
 export const Content = styled.div`

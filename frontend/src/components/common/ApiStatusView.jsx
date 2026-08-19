@@ -56,9 +56,15 @@ const StatusScreen = styled.div`
   justify-content: center;
   min-height: ${({ $variant }) => ($variant === "embed" ? "12rem" : "100%")};
   padding: ${({ $variant }) =>
+    $variant === "embed" ? "0.5rem 0" : "0 1.25rem"};
+  padding-top: ${({ $variant }) =>
     $variant === "embed"
-      ? "0.5rem 0"
-      : "var(--safe-top) 1.25rem var(--safe-bottom)"};
+      ? "0.5rem"
+      : "max(var(--safe-top), env(safe-area-inset-top, 0px))"};
+  padding-bottom: ${({ $variant }) =>
+    $variant === "embed"
+      ? "0.5rem"
+      : "max(var(--safe-bottom), env(safe-area-inset-bottom, 0px))"};
   background-color: ${({ $variant, theme }) => {
     if ($variant === "embed") return "transparent";
     if ($variant === "dark") return theme.colors.bg_black;
