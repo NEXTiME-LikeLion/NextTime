@@ -71,37 +71,42 @@ select {
   width: 100%;
 }
 
-/* 홈화면 앱: 레이아웃 뷰포트 전체를 쓰고, pinch-zoom용 visualViewport 높이는 쓰지 않음 */
+/*
+  iOS 홈화면(standalone)에서 100dvh / -webkit-fill-available 는
+  상태바를 뺀 짧은 뷰포트로 계산됩니다. 문서가 화면보다 짧아지고
+  그 아래 WKWebView 흰 배경이 보입니다.
+  100vh(large viewport) + JS --app-height(실측 화면 높이)로 채웁니다.
+  하단 34px 강제 최솟값은 env()와 겹쳐 여백이 두 번 쌓이므로 쓰지 않습니다.
+*/
 html.standalone,
 html.standalone body {
-  height: 100%;
-  min-height: 100%;
-  min-height: 100lvh;
-  min-height: -webkit-fill-available;
+  height: var(--app-height, 100vh);
+  min-height: var(--app-height, 100vh);
 }
 
 html.standalone {
   --safe-top: max(env(safe-area-inset-top, 0px), 47px);
-  --safe-bottom: max(env(safe-area-inset-bottom, 0px), 34px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 html.standalone #root {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: auto;
   width: 100%;
   max-width: 430px;
-  height: 100%;
-  min-height: 100%;
-  min-height: 100lvh;
-  min-height: -webkit-fill-available;
+  height: var(--app-height, 100vh);
+  min-height: var(--app-height, 100vh);
   margin-inline: auto;
   --safe-top: max(env(safe-area-inset-top, 0px), 47px);
-  --safe-bottom: max(env(safe-area-inset-bottom, 0px), 34px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (display-mode: standalone) {
   html {
     --safe-top: max(env(safe-area-inset-top, 0px), 47px);
-    --safe-bottom: max(env(safe-area-inset-bottom, 0px), 34px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
