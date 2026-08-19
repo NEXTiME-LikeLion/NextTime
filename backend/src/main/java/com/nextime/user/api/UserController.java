@@ -11,6 +11,7 @@ import com.nextime.security.CurrentUser;
 import com.nextime.user.application.UserRegistrationResult;
 import com.nextime.user.application.UserRegistrationService;
 import com.nextime.user.application.OnboardingService;
+import com.nextime.user.application.GoalService;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
 import org.springframework.http.ResponseEntity;
@@ -37,17 +38,28 @@ public class UserController {
     private final UserRegistrationService userRegistrationService;
     private final OnboardingService onboardingService;
     private final ExcludedMissionService excludedMissionService;
+    private final GoalService goalService;
 
     public UserController(
             UserRepository userRepository,
             UserRegistrationService userRegistrationService,
             OnboardingService onboardingService,
-            ExcludedMissionService excludedMissionService
+            ExcludedMissionService excludedMissionService,
+            GoalService goalService
     ) {
         this.userRepository = userRepository;
         this.userRegistrationService = userRegistrationService;
         this.onboardingService = onboardingService;
         this.excludedMissionService = excludedMissionService;
+        this.goalService = goalService;
+    }
+
+    @PostMapping("/me/goal")
+    ApiResponse<GoalResponse> updateGoal(
+            @CurrentUser AuthenticatedUser currentUser,
+            @Valid @RequestBody GoalRequest request
+    ) {
+        return ApiResponse.success(goalService.update(currentUser.userId(), request));
     }
 
     @PostMapping
