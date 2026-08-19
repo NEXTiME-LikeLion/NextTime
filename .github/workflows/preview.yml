@@ -1,15 +1,17 @@
-## preview.yml은 Organization의 frontend(main) 브랜치에 pr을 작성하는 경우
-## 해당 PR의 댓글로 preview URL을 생성하는 CI/CD
-
-# [최종 배포 시]
-# main으로 병합한 뒤 Vercel Production main 브랜치로 재배포 시 main으로 변경
-# pr to main일 경우 작동하도록 !
+## Organization 레포에서 frontend / dev / main 대상 PR이 열리면
+## Vercel Preview를 배포하고 PR 댓글로 Preview URL을 남긴다.
+##
+## Production 전환 이후에도 feature → dev → main PR에서 Preview를 확인할 수 있다.
+## frontend 대상은 전환 기간 동안만 유지한다.
 
 name: Preview
 
 on:
   pull_request:
-    branches: ["frontend"]
+    branches: ["frontend", "dev", "main"]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/preview.yml"
 
 jobs:
   vercel-preview:
@@ -20,11 +22,9 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
-      # 1. Repository checkout
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Node.js 설정
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -32,26 +32,22 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      # 3. Vercel CLI 설치
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      # 4. Vercel 인증 확인
       - name: Check Vercel Authentication
         run: vercel whoami --token=${{ secrets.VERCEL_TOKEN }}
 
-      # 5. Frontend dependencies 설치
       - name: Install Dependencies
         working-directory: frontend
         run: npm install
 
-      # 6. Frontend build
       - name: Build Project
         working-directory: frontend
         run: npm run build
 
-      # 7. Vercel Preview 배포
       # 반드시 repository root에서 실행
+      # Vercel 프로젝트 연결은 VERCEL_ORG_ID / VERCEL_PROJECT_ID secrets 사용
       - name: Deploy Preview to Vercel
         id: deploy
         run: |
@@ -66,7 +62,6 @@ jobs:
 
           echo "preview_url=https://$alias" >> "$GITHUB_OUTPUT"
 
-      # 8. PR에 Preview URL 댓글
       - name: Comment PR with Preview URL
         uses: thollander/actions-comment-pull-request@v2
         with:
