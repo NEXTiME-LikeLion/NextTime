@@ -7,6 +7,7 @@ import {
   isPushAllowedAccount,
   isPushNotificationEnabled,
 } from "../../api/pushNotification";
+import { debugError, debugLog } from "../../api/debugLog";
 import * as S from "./DevicePage.styles";
 
 function PushNotificationSection() {
@@ -21,10 +22,12 @@ function PushNotificationSection() {
     let cancelled = false;
 
     const initialize = async () => {
+      debugLog("PushUI", "기기 화면 알림 섹션 초기화");
       const email = await getCurrentUserEmail();
       if (cancelled) return;
 
       if (!isPushAllowedAccount(email)) {
+        debugLog("PushUI", "버튼 숨김 - 허용 계정 아님", { email });
         setIsAllowed(false);
         setIsReady(true);
         return;
@@ -34,6 +37,7 @@ function PushNotificationSection() {
 
       const availability = getPushAvailability();
       if (!availability.available) {
+        debugLog("PushUI", "사용 불가 안내 표시", availability);
         setUnavailableReason(availability.reason);
         setIsReady(true);
         return;
@@ -42,13 +46,14 @@ function PushNotificationSection() {
       const enabled = await isPushNotificationEnabled();
       if (cancelled) return;
 
+      debugLog("PushUI", "초기 상태", { enabled });
       setIsEnabled(enabled);
       setIsReady(true);
     };
 
     initialize().catch((error) => {
       if (cancelled) return;
-      console.error("알림 상태 확인 실패:", error);
+      debugError("PushUI", "알림 상태 확인 실패", error);
       setIsAllowed(true);
       setMessage("알림 상태를 확인하지 못했어요.");
       setIsReady(true);
@@ -60,14 +65,16 @@ function PushNotificationSection() {
   }, []);
 
   const handleEnable = async () => {
+    debugLog("PushUI", "알림 켜기 버튼 클릭");
     try {
       setIsLoading(true);
       setMessage("");
       await enablePushNotification();
       setIsEnabled(true);
       setMessage("알림이 설정되었습니다.");
+      debugLog("PushUI", "알림 켜기 UI 완료");
     } catch (error) {
-      console.error("알림 설정 실패:", error);
+      debugError("PushUI", "알림 켜기 실패", error);
       setMessage(error.message);
     } finally {
       setIsLoading(false);
@@ -75,14 +82,16 @@ function PushNotificationSection() {
   };
 
   const handleDisable = async () => {
+    debugLog("PushUI", "알림 끄기 버튼 클릭");
     try {
       setIsLoading(true);
       setMessage("");
       await disablePushNotification();
       setIsEnabled(false);
       setMessage("알림이 꺼졌습니다.");
+      debugLog("PushUI", "알림 끄기 UI 완료");
     } catch (error) {
-      console.error("알림 해제 실패:", error);
+      debugError("PushUI", "알림 끄기 실패", error);
       setMessage(error.message);
     } finally {
       setIsLoading(false);
