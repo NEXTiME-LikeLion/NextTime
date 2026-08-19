@@ -46,7 +46,7 @@ const getSheetValue = (key, goalData) => {
     case "nextMe":
       return goalData.nextMe || "";
     case "motivation":
-      return goalData.motivation || "";
+      return goalData.decisionTrigger || goalData.motivation || "";
     case "leftMessage":
       return goalData.leftMessage || "";
     default:
@@ -216,7 +216,7 @@ const GoalPage = () => {
               <S.Divider />
 
               <S.SectionLabel>나의 동기</S.SectionLabel>
-              <S.BodyText>{data.startReason}</S.BodyText>
+              <S.BodyText>{data.decisionTrigger}</S.BodyText>
               <S.EditButtonRight onClick={() => setActiveSheet("motivation")}>
                 수정하기
               </S.EditButtonRight>

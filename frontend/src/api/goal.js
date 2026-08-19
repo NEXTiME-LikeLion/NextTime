@@ -7,15 +7,11 @@ const normalizeNextMe = (data = {}) => ({
     changeGoal: data.changeGoal ?? "",
     headline: data.headline ?? "",
     startReason: data.startReason ?? data.start_reason ?? "",
+    decisionTrigger: data.decisionTrigger ?? "",
     nextBudTheme: data.nextBudTheme ?? data.nextbud_theme ?? "",
     messageToFutureSelf: data.messageToFutureSelf ?? "",
     nextMe: data.nextMe ?? data.futureSelf ?? data.headline ?? "",
-    motivation:
-        data.motivation ??
-        data.decisionTrigger ??
-        data.startReason ??
-        data.start_reason ??
-        "",
+    motivation: data.motivation ?? data.decisionTrigger ?? "",
     leftMessage: data.leftMessage ?? data.messageToFutureSelf ?? "",
 });
 
@@ -44,8 +40,7 @@ export const applyGoalUpdate = (current = {}, updated = {}) => {
                 ? String(updated.nextMe).slice(0, HEADLINE_MAX_LENGTH)
                 : current.headline ?? "",
         motivation,
-        decisionTrigger: motivation || current.decisionTrigger,
-        startReason: updated.motivation ?? current.startReason ?? "",
+        decisionTrigger: updated.motivation ?? current.decisionTrigger ?? "",
         leftMessage,
         messageToFutureSelf: leftMessage,
     };
