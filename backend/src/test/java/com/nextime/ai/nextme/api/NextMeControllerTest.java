@@ -10,6 +10,7 @@ import com.nextime.security.CurrentUserArgumentResolver;
 import com.nextime.security.RestAuthenticationEntryPoint;
 import com.nextime.security.SecurityConfig;
 import com.nextime.user.domain.User;
+import com.nextime.user.domain.OnboardingGoal;
 import com.nextime.user.domain.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +83,8 @@ class NextMeControllerTest {
                 .andExpect(jsonPath("$.data.source").value("AI"))
                 .andExpect(jsonPath("$.data.decisionTrigger").doesNotExist())
                 .andExpect(jsonPath("$.data.futureSelf").doesNotExist())
-                .andExpect(jsonPath("$.data.messageToFutureSelf").doesNotExist());
+                .andExpect(jsonPath("$.data.messageToFutureSelf").doesNotExist())
+                .andExpect(jsonPath("$.data.changeGoal").doesNotExist());
     }
 
     @Test
@@ -90,6 +92,7 @@ class NextMeControllerTest {
         authenticatedUser();
         NextMeGeneration generation = generation();
         when(nextMeService.getLatest(USER_ID)).thenReturn(generation);
+        when(nextMeService.getChangeGoal(USER_ID)).thenReturn(OnboardingGoal.REDUCE);
 
         mockMvc.perform(get("/ai/onboarding/next-me")
                         .with(jwt().jwt(token -> token.subject("cognito-sub"))))
@@ -100,7 +103,8 @@ class NextMeControllerTest {
                 .andExpect(jsonPath("$.data.nextbud_theme").value("NEXTBUD_HEALTH_01"))
                 .andExpect(jsonPath("$.data.decisionTrigger").value("계단을 오를 때 숨이 차서 변화를 결심했어요."))
                 .andExpect(jsonPath("$.data.futureSelf").value("건강하고 자유롭게 생활하는 사람이 되고 싶어요."))
-                .andExpect(jsonPath("$.data.messageToFutureSelf").value("오늘 시작한 마음을 잊지 말자."));
+                .andExpect(jsonPath("$.data.messageToFutureSelf").value("오늘 시작한 마음을 잊지 말자."))
+                .andExpect(jsonPath("$.data.changeGoal").value("REDUCE"));
     }
 
     @Test
