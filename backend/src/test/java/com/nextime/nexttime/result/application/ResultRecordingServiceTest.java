@@ -117,7 +117,7 @@ class ResultRecordingServiceTest {
 
         assertThatThrownBy(() -> service.record(USER_ID, SESSION_ID, validRequest(null)))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("행동 미션을 완료한 후 결과를 기록해 주세요.");
+                .hasMessage("행동 미션을 완료하거나 건너뛴 후 결과를 기록해 주세요.");
         verify(resultMemoryAiClient, never()).generate(any());
     }
 

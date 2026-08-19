@@ -49,11 +49,11 @@ class NextTimeControllerTest {
     @Test
     void rewindsSession() throws Exception {
         authenticate();
-        NextTimeSession session = mock(NextTimeSession.class);
-        when(session.getId()).thenReturn(SESSION_ID);
-        when(session.getStatus()).thenReturn(NextTimeSessionStatus.CREATED);
-        when(session.getCreatedAt()).thenReturn(Instant.parse("2026-08-16T14:20:00Z"));
-        when(nextTimeService.rewind(USER_ID, SESSION_ID)).thenReturn(new NextTimeSessionResponse(session));
+        NextTimeSessionResponse response = mock(NextTimeSessionResponse.class);
+        when(response.getSessionId()).thenReturn(SESSION_ID);
+        when(response.getStatus()).thenReturn(NextTimeSessionStatus.CREATED);
+        when(response.getCreatedAt()).thenReturn(Instant.parse("2026-08-16T14:20:00Z"));
+        when(nextTimeService.rewind(USER_ID, SESSION_ID)).thenReturn(response);
 
         mockMvc.perform(post(path("rewind")).with(jwt().jwt(token -> token.subject("cognito-sub"))))
                 .andExpect(status().isOk())
