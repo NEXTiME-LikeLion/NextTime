@@ -123,7 +123,7 @@ class NextMeServiceTest {
                         "비용 걱정 없이 여유로운 나",
                         "생활비를 아끼고 싶어요.",
                         "담배 대신 나를 위해 저축하자.",
-                        NextBudTheme.NEXTBUD_HEALTH_01
+                        NextBudTheme.NEXTBUD_ECONOMY_01
                 ));
         when(generationRepository.save(any(NextMeGeneration.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -138,14 +138,50 @@ class NextMeServiceTest {
                 List.of("nextMe")
         );
 
-        assertThat(result.getFutureSelf()).isEqualTo("비용 걱정 없이 여유로운 나");
-        assertThat(result.getDecisionTrigger()).isEqualTo("생활비를 아끼고 싶어요.");
-        assertThat(result.getMessageToFutureSelf()).isEqualTo("담배 대신 나를 위해 저축하자.");
+        assertThat(result.getFutureSelf()).isEqualTo("돈이 없어서 담뱃값을 아끼고 싶은 나");
+        assertThat(result.getDecisionTrigger()).isEqualTo("담뱃값이 아까워요.");
+        assertThat(result.getMessageToFutureSelf()).isEqualTo("저축을 시작하자.");
+        assertThat(result.getHeadline()).isEqualTo("비용 걱정 없이 여유로운 나");
+        assertThat(result.getStartReason()).isEqualTo("생활비를 아끼고 싶어요.");
         assertThat(result.getNextBudTheme()).isEqualTo(NextBudTheme.NEXTBUD_ECONOMY_01);
         assertThat(result.getSource()).isEqualTo(GenerationSource.AI);
         ArgumentCaptor<NextMePromptInput> input = ArgumentCaptor.forClass(NextMePromptInput.class);
         verify(aiClient).generate(input.capture());
         assertThat(input.getValue().updatedFields()).containsExactly("nextMe");
+    }
+
+    @Test
+    void rejectsGoalUpdateWhenAiGenerationFails() {
+        NextMeGeneration current = new NextMeGeneration(
+                USER_ID,
+                List.of(ChangeReason.HEALTH_FITNESS),
+                null,
+                "기존 동기",
+                "기존 미래 모습",
+                "기존 메시지",
+                "기존 NEXT ME",
+                "기존 동기",
+                NextBudTheme.NEXTBUD_HEALTH_01,
+                GenerationSource.AI
+        );
+        when(aiClient.generate(any(NextMePromptInput.class)))
+                .thenThrow(new IllegalStateException("429 Too Many Requests"));
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> service.regenerateGoal(
+                        USER_ID,
+                        com.nextime.user.domain.OnboardingGoal.QUIT,
+                        current,
+                        "새로운 미래 모습",
+                        "새로운 동기",
+                        "새로운 메시지",
+                        List.of("nextMe", "motivation", "leftMessage")
+                )
+        );
+
+        assertThat(exception.errorCode()).isEqualTo(ErrorCode.EXTERNAL_SERVICE_ERROR);
+        verify(generationRepository, never()).save(any());
     }
 
     @Test

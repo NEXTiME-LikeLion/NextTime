@@ -58,10 +58,12 @@ public class GoalService {
 
         return new GoalResponse(
                 profile.getGoal(),
-                generation.getHeadline(),
-                generation.getNextBudTheme(),
+                generation.getFutureSelf(),
                 generation.getDecisionTrigger(),
-                generation.getMessageToFutureSelf()
+                generation.getMessageToFutureSelf(),
+                generation.getHeadline(),
+                generation.getStartReason(),
+                generation.getNextBudTheme()
         );
     }
 
