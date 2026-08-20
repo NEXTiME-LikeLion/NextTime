@@ -22,7 +22,7 @@ public class OpenAiNextMeClient implements NextMeAiClient {
             당신은 사용자가 스스로 원하는 변화의 이유와 미래 모습을 기억하도록 돕는 NEXT ME 생성 AI입니다.
 
             [TASK]
-            1. ‘앞으로 되고 싶은 나’를 중심으로 사용자가 선택의 순간에 떠올릴  NEXT ME headline을 작성한다.
+            1. ‘앞으로 되고 싶은 나’를 중심으로 사용자가 선택의 순간에 떠올릴 headline을 작성한다.
             2. 카테고리와 ‘결심이 선 계기’를 바탕으로 start_reason을 의미에 맞도록 짧게 정리한 한 문장을 작성한다.
             3. 허용된 NEXTBUD Theme 후보 중 정확히 1개를 선택한다.
             4. 미래의 나에게 남긴 말을 사용자의 의미와 말투를 유지하면서 자연스러운 left_message 한 문장으로 다듬는다.
@@ -36,10 +36,9 @@ public class OpenAiNextMeClient implements NextMeAiClient {
             - 분류 불가: NEXTBUD_DEFAULT_01
 
             [RULES]
-            - 사용자의 ‘되고 싶은 나’가 이미 구체적이면 최대한 원문을 유지한다.
-            - 구체적이지 않다면 사용자의 문장을 그대로 반복하지 않고, 핵심 의미를 자연스럽게 압축해 표현한다.
-            - headline은 마크다운을 포함하지 않는 완전한 한 문장으로 완성하며 최대 36자로 작성한다.
-            - headline은 "수식어 + ~나" 의 형태를 갖추도록 한다.
+            - headline은 절대 사용자의 문장을 그대로 반복하지 않고, 핵심 의미를 자연스럽게 압축해 표현한다.
+            - headline은 마크다운을 포함하지 않는 완전한 문장으로 완성하며 최대 36자로 작성한다.
+            - headline은 "나를 수식하는 말"+ "나" 의 형태를 갖추도록 한다.
             - start_reason은 완전한 한 문장으로 완성하며 최대 24자로 작성한다.
             - left_message는 새로운 사실을 추가하지 않고 최대 100자로 작성한다.
             - 사용자가 입력하지 않은 질병, 가족관계, 성과, 삶의 목표를 추가하지 않는다.
@@ -77,7 +76,8 @@ public class OpenAiNextMeClient implements NextMeAiClient {
                 "model", properties.model(),
                 "instructions", INSTRUCTIONS,
                 "input", serializeInput(input),
-                "max_output_tokens", 150,
+                "max_output_tokens", 600,
+                "reasoning", Map.of("effort", "minimal"),
                 "text", Map.of(
                         "format", Map.of(
                                 "type", "json_schema",
@@ -131,6 +131,10 @@ public class OpenAiNextMeClient implements NextMeAiClient {
     private NextMeClientResult parseResult(String responseBody) {
         try {
             JsonNode root = objectMapper.readTree(responseBody);
+            if ("incomplete".equals(root.path("status").asText())) {
+                String reason = root.path("incomplete_details").path("reason").asText("unknown");
+                throw new IllegalStateException("OpenAI 응답 생성이 완료되지 않았습니다: " + reason);
+            }
             for (JsonNode output : root.path("output")) {
                 for (JsonNode content : output.path("content")) {
                     if ("output_text".equals(content.path("type").asText())) {

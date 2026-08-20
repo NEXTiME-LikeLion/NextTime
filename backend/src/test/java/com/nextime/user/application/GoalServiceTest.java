@@ -56,9 +56,11 @@ class GoalServiceTest {
                 java.util.List.of("changeGoal", "nextMe")
         )).thenReturn(generated);
         when(generated.getHeadline()).thenReturn("AI가 다듬은 NEXT ME");
+        when(generated.getStartReason()).thenReturn("AI가 요약한 동기");
         when(generated.getNextBudTheme()).thenReturn(NextBudTheme.NEXTBUD_HEALTH_01);
-        when(generated.getDecisionTrigger()).thenReturn("AI가 다듬은 동기");
-        when(generated.getMessageToFutureSelf()).thenReturn("AI가 다듬은 메시지");
+        when(generated.getFutureSelf()).thenReturn("새로운 NEXT ME");
+        when(generated.getDecisionTrigger()).thenReturn("기존 동기");
+        when(generated.getMessageToFutureSelf()).thenReturn("기존 메시지");
 
         GoalResponse response = service.update(
                 USER_ID,
@@ -75,9 +77,12 @@ class GoalServiceTest {
                 "기존 메시지",
                 java.util.List.of("changeGoal", "nextMe")
         );
-        assertThat(response.nextMe()).isEqualTo("AI가 다듬은 NEXT ME");
-        assertThat(response.nextBudTheme()).isEqualTo(NextBudTheme.NEXTBUD_HEALTH_01);
-        assertThat(response.motivation()).isEqualTo("AI가 다듬은 동기");
+        assertThat(response.future_self()).isEqualTo("새로운 NEXT ME");
+        assertThat(response.decision_trigger()).isEqualTo("기존 동기");
+        assertThat(response.message_to_future_self()).isEqualTo("기존 메시지");
+        assertThat(response.headline()).isEqualTo("AI가 다듬은 NEXT ME");
+        assertThat(response.start_reason()).isEqualTo("AI가 요약한 동기");
+        assertThat(response.nextbud_theme()).isEqualTo(NextBudTheme.NEXTBUD_HEALTH_01);
     }
 
     @Test

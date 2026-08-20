@@ -167,10 +167,12 @@ class UserControllerSecurityTest {
                 org.mockito.ArgumentMatchers.any(GoalRequest.class)))
                 .thenReturn(new GoalResponse(
                         OnboardingGoal.QUIT,
-                        "러닝할 때 먼저 멈추지 않는 나",
-                        com.nextime.ai.nextme.domain.NextBudTheme.NEXTBUD_HEALTH_01,
+                        "러닝할 때 숨이 차서 먼저 멈추지 않는 나",
                         "체력을 되찾고 싶어요.",
-                        "포기하지 말자."
+                        "포기하지 말자.",
+                        "러닝할 때 먼저 멈추지 않는 나",
+                        "체력을 되찾고 싶은 마음",
+                        com.nextime.ai.nextme.domain.NextBudTheme.NEXTBUD_HEALTH_01
                 ));
 
         mockMvc.perform(post("/users/me/goal")
@@ -184,8 +186,12 @@ class UserControllerSecurityTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.changeGoal").value("QUIT"))
-                .andExpect(jsonPath("$.data.nextMe").value("러닝할 때 먼저 멈추지 않는 나"))
-                .andExpect(jsonPath("$.data.nextBudTheme").value("NEXTBUD_HEALTH_01"));
+                .andExpect(jsonPath("$.data.future_self").value("러닝할 때 숨이 차서 먼저 멈추지 않는 나"))
+                .andExpect(jsonPath("$.data.decision_trigger").value("체력을 되찾고 싶어요."))
+                .andExpect(jsonPath("$.data.message_to_future_self").value("포기하지 말자."))
+                .andExpect(jsonPath("$.data.headline").value("러닝할 때 먼저 멈추지 않는 나"))
+                .andExpect(jsonPath("$.data.start_reason").value("체력을 되찾고 싶은 마음"))
+                .andExpect(jsonPath("$.data.nextbud_theme").value("NEXTBUD_HEALTH_01"));
     }
 
     @Test

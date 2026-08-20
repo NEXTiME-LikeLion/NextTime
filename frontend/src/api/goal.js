@@ -2,10 +2,12 @@ import axiosInstance from "./axiosInstance";
 
 const toGoalView = (data = {}) => ({
     changeGoal: data.changeGoal ?? "",
-    nextMe: data.nextMe ?? data.headline ?? data.futureSelf ?? "",
-    nextBudTheme: data.nextBudTheme ?? data.nextbud_theme ?? "",
-    motivation: data.motivation ?? data.decisionTrigger ?? "",
-    leftMessage: data.leftMessage ?? data.messageToFutureSelf ?? "",
+    futureSelf: data.future_self ?? data.futureSelf ?? data.nextMe ?? "",
+    headline: data.headline ?? "",
+    nextBudTheme: data.nextbud_theme ?? data.nextBudTheme ?? "",
+    motivation: data.decision_trigger ?? data.decisionTrigger ?? data.motivation ?? "",
+    leftMessage:
+        data.message_to_future_self ?? data.messageToFutureSelf ?? data.leftMessage ?? "",
 });
 
 export const getNextMe = async () => {
