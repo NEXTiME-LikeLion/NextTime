@@ -37,10 +37,7 @@ const getMascotByTheme = (theme) => {
   }
 };
 
-const getSheetValue = (key, goalData) => {
-  if (key === "nextMe") return goalData?.futureSelf || "";
-  return goalData?.[key] || "";
-};
+const getSheetValue = (key, goalData) => goalData?.[key] || "";
 
 const fetchNextMe = async () => {
   console.log("나의 목표를 조회합니다.");
@@ -186,7 +183,7 @@ const GoalPage = () => {
               <S.SectionLabel>나의 NEXT ME</S.SectionLabel>
               <S.NextMeCard>
                 <S.NextMeLabel>NEXT ME</S.NextMeLabel>
-                <S.NextMeText>{data.headline}</S.NextMeText>
+                <S.NextMeText>{data.nextMe}</S.NextMeText>
 
                 <S.NextMeSubLabel>내가 남긴 말</S.NextMeSubLabel>
                 <S.NextMeSubText>{data.leftMessage}</S.NextMeSubText>
