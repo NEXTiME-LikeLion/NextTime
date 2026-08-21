@@ -1,7 +1,5 @@
 # NEXTiME
 
-**흡연 욕구를 행동으로 전환하는 맞춤형 AI 금연 보조 매니저**
-
 <img width="1920" height="1080" alt="01 표지" src="https://github.com/user-attachments/assets/a37f8ec8-3037-4235-a1af-d42ead8a19cc" />
 
 
