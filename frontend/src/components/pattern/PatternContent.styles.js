@@ -1,25 +1,297 @@
 import styled from "styled-components";
 
-export const Container = styled.div`
+export const Cards = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+`;
+
+export const Card = styled.section`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: ${({ theme }) => theme.colors.white};
+  box-shadow: 0 0 3.75rem 0.1875rem rgba(0, 185, 107, 0.04);
+`;
+
+const ClickableCard = styled(Card).attrs({
+  as: "button",
+  type: "button",
+})`
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+`;
+
+export const ChangeCard = styled(ClickableCard)`
+  gap: 1rem;
+  padding: 1rem 1.0625rem;
+`;
+
+export const TimeCard = styled(ClickableCard)`
+  gap: 0.25rem;
+  align-items: center;
+  padding: 1rem 1.25rem;
+`;
+
+export const SituationCard = styled(ClickableCard)`
+  min-height: 15.5rem;
+  padding: 1rem 1.25rem 1rem;
+`;
+
+export const ActionCard = styled(ClickableCard)`
+  gap: 0.5rem;
+  align-items: center;
+  padding: 1rem 1.25rem;
+`;
+
+export const CardHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+`;
+
+export const CardHeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+export const Label = styled.p`
+  color: ${({ theme }) => theme.colors.gray};
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+`;
+
+export const HighlightValue = styled.p`
+  color: #00b96b;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.4;
+`;
+
+export const Title = styled.p`
+  color: ${({ theme }) => theme.colors.bg_black};
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.4;
+`;
+
+export const Caption = styled.p`
+  color: ${({ theme }) => theme.colors.gray};
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+`;
+
+export const TipBox = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(178, 178, 178, 0.1);
+`;
+
+export const TipText = styled.p`
+  color: #00b96b;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+`;
+
+export const PeakBadge = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.75rem;
+  background: #e8faf1;
+  color: #00b96b;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+`;
+
+export const Chart = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 19.5625rem;
+`;
+
+export const Bars = styled.div`
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 0.25rem;
+`;
+
+export const Bar = styled.div`
+  width: 1rem;
+  height: ${({ $height }) => `${$height / 16}rem`};
+  border-radius: 0.4375rem;
+  background: ${({ $peak, theme }) =>
+    $peak ? theme.colors.primary : "#dde5e1"};
+  flex-shrink: 0;
+`;
+
+export const Axis = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+export const AxisLabel = styled.span`
+  width: 1.5rem;
+  color: ${({ $peak }) => ($peak ? "#00b96b" : "#8b9490")};
+  font-size: 0.75rem;
+  font-weight: ${({ $peak }) => ($peak ? 700 : 400)};
+  line-height: 1.4;
+  text-align: center;
+`;
+
+export const GaugeBlock = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 0.25rem;
+`;
+
+export const GaugeSvg = styled.svg`
+  display: block;
+  width: 11.25rem;
+  height: 6.25rem;
+`;
+
+export const GaugeCenter = styled.div`
+  position: absolute;
+  top: 2.4rem;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+`;
+
+export const GaugePercent = styled.p`
+  color: #00b96b;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+`;
+
+export const GaugeRank = styled.p`
+  color: #7c8581;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.4;
+`;
+
+export const RankRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.125rem;
+  width: 100%;
+  margin-top: 0.75rem;
+`;
+
+export const RankPill = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 9.25rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(178, 178, 178, 0.1);
+  color: #7c8581;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  white-space: nowrap;
+`;
+
+export const RankOrder = styled.span`
+  font-weight: 400;
+`;
+
+export const RankName = styled.span`
+  font-weight: 600;
+`;
+
+export const RankValue = styled.span`
+  font-weight: 400;
+`;
+
+export const ActionList = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+`;
+
+export const ActionItem = styled.div`
+  display: flex;
   flex: 1;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-  min-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  height: 10.25rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: ${({ $first }) =>
+    $first ? "rgba(0, 213, 121, 0.06)" : "rgba(178, 178, 178, 0.1)"};
+`;
 
-  /* 두 번째 자식부터 모두 */
-  & > * + * {
-    padding-top: 1.25rem;
-    padding-bottom: 1.75rem;
-  }
+export const ActionImageBox = styled.div`
+  width: 4.5rem;
+  height: ${({ $height }) => `${$height / 16}rem`};
+  overflow: hidden;
+  flex-shrink: 0;
+`;
 
-  /* 마지막 자식 빼고 모두 */
-  & > *:not(:last-child) {
-    border-bottom: 1px solid rgba(178, 178, 178, 0.2);
-  }
+export const ActionImage = styled.img`
+  display: block;
+  width: 4.5rem;
+  height: ${({ $height }) => `${$height / 16}rem`};
+  object-fit: contain;
+`;
 
-  & > *:last-child {
-    padding-bottom: 0;
-  }
+export const ActionMeta = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  color: ${({ $first, theme }) => ($first ? theme.colors.primary : "#7c8581")};
+  font-size: 0.75rem;
+  line-height: 1.4;
+  white-space: nowrap;
+`;
+
+export const ActionRank = styled.p`
+  font-weight: 400;
+`;
+
+export const ActionName = styled.p`
+  font-weight: ${({ $first }) => ($first ? 700 : 400)};
 `;
