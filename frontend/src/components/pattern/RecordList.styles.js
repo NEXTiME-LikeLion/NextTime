@@ -24,6 +24,7 @@ export const RecordItem = styled.button`
   gap: 0.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid rgba(178, 178, 178, 0.2);
+  cursor: pointer;
 `;
 
 export const RecordTitle = styled.p`
