@@ -136,8 +136,9 @@ export const ProgressBar = styled.div`
 
 export const ProgressFill = styled.div`
   height: 100%;
-  width: 43.2%;
-  border-radius: 6.25rem 0 0 6.25rem;
+  width: ${({ $ratio }) => `${Math.min(Math.max($ratio, 0), 1) * 100}%`};
+  border-radius: ${({ $ratio }) =>
+    $ratio >= 1 ? "6.25rem" : "6.25rem 0 0 6.25rem"};
   background: ${({ theme }) => theme.colors.primary};
 `;
 

@@ -1,7 +1,14 @@
 import * as S from "./PatternHero.styles";
 import mascot from "../../assets/mascot.webp";
+import { REQUIRED_PATTERN_RECORDS } from "./patternReport";
 
-function PatternHero({ isPreparing = false }) {
+function PatternHero({
+  isPreparing = false,
+  recordCount = 0,
+  weeklyLabel = "1.4개비 ↓",
+}) {
+  const ratio = recordCount / REQUIRED_PATTERN_RECORDS;
+
   return (
     <S.Hero>
       <S.TitleRow>
@@ -17,15 +24,17 @@ function PatternHero({ isPreparing = false }) {
           </S.PreparingMessage>
           <S.ProgressBlock>
             <S.ProgressBar>
-              <S.ProgressFill />
+              <S.ProgressFill $ratio={ratio} />
             </S.ProgressBar>
-            <S.ProgressText>현재 기록 2 / 5</S.ProgressText>
+            <S.ProgressText>
+              현재 기록 {recordCount} / {REQUIRED_PATTERN_RECORDS}
+            </S.ProgressText>
           </S.ProgressBlock>
         </S.PreparingCard>
       ) : (
         <S.WeeklyMetric>
           <S.WeeklyLabel>이번 주 감연</S.WeeklyLabel>
-          <S.WeeklyValue>1.4개비 ↓</S.WeeklyValue>
+          <S.WeeklyValue>{weeklyLabel}</S.WeeklyValue>
         </S.WeeklyMetric>
       )}
     </S.Hero>
