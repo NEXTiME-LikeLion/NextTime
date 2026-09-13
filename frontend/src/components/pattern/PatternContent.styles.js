@@ -17,9 +17,17 @@ export const Card = styled.section`
   box-shadow: 0 0 3.75rem 0.1875rem rgba(0, 185, 107, 0.04);
 `;
 
-export const ChangeCard = styled(Card)`
+export const ChangeCard = styled(Card).attrs({
+  as: "button",
+  type: "button",
+})`
   gap: 1rem;
   padding: 1rem 1.0625rem;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
 `;
 
 export const TimeCard = styled(Card)`

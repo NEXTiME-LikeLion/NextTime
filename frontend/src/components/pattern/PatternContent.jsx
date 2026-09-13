@@ -34,7 +34,7 @@ function SuccessGauge({ percent }) {
   );
 }
 
-function PatternContent({ report }) {
+function PatternContent({ report, onChangeCardClick }) {
   if (!report) return null;
 
   const peakStart = Number.parseInt(report.peakSlot, 10);
@@ -44,7 +44,10 @@ function PatternContent({ report }) {
 
   return (
     <S.Cards>
-      <S.ChangeCard>
+      <S.ChangeCard
+        onClick={onChangeCardClick}
+        aria-label="흡연량 변화 자세히 보기"
+      >
         <S.CardHeader>
           <S.Label>흡연량 변화</S.Label>
           <S.HighlightValue>{report.reductionLabel}</S.HighlightValue>

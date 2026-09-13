@@ -29,6 +29,7 @@ export const Handle = styled.div`
   border-radius: 6.25rem;
   background: rgba(217, 217, 217, 0.6);
   position: absolute;
-  left: 10.3125rem;
+  left: 50%;
   top: 1.0625rem;
+  transform: translateX(-50%);
 `;

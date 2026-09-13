@@ -1,5 +1,7 @@
+import { useState } from "react";
 import PatternHero from "../components/pattern/PatternHero";
 import PatternContent from "../components/pattern/PatternContent";
+import ReductionChangeSheet from "../components/pattern/ReductionChangeSheet";
 import heroBackground from "../assets/pattern/hero-background.png";
 import emptyBackground from "../assets/pattern/empty-background.png";
 import useAsync from "../hooks/useAsync";
@@ -16,10 +18,10 @@ function PatternPage() {
     getRecords(REQUIRED_PATTERN_RECORDS),
   );
   useRefetchOnVisit(refetch);
+  const [isChangeSheetOpen, setIsChangeSheetOpen] = useState(false);
 
   const recordCount = data?.records?.length ?? 0;
-  // const isPreparing = recordCount < REQUIRED_PATTERN_RECORDS;
-  const isPreparing = true;
+  const isPreparing = recordCount < REQUIRED_PATTERN_RECORDS;
 
   if (isLoading && !data) return null;
 
@@ -45,11 +47,19 @@ function PatternPage() {
         {isPreparing ? null : (
           <S.ReportStage>
             <S.ReportBackdrop>
-              <PatternContent report={READY_PATTERN_REPORT} />
+              <PatternContent
+                report={READY_PATTERN_REPORT}
+                onChangeCardClick={() => setIsChangeSheetOpen(true)}
+              />
             </S.ReportBackdrop>
           </S.ReportStage>
         )}
       </S.ScrollBody>
+      <ReductionChangeSheet
+        isOpen={isChangeSheetOpen}
+        onClose={() => setIsChangeSheetOpen(false)}
+        report={READY_PATTERN_REPORT}
+      />
     </S.Screen>
   );
 }
