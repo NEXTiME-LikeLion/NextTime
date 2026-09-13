@@ -1,18 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import * as S from "./RecentRecordsSection.styles";
-import RecordList from "../RecordList";
-import { SectionTitle } from "./RecentChangeSection.styles";
-import { Section } from "./HelpfulActionSection.styles";
-import { mapRecordListItem } from "../mapRecordItem";
+import RecordList from "../pattern/RecordList";
+import { mapRecordListItem } from "../pattern/mapRecordItem";
 
-function RecentRecordsSection({ records = [] }) {
+function RecentRecordsSection({ records = [], onRecordClick }) {
   const navigate = useNavigate();
   const recordList = records.map(mapRecordListItem);
 
   return (
-    <Section>
+    <S.Section>
       <S.SectionHeader>
-        <SectionTitle>최근 기록</SectionTitle>
+        <S.SectionTitle>최근 기록</S.SectionTitle>
         <S.ViewAllButton
           type="button"
           onClick={() => navigate("/pattern/records")}
@@ -21,8 +19,10 @@ function RecentRecordsSection({ records = [] }) {
         </S.ViewAllButton>
       </S.SectionHeader>
 
-      {recordList.length > 0 ? <RecordList recordList={recordList} /> : null}
-    </Section>
+      {recordList.length > 0 ? (
+        <RecordList recordList={recordList} onClick={onRecordClick} />
+      ) : null}
+    </S.Section>
   );
 }
 

@@ -2,7 +2,6 @@ import * as S from "./PatternContent.styles";
 import RecentChangeSection from "./sections/RecentChangeSection";
 import HelpfulActionSection from "./sections/HelpfulActionSection";
 import MemorableMomentSection from "./sections/MemorableMomentSection";
-import RecentRecordsSection from "./sections/RecentRecordsSection";
 
 function PatternContent({ overview }) {
   const {
@@ -10,7 +9,6 @@ function PatternContent({ overview }) {
     behaviorChange,
     effectiveActions = [],
     frequentTriggers = [],
-    recentRecords = [],
   } = overview ?? {};
 
   return (
@@ -27,7 +25,6 @@ function PatternContent({ overview }) {
           topTimeSlot={insight?.topTimeSlot}
         />
       ) : null}
-      <RecentRecordsSection records={recentRecords} />
     </S.Container>
   );
 }
