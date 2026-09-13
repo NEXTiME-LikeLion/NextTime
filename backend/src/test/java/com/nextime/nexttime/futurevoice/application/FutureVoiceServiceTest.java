@@ -2,6 +2,7 @@ package com.nextime.nexttime.futurevoice.application;
 
 import com.nextime.ai.nextme.domain.NextMeGeneration;
 import com.nextime.ai.nextme.domain.NextMeGenerationRepository;
+import com.nextime.ai.nextme.domain.NextBudTheme;
 import com.nextime.common.error.BusinessException;
 import com.nextime.nexttime.domain.FutureVoiceSource;
 import com.nextime.nexttime.domain.NextTimeSession;
@@ -77,6 +78,7 @@ class FutureVoiceServiceTest {
 
         assertThat(response.source()).isEqualTo(FutureVoiceSource.AI);
         assertThat(response.futureHook()).contains("달릴 거잖아");
+        assertThat(response.nextBudTheme()).isEqualTo(NextBudTheme.NEXTBUD_HEALTH_01);
         assertThat(response.generatedAt()).isNotNull();
         ArgumentCaptor<FutureVoicePromptInput> captor = ArgumentCaptor.forClass(FutureVoicePromptInput.class);
         verify(aiClient).generate(captor.capture());
@@ -172,6 +174,7 @@ class FutureVoiceServiceTest {
         when(generation.getDecisionTrigger()).thenReturn("건강을 위해 바꾸기로 했다");
         when(generation.getFutureSelf()).thenReturn("오래 달리는 나");
         when(generation.getMessageToFutureSelf()).thenReturn("이번에는 나한테 3분만 먼저 줘.");
+        when(generation.getNextBudTheme()).thenReturn(NextBudTheme.NEXTBUD_HEALTH_01);
         return generation;
     }
 }

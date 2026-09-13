@@ -33,7 +33,8 @@ public class FutureVoiceService {
                     result.futureHook(),
                     result.acknowledge(),
                     result.futureReason(),
-                    result.closing()
+                    result.closing(),
+                    prepared.response().nextBudTheme()
             );
         } catch (RuntimeException exception) {
             log.warn("NEXT TIME 미래의 목소리 생성 실패. 저장된 기본 문구를 유지합니다: {}", exception.getMessage());

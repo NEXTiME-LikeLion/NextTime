@@ -1,5 +1,6 @@
 package com.nextime.nexttime.futurevoice.application;
 
+import com.nextime.ai.nextme.domain.NextBudTheme;
 import com.nextime.ai.nextme.domain.NextMeGeneration;
 import com.nextime.ai.nextme.domain.NextMeGenerationRepository;
 import com.nextime.common.error.BusinessException;
@@ -35,13 +36,22 @@ class FutureVoicePersistenceService {
     @Transactional
     public PreparedFutureVoice prepareFallback(UUID userId, UUID sessionId) {
         NextTimeSession session = findOwnedSession(userId, sessionId);
+
         if (session.getFutureVoiceSource() != null) {
-            return new PreparedFutureVoice(FutureVoiceResponse.from(session), null, false);
+            NextBudTheme nextBudTheme = findLatestNextMe(userId).getNextBudTheme();
+
+            return new PreparedFutureVoice(
+                    FutureVoiceResponse.from(session, nextBudTheme),
+                    null,
+                    false
+            );
         }
+
         if (session.getStatus() != CONTEXT_SAVED) {
             String message = session.getStatus() == CREATED
                     ? "현재 상황을 먼저 저장해 주세요."
                     : "현재 상태에서는 미래의 목소리를 생성할 수 없습니다.";
+
             throw new BusinessException(ErrorCode.CONFLICT, message);
         }
 
@@ -50,16 +60,19 @@ class FutureVoicePersistenceService {
                         ErrorCode.CONFLICT,
                         "온보딩을 먼저 완료해 주세요."
                 ));
+
         if (profile.getGoal() == null) {
-            throw new BusinessException(ErrorCode.CONFLICT, "온보딩을 먼저 완료해 주세요.");
+            throw new BusinessException(
+                    ErrorCode.CONFLICT,
+                    "온보딩을 먼저 완료해 주세요."
+            );
         }
-        NextMeGeneration nextMe = nextMeGenerationRepository.findFirstByUserIdOrderByCreatedAtDesc(userId)
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.CONFLICT,
-                        "NEXT ME를 먼저 생성해 주세요."
-                ));
+
+        NextMeGeneration nextMe = findLatestNextMe(userId);
+        NextBudTheme nextBudTheme = nextMe.getNextBudTheme();
 
         String acknowledge = fallbackAcknowledge(session);
+
         session.saveFutureVoice(
                 truncate(nextMe.getHeadline()),
                 acknowledge,
@@ -71,6 +84,7 @@ class FutureVoicePersistenceService {
 
         String trigger = session.contextOf(SmokingContextType.TRIGGER).getName();
         String location = session.contextOf(SmokingContextType.LOCATION).getName();
+
         FutureVoicePromptInput input = new FutureVoicePromptInput(
                 cravingLabel(session),
                 location,
@@ -81,7 +95,12 @@ class FutureVoicePersistenceService {
                 nextMe.getFutureSelf(),
                 nextMe.getMessageToFutureSelf()
         );
-        return new PreparedFutureVoice(FutureVoiceResponse.from(session), input, true);
+
+        return new PreparedFutureVoice(
+                FutureVoiceResponse.from(session, nextBudTheme),
+                input,
+                true
+        );
     }
 
     @Transactional
@@ -91,9 +110,11 @@ class FutureVoicePersistenceService {
             String hook,
             String acknowledge,
             String reason,
-            String closing
+            String closing,
+            NextBudTheme nextBudTheme
     ) {
         NextTimeSession session = findOwnedSession(userId, sessionId);
+
         session.replaceFutureVoice(
                 truncate(hook),
                 truncate(acknowledge),
@@ -101,7 +122,17 @@ class FutureVoicePersistenceService {
                 truncate(closing),
                 FutureVoiceSource.AI
         );
-        return FutureVoiceResponse.from(session);
+
+        return FutureVoiceResponse.from(session, nextBudTheme);
+    }
+
+    private NextMeGeneration findLatestNextMe(UUID userId) {
+        return nextMeGenerationRepository
+                .findFirstByUserIdOrderByCreatedAtDesc(userId)
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.CONFLICT,
+                        "NEXT ME를 먼저 생성해 주세요."
+                ));
     }
 
     private NextTimeSession findOwnedSession(UUID userId, UUID sessionId) {

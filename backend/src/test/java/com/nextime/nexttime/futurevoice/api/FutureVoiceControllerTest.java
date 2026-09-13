@@ -1,5 +1,6 @@
 package com.nextime.nexttime.futurevoice.api;
 
+import com.nextime.ai.nextme.domain.NextBudTheme;
 import com.nextime.common.config.WebConfig;
 import com.nextime.common.error.GlobalExceptionHandler;
 import com.nextime.nexttime.futurevoice.application.FutureVoiceService;
@@ -62,6 +63,7 @@ class FutureVoiceControllerTest {
                 .andExpect(jsonPath("$.data.sessionId").value(SESSION_ID.toString()))
                 .andExpect(jsonPath("$.data.status").value("CONTEXT_SAVED"))
                 .andExpect(jsonPath("$.data.futureHook").value("나 오늘 저녁에도 달릴 거잖아"))
+                .andExpect(jsonPath("$.data.nextBudTheme").value("NEXTBUD_HEALTH_01"))
                 .andExpect(jsonPath("$.data.source").value("AI"));
     }
 
@@ -79,6 +81,7 @@ class FutureVoiceControllerTest {
                 "지금 한 대가 너무 당기는 거 알아",
                 "몇 시간 뒤의 나는 숨이 차서 멈추고 싶지 않아.",
                 "이번 한 번만, 나를 먼저 선택해줘",
+                NextBudTheme.NEXTBUD_HEALTH_01,
                 FutureVoiceSource.AI,
                 Instant.parse("2026-08-17T00:00:00Z")
         );
