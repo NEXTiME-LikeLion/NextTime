@@ -2,6 +2,9 @@ import { useState } from "react";
 import PatternHero from "../components/pattern/PatternHero";
 import PatternContent from "../components/pattern/PatternContent";
 import ReductionChangeSheet from "../components/pattern/ReductionChangeSheet";
+import SmokingTimeSheet from "../components/pattern/SmokingTimeSheet";
+import EasySituationSheet from "../components/pattern/EasySituationSheet";
+import HelpfulActionSheet from "../components/pattern/HelpfulActionSheet";
 import heroBackground from "../assets/pattern/hero-background.png";
 import emptyBackground from "../assets/pattern/empty-background.png";
 import useAsync from "../hooks/useAsync";
@@ -18,10 +21,11 @@ function PatternPage() {
     getRecords(REQUIRED_PATTERN_RECORDS),
   );
   useRefetchOnVisit(refetch);
-  const [isChangeSheetOpen, setIsChangeSheetOpen] = useState(false);
+  const [openSheet, setOpenSheet] = useState(null);
 
   const recordCount = data?.records?.length ?? 0;
   const isPreparing = recordCount < REQUIRED_PATTERN_RECORDS;
+  const closeSheet = () => setOpenSheet(null);
 
   if (isLoading && !data) return null;
 
@@ -49,15 +53,33 @@ function PatternPage() {
             <S.ReportBackdrop>
               <PatternContent
                 report={READY_PATTERN_REPORT}
-                onChangeCardClick={() => setIsChangeSheetOpen(true)}
+                onChangeCardClick={() => setOpenSheet("change")}
+                onTimeCardClick={() => setOpenSheet("time")}
+                onSituationCardClick={() => setOpenSheet("situation")}
+                onActionCardClick={() => setOpenSheet("action")}
               />
             </S.ReportBackdrop>
           </S.ReportStage>
         )}
       </S.ScrollBody>
       <ReductionChangeSheet
-        isOpen={isChangeSheetOpen}
-        onClose={() => setIsChangeSheetOpen(false)}
+        isOpen={openSheet === "change"}
+        onClose={closeSheet}
+        report={READY_PATTERN_REPORT}
+      />
+      <SmokingTimeSheet
+        isOpen={openSheet === "time"}
+        onClose={closeSheet}
+        report={READY_PATTERN_REPORT}
+      />
+      <EasySituationSheet
+        isOpen={openSheet === "situation"}
+        onClose={closeSheet}
+        report={READY_PATTERN_REPORT}
+      />
+      <HelpfulActionSheet
+        isOpen={openSheet === "action"}
+        onClose={closeSheet}
         report={READY_PATTERN_REPORT}
       />
     </S.Screen>

@@ -17,12 +17,10 @@ export const Card = styled.section`
   box-shadow: 0 0 3.75rem 0.1875rem rgba(0, 185, 107, 0.04);
 `;
 
-export const ChangeCard = styled(Card).attrs({
+const ClickableCard = styled(Card).attrs({
   as: "button",
   type: "button",
 })`
-  gap: 1rem;
-  padding: 1rem 1.0625rem;
   border: none;
   text-align: left;
   cursor: pointer;
@@ -30,18 +28,23 @@ export const ChangeCard = styled(Card).attrs({
   color: inherit;
 `;
 
-export const TimeCard = styled(Card)`
+export const ChangeCard = styled(ClickableCard)`
+  gap: 1rem;
+  padding: 1rem 1.0625rem;
+`;
+
+export const TimeCard = styled(ClickableCard)`
   gap: 0.25rem;
   align-items: center;
   padding: 1rem 1.25rem;
 `;
 
-export const SituationCard = styled(Card)`
+export const SituationCard = styled(ClickableCard)`
   min-height: 15.5rem;
   padding: 1rem 1.25rem 1rem;
 `;
 
-export const ActionCard = styled(Card)`
+export const ActionCard = styled(ClickableCard)`
   gap: 0.5rem;
   align-items: center;
   padding: 1rem 1.25rem;

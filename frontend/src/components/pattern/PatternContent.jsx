@@ -34,7 +34,13 @@ function SuccessGauge({ percent }) {
   );
 }
 
-function PatternContent({ report, onChangeCardClick }) {
+function PatternContent({
+  report,
+  onChangeCardClick,
+  onTimeCardClick,
+  onSituationCardClick,
+  onActionCardClick,
+}) {
   if (!report) return null;
 
   const peakStart = Number.parseInt(report.peakSlot, 10);
@@ -58,7 +64,7 @@ function PatternContent({ report, onChangeCardClick }) {
         </S.TipBox>
       </S.ChangeCard>
 
-      <S.TimeCard>
+      <S.TimeCard onClick={onTimeCardClick} aria-label="흡연 시간대 자세히 보기">
         <S.CardHeader>
           <S.CardHeaderRow>
             <S.Label>흡연 시간대</S.Label>
@@ -86,7 +92,10 @@ function PatternContent({ report, onChangeCardClick }) {
         </S.Chart>
       </S.TimeCard>
 
-      <S.SituationCard>
+      <S.SituationCard
+        onClick={onSituationCardClick}
+        aria-label="감연하기 쉬운 상황 자세히 보기"
+      >
         <S.CardHeader>
           <S.Label>감연하기 쉬운 상황</S.Label>
           <S.Title>{report.situation}</S.Title>
@@ -103,7 +112,10 @@ function PatternContent({ report, onChangeCardClick }) {
         </S.RankRow>
       </S.SituationCard>
 
-      <S.ActionCard>
+      <S.ActionCard
+        onClick={onActionCardClick}
+        aria-label="감연에 도움이 된 추천 행동 자세히 보기"
+      >
         <S.CardHeader>
           <S.Label>감연에 도움이 된 추천 행동</S.Label>
           <S.Title>{report.actions[0]?.name}</S.Title>
