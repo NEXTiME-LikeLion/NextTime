@@ -1,118 +1,39 @@
 package com.nextime.pattern.api;
 
-import com.nextime.nexttime.domain.CravingAfter;
-import com.nextime.nexttime.domain.CravingBefore;
-import com.nextime.nexttime.domain.CravingChange;
-import com.nextime.nexttime.domain.NextTimeResult;
-import com.nextime.smokingrecord.api.RecordDetailResponse.RecordType;
-
+import java.time.DayOfWeek;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 public record PatternOverviewResponse(
-        Period period,
-        DataStatus dataStatus,
-        int recentResultCount,
-        Insight insight,
-        BehaviorChange behaviorChange,
-        List<EffectiveAction> effectiveActions,
-        List<ContextCount> frequentTriggers,
-        List<RecentRecord> recentRecords
+        DataStatus dataStatus, long completedResultCount, int requiredResultCount, Period period,
+        SmokingAmount smokingAmount, SmokingTime smokingTime, ReductionBriefing reductionBriefing,
+        List<RankedContext> easyReductionContexts, List<RankedAction> effectiveActions,
+        List<ActionCatalogItem> actionCatalog
 ) {
-    public enum DataStatus {
-        AVAILABLE,
-        INSUFFICIENT
-    }
-
-    public enum ChangeDirection {
-        INCREASED,
-        DECREASED,
-        SAME,
-        NO_COMPARISON
-    }
-
-    public record Period(String value, Instant from, Instant to) {
-    }
-
-    public record Insight(
-            boolean patternReady,
-            String periodLabel,
-            ContextCount topTrigger,
-            ContextCount topLocation,
-            CravingBefore representativeCraving,
-            RecommendedAction recommendedAction,
-            ActionEvidence actionEvidence,
-            InsightMessages messages,
-            TimeSlot topTimeSlot
-    ) {
-        public Insight(ContextCount topTrigger, ContextCount topLocation, TimeSlot topTimeSlot) {
-            this(true, "최근 7일", topTrigger, topLocation, null, null, null, null, topTimeSlot);
-        }
-    }
-
-    public record RecommendedAction(UUID id, String code, String name) {
-    }
-
-    public record ActionEvidence(
-            long sampleCount,
-            long notImmediateSmokingCount,
-            String message
-    ) {
-    }
-
-    public record InsightMessages(
-            String mainPattern,
-            String frequency,
-            String representativeLocation,
-            String nextAction
-    ) {
-    }
-
-    public record ContextCount(UUID id, String code, String name, long count) {
-    }
-
-    public record TimeSlot(int startHour, int endHour, long count) {
-    }
-
-    public record BehaviorChange(
-            PeriodResult previousPeriod,
-            PeriodResult currentPeriod,
-            ChangeDirection change
-    ) {
-    }
-
-    public record PeriodResult(long totalCount, long avoidedImmediateSmokingCount) {
-    }
-
-    public record EffectiveAction(
-            UUID missionId,
-            String code,
-            String name,
-            long evaluationCount,
-            long helpfulCount,
-            double helpfulRate,
-            long resultCount,
-            long avoidedImmediateSmokingCount
-    ) {
-    }
-
-    public record RecentRecord(
-            UUID recordId,
-            RecordType recordType,
-            Instant recordedAt,
-            ContextSummary trigger,
-            MissionSummary mission,
-            NextTimeResult result,
-            CravingBefore cravingBefore,
-            CravingAfter cravingAfter,
-            CravingChange cravingChange
-    ) {
-    }
-
-    public record ContextSummary(UUID id, String code, String name) {
-    }
-
-    public record MissionSummary(UUID id, String code, String name) {
-    }
+    public enum DataStatus { AVAILABLE, INSUFFICIENT }
+    public enum ChangeDirection { INCREASED, DECREASED, SAME, NO_COMPARISON }
+    public record Period(String timezone, Instant currentFrom, Instant currentTo,
+                         Instant previousFrom, Instant previousTo) {}
+    public record SmokingAmount(boolean comparisonAvailable, int currentTrackedDayCount,
+                                int previousTrackedDayCount, double currentDailyAverage,
+                                Double previousDailyAverage, Double reducedDailyAverage,
+                                ChangeDirection direction, String comparisonMessage,
+                                List<DailySmokingCount> dailyCounts) {}
+    public record DailySmokingCount(LocalDate date, DayOfWeek dayOfWeek, boolean tracked, Long count) {}
+    public record SmokingTime(boolean comparisonAvailable, TimeSlot previousPrimarySlot,
+                              TimeSlot currentPrimarySlot, List<TimeSlot> currentSlots,
+                              List<DailyPrimaryHour> dailyPrimaryHours, String comparisonMessage) {}
+    public record TimeSlot(int startHour, int endHour, long count) {}
+    public record DailyPrimaryHour(LocalDate date, DayOfWeek dayOfWeek, Integer hour, long count) {}
+    public record ContextSummary(UUID id, String code, String name) {}
+    public record MissionSummary(UUID id, String code, String name) {}
+    public record ReductionBriefing(ContextSummary context, MissionSummary recommendedAction, String message) {}
+    public record RankedContext(int rank, ContextSummary context, long successCount,
+                                long totalCount, double successRatePercent) {}
+    public record RankedAction(int rank, MissionSummary mission, long successCount,
+                               long totalCount, double successRatePercent) {}
+    public record ActionCatalogItem(UUID missionId, String code, String name,
+                                    boolean active, short displayOrder) {}
 }

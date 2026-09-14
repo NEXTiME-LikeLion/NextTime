@@ -3,9 +3,8 @@ package com.nextime.pattern.application;
 import com.nextime.common.error.BusinessException;
 import com.nextime.common.error.ErrorCode;
 import com.nextime.mission.domain.Mission;
-import com.nextime.nexttime.domain.CravingBefore;
+import com.nextime.mission.domain.MissionRepository;
 import com.nextime.nexttime.domain.CravingChange;
-import com.nextime.nexttime.domain.MissionHelpfulness;
 import com.nextime.nexttime.domain.NextTimeResult;
 import com.nextime.nexttime.domain.NextTimeSession;
 import com.nextime.nexttime.domain.NextTimeSessionRepository;
@@ -14,26 +13,19 @@ import com.nextime.pattern.api.PatternOverviewResponse;
 import com.nextime.pattern.api.PatternOverviewResponse.*;
 import com.nextime.smokingcontext.domain.SmokingContext;
 import com.nextime.smokingcontext.domain.SmokingContextType;
-import com.nextime.smokingrecord.api.RecordDetailResponse.RecordType;
 import com.nextime.smokingrecord.domain.SmokingRecord;
 import com.nextime.smokingrecord.domain.SmokingRecordRepository;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.*;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.nextime.nexttime.domain.NextTimeSessionStatus.RESULT_RECORDED;
@@ -41,576 +33,239 @@ import static com.nextime.nexttime.domain.NextTimeSessionStatus.RESULT_RECORDED;
 @Service
 @RequiredArgsConstructor
 public class PatternOverviewService {
-
-    private static final String SUPPORTED_PERIOD = "7d";
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
-    private static final int MINIMUM_PATTERN_RECORD_COUNT = 5;
-    private static final int EFFECTIVE_ACTION_LIMIT = 2;
-    private static final int FREQUENT_TRIGGER_LIMIT = 3;
-    private static final int RECENT_RECORD_LIMIT = 3;
+    private static final int REQUIRED_RESULT_COUNT = 5;
+    private static final int MINIMUM_RANKING_SAMPLE = 3;
+    private static final int DETAIL_RANKING_LIMIT = 6;
 
     private final UserRepository userRepository;
     private final NextTimeSessionRepository sessionRepository;
     private final SmokingRecordRepository smokingRecordRepository;
+    private final MissionRepository missionRepository;
     private final MissionRecommendationService recommendationService;
 
     @Transactional(readOnly = true)
     public PatternOverviewResponse getOverview(UUID userId) {
         validateUser(userId);
-
         PeriodWindows windows = PeriodWindows.now();
-        List<NextTimeSession> recentThirtyDayResults =
-                sessionRepository.findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualOrderByResultRecordedAtDesc(
-                        userId,
-                        RESULT_RECORDED,
-                        windows.thirtyDayStart()
-                );
-        List<NextTimeSession> recentThirtyDaySessions =
-                sessionRepository.findByUser_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
-                        userId,
-                        windows.thirtyDayStart()
-                );
-        PatternTarget patternTarget = selectPatternTarget(userId, recentThirtyDaySessions, windows);
-        List<NextTimeSession> current = inResultWindow(
-                recentThirtyDayResults,
-                windows.currentStart(),
-                windows.currentEnd()
-        );
-        List<NextTimeSession> previous = inResultWindow(
-                recentThirtyDayResults,
-                windows.previousStart(),
-                windows.currentStart()
-        );
+        long completedCount = sessionRepository.countByUser_IdAndStatus(userId, RESULT_RECORDED);
+        List<ActionCatalogItem> catalog = buildActionCatalog();
 
-        if (patternTarget.sessions().size() < MINIMUM_PATTERN_RECORD_COUNT) {
-            return insufficientOverview(windows, patternTarget.sessions().size());
+        if (completedCount < REQUIRED_RESULT_COUNT) {
+            return new PatternOverviewResponse(
+                    DataStatus.INSUFFICIENT, completedCount, REQUIRED_RESULT_COUNT, windows.toResponse(),
+                    null, null, null, List.of(), List.of(), catalog
+            );
         }
 
+        PeriodData current = loadPeriod(userId, windows.currentStart(), windows.currentEnd());
+        PeriodData previous = loadPeriod(userId, windows.previousStart(), windows.previousEnd());
+        boolean comparisonAvailable = current.trackedDays().size() >= 3 && previous.trackedDays().size() >= 3;
+        List<RankedContext> contexts = rankContexts(current.sessions());
+        List<RankedAction> actions = rankActions(current.sessions());
+
         return new PatternOverviewResponse(
-                new Period(SUPPORTED_PERIOD, windows.currentStart(), windows.currentEnd()),
-                DataStatus.AVAILABLE,
-                patternTarget.sessions().size(),
-                buildInsight(userId, patternTarget, recentThirtyDayResults),
-                buildBehaviorChange(current, previous),
-                buildEffectiveActions(recentThirtyDayResults),
-                rankContexts(patternTarget.sessions(), SmokingContextType.TRIGGER, FREQUENT_TRIGGER_LIMIT),
-                findRecentRecords(userId)
+                DataStatus.AVAILABLE, completedCount, REQUIRED_RESULT_COUNT, windows.toResponse(),
+                buildSmokingAmount(current, previous, comparisonAvailable, windows.currentStartDate()),
+                buildSmokingTime(current.events(), previous.events(), comparisonAvailable, windows.currentStartDate()),
+                buildBriefing(userId, current.sessions(), contexts), contexts, actions, catalog
         );
     }
 
-    private PatternOverviewResponse insufficientOverview(PeriodWindows windows, int recentResultCount) {
-        return new PatternOverviewResponse(
-                new Period(SUPPORTED_PERIOD, windows.currentStart(), windows.currentEnd()),
-                DataStatus.INSUFFICIENT,
-                recentResultCount,
-                null,
-                null,
-                List.of(),
-                List.of(),
-                List.of()
-        );
+    private PeriodData loadPeriod(UUID userId, Instant from, Instant to) {
+        List<NextTimeSession> sessions = sessionRepository
+                .findByUser_IdAndStatusAndResultRecordedAtGreaterThanEqualAndResultRecordedAtLessThanOrderByResultRecordedAtDesc(
+                        userId, RESULT_RECORDED, from, to);
+        List<SmokingRecord> manual = smokingRecordRepository
+                .findByUser_IdAndSmokedAtGreaterThanEqualAndSmokedAtLessThan(userId, from, to);
+        return new PeriodData(sessions, manual, buildSmokingEvents(sessions, manual), trackedDays(sessions, manual));
+    }
+
+    private List<SmokingEvent> buildSmokingEvents(List<NextTimeSession> sessions, List<SmokingRecord> manual) {
+        Stream<SmokingEvent> manualEvents = manual.stream().map(r -> new SmokingEvent(r.getSmokedAt()));
+        Stream<SmokingEvent> sessionEvents = sessions.stream()
+                .filter(s -> s.getResult() == NextTimeResult.SMOKED || s.getResult() == NextTimeResult.DELAYED)
+                .filter(s -> s.getResultRecordedAt() != null)
+                .map(s -> new SmokingEvent(s.getResultRecordedAt()));
+        return Stream.concat(manualEvents, sessionEvents).sorted(Comparator.comparing(SmokingEvent::at)).toList();
+    }
+
+    private Set<LocalDate> trackedDays(List<NextTimeSession> sessions, List<SmokingRecord> manual) {
+        return Stream.concat(
+                sessions.stream().map(NextTimeSession::getResultRecordedAt),
+                manual.stream().map(SmokingRecord::getSmokedAt)
+        ).filter(Objects::nonNull).map(i -> i.atZone(SERVICE_ZONE).toLocalDate()).collect(Collectors.toSet());
+    }
+
+    private SmokingAmount buildSmokingAmount(PeriodData current, PeriodData previous,
+                                               boolean comparable, LocalDate weekStart) {
+        double currentAverage = average(current.events().size(), current.trackedDays().size());
+        Double previousAverage = comparable ? average(previous.events().size(), previous.trackedDays().size()) : null;
+        Double reduction = comparable ? round(previousAverage - currentAverage) : null;
+        ChangeDirection direction = !comparable ? ChangeDirection.NO_COMPARISON
+                : reduction > 0 ? ChangeDirection.DECREASED
+                : reduction < 0 ? ChangeDirection.INCREASED : ChangeDirection.SAME;
+        String message = comparable
+                ? "지난주 평균 " + previousAverage + "개비에서 이번 주 평균 " + currentAverage + "개비로 "
+                + (direction == ChangeDirection.DECREASED ? "줄었어요." : direction == ChangeDirection.INCREASED ? "늘었어요." : "같아요.")
+                : null;
+        return new SmokingAmount(comparable, current.trackedDays().size(), previous.trackedDays().size(),
+                currentAverage, previousAverage, reduction, direction, message,
+                dailyCounts(weekStart, current.events(), current.trackedDays()));
+    }
+
+    private List<DailySmokingCount> dailyCounts(LocalDate weekStart, List<SmokingEvent> events,
+                                                 Set<LocalDate> trackedDays) {
+        Map<LocalDate, Long> counts = events.stream().collect(Collectors.groupingBy(
+                e -> e.at().atZone(SERVICE_ZONE).toLocalDate(), Collectors.counting()));
+        LocalDate today = LocalDate.now(SERVICE_ZONE);
+        return IntStream.range(0, 7).mapToObj(weekStart::plusDays).map(date -> {
+            boolean tracked = !date.isAfter(today) && trackedDays.contains(date);
+            return new DailySmokingCount(date, date.getDayOfWeek(), tracked,
+                    tracked ? counts.getOrDefault(date, 0L) : null);
+        }).toList();
+    }
+
+    private SmokingTime buildSmokingTime(List<SmokingEvent> current, List<SmokingEvent> previous,
+                                          boolean comparable, LocalDate weekStart) {
+        List<TimeSlot> slots = timeSlots(current);
+        TimeSlot currentPeak = primarySlot(slots);
+        TimeSlot previousPeak = comparable ? primarySlot(timeSlots(previous)) : null;
+        String message = comparable && currentPeak != null && previousPeak != null
+                ? "가장 많이 피운 시간대가 지난주 " + label(previousPeak) + "에서 이번 주 " + label(currentPeak) + "로 바뀌었어요."
+                : null;
+        return new SmokingTime(comparable, previousPeak, currentPeak, slots,
+                dailyPrimaryHours(weekStart, current), message);
+    }
+
+    private List<TimeSlot> timeSlots(List<SmokingEvent> events) {
+        Map<Integer, Long> counts = events.stream().collect(Collectors.groupingBy(
+                e -> (e.at().atZone(SERVICE_ZONE).getHour() / 3) * 3, Collectors.counting()));
+        return IntStream.range(0, 8).map(i -> i * 3)
+                .mapToObj(h -> new TimeSlot(h, h + 3, counts.getOrDefault(h, 0L))).toList();
+    }
+
+    private TimeSlot primarySlot(List<TimeSlot> slots) {
+        return slots.stream().filter(s -> s.count() > 0)
+                .max(Comparator.comparingLong(TimeSlot::count).thenComparingInt(TimeSlot::startHour)).orElse(null);
+    }
+
+    private List<DailyPrimaryHour> dailyPrimaryHours(LocalDate weekStart, List<SmokingEvent> events) {
+        Map<LocalDate, List<SmokingEvent>> byDate = events.stream().collect(Collectors.groupingBy(
+                e -> e.at().atZone(SERVICE_ZONE).toLocalDate()));
+        return IntStream.range(0, 7).mapToObj(weekStart::plusDays).map(date -> {
+            Map<Integer, Long> hours = byDate.getOrDefault(date, List.of()).stream().collect(Collectors.groupingBy(
+                    e -> e.at().atZone(SERVICE_ZONE).getHour(), Collectors.counting()));
+            var peak = hours.entrySet().stream().max(Map.Entry.<Integer, Long>comparingByValue()
+                    .thenComparing(Map.Entry.comparingByKey())).orElse(null);
+            return new DailyPrimaryHour(date, date.getDayOfWeek(), peak == null ? null : peak.getKey(),
+                    peak == null ? 0 : peak.getValue());
+        }).toList();
+    }
+
+    private List<RankedContext> rankContexts(List<NextTimeSession> sessions) {
+        Map<ContextIdentity, SuccessStat> stats = new HashMap<>();
+        for (NextTimeSession session : sessions) {
+            SmokingContext trigger = contextOrNull(session, SmokingContextType.TRIGGER);
+            if (trigger == null) continue;
+            SuccessStat stat = stats.computeIfAbsent(new ContextIdentity(trigger.getId(), trigger.getCode(), trigger.getName()), k -> new SuccessStat());
+            stat.add(session.getResult() == NextTimeResult.NOT_SMOKED || session.getResult() == NextTimeResult.DELAYED,
+                    session.getResultRecordedAt());
+        }
+        List<Map.Entry<ContextIdentity, SuccessStat>> ranked = rank(stats).stream().limit(DETAIL_RANKING_LIMIT).toList();
+        return IntStream.range(0, ranked.size()).mapToObj(i -> {
+            var e = ranked.get(i); var c = e.getKey(); var s = e.getValue();
+            return new RankedContext(i + 1, new ContextSummary(c.id(), c.code(), c.name()),
+                    s.success, s.total, percent(s));
+        }).toList();
+    }
+
+    private List<RankedAction> rankActions(List<NextTimeSession> sessions) {
+        Map<MissionIdentity, SuccessStat> stats = new HashMap<>();
+        for (NextTimeSession session : sessions) {
+            Mission mission = session.getRecommendedMission();
+            if (mission == null || session.getMissionCompletedAt() == null) continue;
+            CravingChange change = CravingChange.between(session.getCravingBefore(), session.getCravingAfter());
+            SuccessStat stat = stats.computeIfAbsent(new MissionIdentity(mission.getId(), session.getMissionCodeSnapshot(), session.getMissionNameSnapshot()), k -> new SuccessStat());
+            stat.add(change == CravingChange.DECREASED, session.getResultRecordedAt());
+        }
+        List<Map.Entry<MissionIdentity, SuccessStat>> ranked = rank(stats).stream().limit(DETAIL_RANKING_LIMIT).toList();
+        return IntStream.range(0, ranked.size()).mapToObj(i -> {
+            var e = ranked.get(i); var m = e.getKey(); var s = e.getValue();
+            return new RankedAction(i + 1, new MissionSummary(m.id(), m.code(), m.name()),
+                    s.success, s.total, percent(s));
+        }).toList();
+    }
+
+    private <K> List<Map.Entry<K, SuccessStat>> rank(Map<K, SuccessStat> stats) {
+        return stats.entrySet().stream().filter(e -> e.getValue().total >= MINIMUM_RANKING_SAMPLE)
+                .sorted(Comparator.<Map.Entry<K, SuccessStat>>comparingDouble(e -> e.getValue().rate()).reversed()
+                        .thenComparing(e -> e.getValue().total, Comparator.reverseOrder())
+                        .thenComparing(e -> e.getValue().latest, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+    }
+
+    private ReductionBriefing buildBriefing(UUID userId, List<NextTimeSession> sessions,
+                                              List<RankedContext> contexts) {
+        if (contexts.isEmpty()) return null;
+        UUID triggerId = contexts.getFirst().context().id();
+        NextTimeSession representative = sessions.stream()
+                .filter(s -> { SmokingContext c = contextOrNull(s, SmokingContextType.TRIGGER); return c != null && c.getId().equals(triggerId); })
+                .filter(s -> contextOrNull(s, SmokingContextType.LOCATION) != null && s.getCravingBefore() != null)
+                .findFirst().orElse(null);
+        if (representative == null) return null;
+        SmokingContext location = contextOrNull(representative, SmokingContextType.LOCATION);
+        SmokingContext trigger = contextOrNull(representative, SmokingContextType.TRIGGER);
+        Mission mission = recommendationService.preview(userId, location, trigger, representative.getCravingBefore()).mission();
+        MissionSummary action = new MissionSummary(mission.getId(), mission.getCode(), mission.getName());
+        return new ReductionBriefing(contexts.getFirst().context(), action,
+                "이번 주에는 " + trigger.getName() + " " + mission.getName() + "로 감연해보세요.");
+    }
+
+    private List<ActionCatalogItem> buildActionCatalog() {
+        return missionRepository.findAllByOrderByDisplayOrderAsc().stream()
+                .map(m -> new ActionCatalogItem(m.getId(), m.getCode(), m.getName(), m.isActive(), m.getDisplayOrder()))
+                .toList();
+    }
+
+    private SmokingContext contextOrNull(NextTimeSession session, SmokingContextType type) {
+        return session.getContexts().stream().filter(c -> c.getContextType() == type).findFirst().orElse(null);
     }
 
     private void validateUser(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_REGISTERED));
-        if (!user.isOnboardingCompleted()) {
-            throw new BusinessException(
-                    ErrorCode.CONFLICT,
-                    "온보딩을 완료한 후 내 패턴을 확인할 수 있습니다."
+        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_REGISTERED));
+        if (!user.isOnboardingCompleted()) throw new BusinessException(ErrorCode.CONFLICT, "온보딩을 완료한 후 내 패턴을 확인할 수 있습니다.");
+    }
+
+    private double average(long count, int days) { return days == 0 ? 0.0 : round((double) count / days); }
+    private double round(double value) { return Math.round(value * 10.0) / 10.0; }
+    private double percent(SuccessStat stat) { return round(stat.rate() * 100.0); }
+    private String label(TimeSlot slot) { return slot.startHour() + "~" + slot.endHour() + "시"; }
+
+    private record SmokingEvent(Instant at) {}
+    private record PeriodData(List<NextTimeSession> sessions, List<SmokingRecord> manual,
+                              List<SmokingEvent> events, Set<LocalDate> trackedDays) {}
+    private record ContextIdentity(UUID id, String code, String name) {}
+    private record MissionIdentity(UUID id, String code, String name) {}
+    private static final class SuccessStat {
+        long success; long total; Instant latest;
+        void add(boolean succeeded, Instant at) { total++; if (succeeded) success++; if (at != null && (latest == null || at.isAfter(latest))) latest = at; }
+        double rate() { return total == 0 ? 0.0 : (double) success / total; }
+    }
+    private record PeriodWindows(Instant previousStart, Instant previousEnd,
+                                 Instant currentStart, Instant currentEnd) {
+        static PeriodWindows now() {
+            ZonedDateTime now = ZonedDateTime.now(SERVICE_ZONE);
+            ZonedDateTime currentStart = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                    .toLocalDate().atStartOfDay(SERVICE_ZONE);
+            return new PeriodWindows(currentStart.minusWeeks(1).toInstant(), now.minusWeeks(1).toInstant(),
+                    currentStart.toInstant(), now.toInstant());
+        }
+        LocalDate currentStartDate() { return currentStart.atZone(SERVICE_ZONE).toLocalDate(); }
+        PatternOverviewResponse.Period toResponse() {
+            return new PatternOverviewResponse.Period(
+                    SERVICE_ZONE.getId(), currentStart, currentEnd, previousStart, previousEnd
             );
         }
-    }
-
-    private List<NextTimeSession> inResultWindow(
-            List<NextTimeSession> sessions,
-            Instant fromInclusive,
-            Instant toExclusive
-    ) {
-        return sessions.stream()
-                .filter(session -> isInWindow(session.getResultRecordedAt(), fromInclusive, toExclusive))
-                .toList();
-    }
-
-    private boolean isInWindow(Instant value, Instant fromInclusive, Instant toExclusive) {
-        return value != null && !value.isBefore(fromInclusive) && value.isBefore(toExclusive);
-    }
-
-    private Insight buildInsight(
-            UUID userId,
-            PatternTarget target,
-            List<NextTimeSession> recentResults
-    ) {
-        List<NextTimeSession> sessions = target.sessions();
-        ContextCount topTrigger = firstOrNull(rankContexts(sessions, SmokingContextType.TRIGGER, 1));
-        List<NextTimeSession> triggerSessions = sessions.stream()
-                .filter(session -> sameContext(session, SmokingContextType.TRIGGER, topTrigger.id()))
-                .toList();
-        ContextCount representativeLocation = representativeLocation(triggerSessions);
-        CravingBefore representativeCraving = representativeCraving(
-                triggerSessions,
-                representativeLocation.id()
-        );
-        SmokingContext trigger = triggerSessions.getFirst().contextOf(SmokingContextType.TRIGGER);
-        SmokingContext location = triggerSessions.stream()
-                .filter(session -> sameContext(session, SmokingContextType.LOCATION, representativeLocation.id()))
-                .findFirst()
-                .orElseThrow()
-                .contextOf(SmokingContextType.LOCATION);
-        MissionRecommendationService.RecommendationPreview preview = recommendationService.preview(
-                userId,
-                location,
-                trigger,
-                representativeCraving
-        );
-        Mission mission = preview.mission();
-        ActionEvidence evidence = buildActionEvidence(
-                recentResults,
-                topTrigger.id(),
-                representativeLocation.id(),
-                mission
-        );
-        InsightMessages messages = new InsightMessages(
-                topTrigger.name() + "에 가장 흔들렸어요",
-                "기록한 욕구 " + sessions.size() + "번 중 " + topTrigger.count() + "번",
-                "특히 " + representativeLocation.name() + "에서 강했어요",
-                "이럴 때 " + mission.getName() + " 해보세요!"
-        );
-
-        return new Insight(
-                true,
-                target.periodLabel(),
-                topTrigger,
-                representativeLocation,
-                representativeCraving,
-                new RecommendedAction(mission.getId(), mission.getCode(), mission.getName()),
-                evidence,
-                messages,
-                calculateTopTimeSlot(sessions)
-        );
-    }
-
-    private PatternTarget selectPatternTarget(
-            UUID userId,
-            List<NextTimeSession> recentThirtyDaySessions,
-            PeriodWindows windows
-    ) {
-        List<NextTimeSession> validThirtyDay = recentThirtyDaySessions.stream()
-                .filter(this::hasPatternContext)
-                .toList();
-        List<NextTimeSession> recentSevenDays = validThirtyDay.stream()
-                .filter(session -> isInWindow(session.getCreatedAt(), windows.currentStart(), windows.currentEnd()))
-                .toList();
-        if (recentSevenDays.size() >= MINIMUM_PATTERN_RECORD_COUNT) {
-            return new PatternTarget(recentSevenDays, "최근 7일");
-        }
-        if (validThirtyDay.size() >= MINIMUM_PATTERN_RECORD_COUNT) {
-            return new PatternTarget(validThirtyDay.stream().limit(MINIMUM_PATTERN_RECORD_COUNT).toList(), "최근 기록 5건");
-        }
-        List<NextTimeSession> all = sessionRepository.findByUser_IdOrderByCreatedAtDesc(userId).stream()
-                .filter(this::hasPatternContext)
-                .limit(MINIMUM_PATTERN_RECORD_COUNT)
-                .toList();
-        if (all.isEmpty()) {
-            all = validThirtyDay.stream().limit(MINIMUM_PATTERN_RECORD_COUNT).toList();
-        }
-        return new PatternTarget(all, "최근 기록 5건");
-    }
-
-    private boolean hasPatternContext(NextTimeSession session) {
-        return session.getCravingBefore() != null
-                && session.getCreatedAt() != null
-                && hasContext(session, SmokingContextType.TRIGGER)
-                && hasContext(session, SmokingContextType.LOCATION);
-    }
-
-    private boolean hasContext(NextTimeSession session, SmokingContextType type) {
-        try {
-            return session.contextOf(type) != null;
-        } catch (IllegalStateException exception) {
-            return false;
-        }
-    }
-
-    private boolean sameContext(NextTimeSession session, SmokingContextType type, UUID contextId) {
-        try {
-            return session.contextOf(type).getId().equals(contextId);
-        } catch (IllegalStateException exception) {
-            return false;
-        }
-    }
-
-    private ContextCount representativeLocation(List<NextTimeSession> sessions) {
-        Map<ContextIdentity, LocationStat> stats = new HashMap<>();
-        for (NextTimeSession session : sessions) {
-            SmokingContext location = session.contextOf(SmokingContextType.LOCATION);
-            ContextIdentity identity = new ContextIdentity(location.getId(), location.getCode(), location.getName());
-            LocationStat stat = stats.computeIfAbsent(identity, ignored -> new LocationStat());
-            stat.count++;
-            stat.cravingTotal += cravingScore(session.getCravingBefore());
-            if (stat.latest == null || session.getCreatedAt().isAfter(stat.latest)) {
-                stat.latest = session.getCreatedAt();
-            }
-        }
-        Map.Entry<ContextIdentity, LocationStat> top = stats.entrySet().stream()
-                .sorted(Comparator
-                        .<Map.Entry<ContextIdentity, LocationStat>>comparingDouble(entry -> entry.getValue().average())
-                        .reversed()
-                        .thenComparing(entry -> entry.getValue().count, Comparator.reverseOrder())
-                        .thenComparing(entry -> entry.getValue().latest, Comparator.reverseOrder()))
-                .findFirst()
-                .orElseThrow();
-        return new ContextCount(
-                top.getKey().id(),
-                top.getKey().code(),
-                top.getKey().name(),
-                top.getValue().count
-        );
-    }
-
-    private CravingBefore representativeCraving(List<NextTimeSession> sessions, UUID locationId) {
-        Map<CravingBefore, Long> counts = sessions.stream()
-                .filter(session -> sameContext(session, SmokingContextType.LOCATION, locationId))
-                .collect(java.util.stream.Collectors.groupingBy(
-                        NextTimeSession::getCravingBefore,
-                        java.util.stream.Collectors.counting()
-                ));
-        return counts.entrySet().stream()
-                .sorted(Comparator
-                        .<Map.Entry<CravingBefore, Long>>comparingLong(Map.Entry::getValue)
-                        .reversed()
-                        .thenComparing(entry -> cravingScore(entry.getKey()), Comparator.reverseOrder()))
-                .map(Map.Entry::getKey)
-                .findFirst()
-                .orElseThrow();
-    }
-
-    private int cravingScore(CravingBefore craving) {
-        return switch (craving) {
-            case LOW -> 1;
-            case MEDIUM -> 2;
-            case HIGH -> 3;
-        };
-    }
-
-    private ActionEvidence buildActionEvidence(
-            List<NextTimeSession> results,
-            UUID triggerId,
-            UUID locationId,
-            Mission mission
-    ) {
-        List<NextTimeSession> triggerAndAction = results.stream()
-                .filter(session -> completedWithResult(session, mission.getId()))
-                .filter(session -> sameContext(session, SmokingContextType.TRIGGER, triggerId))
-                .toList();
-        List<NextTimeSession> exact = triggerAndAction.stream()
-                .filter(session -> sameContext(session, SmokingContextType.LOCATION, locationId))
-                .toList();
-        List<NextTimeSession> evidenceSessions = exact.size() >= 2 ? exact : triggerAndAction;
-        if (evidenceSessions.size() < 2) {
-            return null;
-        }
-        long avoided = evidenceSessions.stream().filter(session -> avoidsImmediateSmoking(session.getResult())).count();
-        String message = "비슷한 상황에서 " + mission.getName() + " " + evidenceSessions.size()
-                + "번 중 " + avoided + "번은 바로 흡연으로 이어지지 않았어요";
-        return new ActionEvidence(evidenceSessions.size(), avoided, message);
-    }
-
-    private boolean completedWithResult(NextTimeSession session, UUID missionId) {
-        return session.getMissionCompletedAt() != null
-                && session.getResult() != null
-                && session.getRecommendedMission() != null
-                && session.getRecommendedMission().getId().equals(missionId);
-    }
-
-    private ContextCount firstOrNull(List<ContextCount> contexts) {
-        return contexts.isEmpty() ? null : contexts.getFirst();
-    }
-
-    private BehaviorChange buildBehaviorChange(
-            List<NextTimeSession> current,
-            List<NextTimeSession> previous
-    ) {
-        if (current.isEmpty() && previous.isEmpty()) {
-            return null;
-        }
-
-        PeriodResult currentResult = summarizeResults(current);
-        PeriodResult previousResult = summarizeResults(previous);
-        return new BehaviorChange(previousResult, currentResult, compare(previousResult, currentResult));
-    }
-
-    private PeriodResult summarizeResults(List<NextTimeSession> sessions) {
-        long avoided = sessions.stream()
-                .filter(session -> avoidsImmediateSmoking(session.getResult()))
-                .count();
-        return new PeriodResult(sessions.size(), avoided);
-    }
-
-    private ChangeDirection compare(PeriodResult previous, PeriodResult current) {
-        if (previous.totalCount() == 0 || current.totalCount() == 0) {
-            return ChangeDirection.NO_COMPARISON;
-        }
-
-        double previousRate = (double) previous.avoidedImmediateSmokingCount() / previous.totalCount();
-        double currentRate = (double) current.avoidedImmediateSmokingCount() / current.totalCount();
-        int comparison = Double.compare(currentRate, previousRate);
-        if (comparison > 0) {
-            return ChangeDirection.INCREASED;
-        }
-        if (comparison < 0) {
-            return ChangeDirection.DECREASED;
-        }
-        return ChangeDirection.SAME;
-    }
-
-    private boolean avoidsImmediateSmoking(NextTimeResult result) {
-        return result == NextTimeResult.NOT_SMOKED || result == NextTimeResult.DELAYED;
-    }
-
-    private List<ContextCount> rankContexts(
-            List<NextTimeSession> sessions,
-            SmokingContextType type,
-            int limit
-    ) {
-        Map<ContextIdentity, ContextStat> stats = new HashMap<>();
-        for (NextTimeSession session : sessions) {
-            SmokingContext context = session.contextOf(type);
-            ContextIdentity identity = new ContextIdentity(context.getId(), context.getCode(), context.getName());
-            ContextStat stat = stats.computeIfAbsent(identity, ignored -> new ContextStat());
-            stat.count++;
-            Instant occurredAt = session.getCreatedAt();
-            if (stat.latest == null || occurredAt.isAfter(stat.latest)) {
-                stat.latest = occurredAt;
-            }
-        }
-
-        return stats.entrySet().stream()
-                .sorted(Comparator
-                        .<Map.Entry<ContextIdentity, ContextStat>>comparingLong(entry -> entry.getValue().count)
-                        .reversed()
-                        .thenComparing(entry -> entry.getValue().latest, Comparator.reverseOrder()))
-                .limit(limit)
-                .map(entry -> new ContextCount(
-                        entry.getKey().id(),
-                        entry.getKey().code(),
-                        entry.getKey().name(),
-                        entry.getValue().count
-                ))
-                .toList();
-    }
-
-    private TimeSlot calculateTopTimeSlot(List<NextTimeSession> sessions) {
-        List<NextTimeSession> sessionsWithTime = sessions.stream()
-                .filter(session -> session.getCreatedAt() != null)
-                .toList();
-        if (sessionsWithTime.size() < 3) {
-            return null;
-        }
-
-        Map<Integer, TimeSlotStat> stats = new HashMap<>();
-        for (NextTimeSession session : sessionsWithTime) {
-            ZonedDateTime occurredAt = session.getCreatedAt().atZone(SERVICE_ZONE);
-            int startHour = (occurredAt.getHour() / 2) * 2;
-            TimeSlotStat stat = stats.computeIfAbsent(startHour, ignored -> new TimeSlotStat());
-            stat.count++;
-            if (stat.latest == null || session.getCreatedAt().isAfter(stat.latest)) {
-                stat.latest = session.getCreatedAt();
-            }
-        }
-
-        Map.Entry<Integer, TimeSlotStat> top = stats.entrySet().stream()
-                .sorted(Comparator
-                        .<Map.Entry<Integer, TimeSlotStat>>comparingLong(entry -> entry.getValue().count)
-                        .reversed()
-                        .thenComparing(entry -> entry.getValue().latest, Comparator.reverseOrder()))
-                .findFirst()
-                .orElseThrow();
-
-        return new TimeSlot(top.getKey(), top.getKey() + 2, top.getValue().count);
-    }
-
-    private List<EffectiveAction> buildEffectiveActions(List<NextTimeSession> sessions) {
-        Map<MissionIdentity, ActionStat> stats = new HashMap<>();
-        for (NextTimeSession session : sessions) {
-            if (session.getMissionHelpfulness() == null || session.getRecommendedMission() == null) {
-                continue;
-            }
-            Mission mission = session.getRecommendedMission();
-            MissionIdentity identity = new MissionIdentity(
-                    mission.getId(),
-                    session.getMissionCodeSnapshot(),
-                    session.getMissionNameSnapshot()
-            );
-            ActionStat stat = stats.computeIfAbsent(identity, ignored -> new ActionStat());
-            stat.evaluationCount++;
-            stat.resultCount++;
-            if (session.getMissionHelpfulness() == MissionHelpfulness.HELPFUL) {
-                stat.helpfulCount++;
-                if (stat.latestHelpful == null || session.getResultRecordedAt().isAfter(stat.latestHelpful)) {
-                    stat.latestHelpful = session.getResultRecordedAt();
-                }
-            }
-            if (avoidsImmediateSmoking(session.getResult())) {
-                stat.avoidedImmediateSmokingCount++;
-            }
-        }
-
-        List<ActionRanking> rankings = new ArrayList<>();
-        for (Map.Entry<MissionIdentity, ActionStat> entry : stats.entrySet()) {
-            ActionStat stat = entry.getValue();
-            double helpfulRate = (double) stat.helpfulCount / stat.evaluationCount;
-            if (stat.evaluationCount >= 2 && helpfulRate > 0.5) {
-                rankings.add(new ActionRanking(entry.getKey(), stat, helpfulRate));
-            }
-        }
-
-        return rankings.stream()
-                .sorted(Comparator
-                        .comparingDouble(ActionRanking::helpfulRate)
-                        .reversed()
-                        .thenComparing(
-                                ranking -> ranking.stat().evaluationCount,
-                                Comparator.reverseOrder()
-                        )
-                        .thenComparing(
-                                ranking -> ranking.stat().latestHelpful,
-                                Comparator.nullsLast(Comparator.reverseOrder())
-                        ))
-                .limit(EFFECTIVE_ACTION_LIMIT)
-                .map(this::toEffectiveAction)
-                .toList();
-    }
-
-    private EffectiveAction toEffectiveAction(ActionRanking ranking) {
-        MissionIdentity mission = ranking.mission();
-        ActionStat stat = ranking.stat();
-        double roundedRate = Math.round(ranking.helpfulRate() * 10_000.0) / 10_000.0;
-        return new EffectiveAction(
-                mission.id(),
-                mission.code(),
-                mission.name(),
-                stat.evaluationCount,
-                stat.helpfulCount,
-                roundedRate,
-                stat.resultCount,
-                stat.avoidedImmediateSmokingCount
-        );
-    }
-
-    private RecentRecord toRecentRecord(NextTimeSession session) {
-        SmokingContext trigger = session.getContexts().stream()
-                .filter(context -> context.getContextType() == SmokingContextType.TRIGGER)
-                .findFirst()
-                .orElse(null);
-        Mission mission = session.getRecommendedMission();
-        return new RecentRecord(
-                session.getId(),
-                RecordType.NEXT_TIME,
-                session.getResultRecordedAt(),
-                toContextSummary(trigger),
-                mission == null ? null : new MissionSummary(
-                    mission.getId(),
-                    session.getMissionCodeSnapshot(),
-                    session.getMissionNameSnapshot()
-                ),
-                session.getResult(),
-                session.getCravingBefore(),
-                session.getCravingAfter(),
-                CravingChange.between(session.getCravingBefore(), session.getCravingAfter())
-        );
-    }
-
-    private List<RecentRecord> findRecentRecords(UUID userId) {
-        PageRequest page = PageRequest.of(0, RECENT_RECORD_LIMIT);
-        Stream<RecentRecord> manualRecords = smokingRecordRepository
-                .findByUser_IdOrderBySmokedAtDesc(userId, page)
-                .stream()
-                .map(this::toRecentRecord);
-        Stream<RecentRecord> nextTimeRecords = sessionRepository
-                .findByUser_IdAndStatusOrderByResultRecordedAtDesc(userId, RESULT_RECORDED, page)
-                .stream()
-                .map(this::toRecentRecord);
-
-        return Stream.concat(manualRecords, nextTimeRecords)
-                .sorted(Comparator.comparing(RecentRecord::recordedAt).reversed())
-                .limit(RECENT_RECORD_LIMIT)
-                .toList();
-    }
-
-    private RecentRecord toRecentRecord(SmokingRecord record) {
-        return new RecentRecord(
-                record.getId(),
-                RecordType.MANUAL_SMOKING,
-                record.getSmokedAt(),
-                toContextSummary(record.triggerOrNull()),
-                null,
-                NextTimeResult.SMOKED,
-                null,
-                null,
-                null
-        );
-    }
-
-    private ContextSummary toContextSummary(SmokingContext context) {
-        return context == null
-                ? null
-                : new ContextSummary(context.getId(), context.getCode(), context.getName());
-    }
-
-    private record ContextIdentity(UUID id, String code, String name) {
-    }
-
-    private record MissionIdentity(UUID id, String code, String name) {
-    }
-
-    private record ActionRanking(MissionIdentity mission, ActionStat stat, double helpfulRate) {
-    }
-
-    private static final class ContextStat {
-        private long count;
-        private Instant latest;
-    }
-
-    private static final class LocationStat {
-        private long count;
-        private int cravingTotal;
-        private Instant latest;
-
-        private double average() {
-            return (double) cravingTotal / count;
-        }
-    }
-
-    private static final class TimeSlotStat {
-        private long count;
-        private Instant latest;
-    }
-
-    private static final class ActionStat {
-        private long evaluationCount;
-        private long helpfulCount;
-        private long resultCount;
-        private long avoidedImmediateSmokingCount;
-        private Instant latestHelpful;
-    }
-
-    private record PeriodWindows(
-            Instant previousStart,
-            Instant currentStart,
-            Instant currentEnd,
-            Instant thirtyDayStart
-    ) {
-        private static PeriodWindows now() {
-            LocalDate today = LocalDate.now(SERVICE_ZONE);
-            Instant currentStart = today.minusDays(6).atStartOfDay(SERVICE_ZONE).toInstant();
-            Instant currentEnd = today.plusDays(1).atStartOfDay(SERVICE_ZONE).toInstant();
-            Instant previousStart = today.minusDays(13).atStartOfDay(SERVICE_ZONE).toInstant();
-            Instant thirtyDayStart = today.minusDays(29).atStartOfDay(SERVICE_ZONE).toInstant();
-            return new PeriodWindows(previousStart, currentStart, currentEnd, thirtyDayStart);
-        }
-    }
-
-    private record PatternTarget(List<NextTimeSession> sessions, String periodLabel) {
     }
 }
