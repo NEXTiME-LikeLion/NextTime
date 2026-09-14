@@ -10,6 +10,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,12 +20,10 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
+@EnableConfigurationProperties(MqttProperties.class)
 public class MqttButtonSubscriber implements MqttCallbackExtended {
 
     private static final Logger log = LoggerFactory.getLogger(MqttButtonSubscriber.class);
-    private static final String BROKER_URL = "ssl://broker.emqx.io:8883";
-    private static final String CLIENT_ID_PREFIX = "nextime-backend-inha02-e9b53d4b";
-    private static final String BUTTON_TOPIC = "nextime/inha02/e9b53d4b/button";
 
     private final ButtonEventStream eventStream;
     private final WebPushService webPushService;
@@ -37,13 +36,14 @@ public class MqttButtonSubscriber implements MqttCallbackExtended {
 
     public MqttButtonSubscriber(
             ButtonEventStream eventStream,
-            WebPushService webPushService
+            WebPushService webPushService,
+            MqttProperties properties
     ) {
         this.eventStream = eventStream;
         this.webPushService = webPushService;
-        this.brokerUrl = BROKER_URL;
-        this.clientId = CLIENT_ID_PREFIX;
-        this.topic = BUTTON_TOPIC;
+        this.brokerUrl = properties.brokerUrl();
+        this.clientId = properties.clientId();
+        this.topic = properties.topic();
     }
 
     @Scheduled(initialDelay = 500, fixedDelay = 3000)
@@ -90,13 +90,16 @@ public class MqttButtonSubscriber implements MqttCallbackExtended {
 
     @Override
     public void messageArrived(String receivedTopic, MqttMessage message) {
+        long receivedAt = System.nanoTime();
         String payload = new String(message.getPayload(), StandardCharsets.UTF_8);
         ButtonEvent event = new ButtonEvent(receivedTopic, payload, Instant.now());
         lastEvent.set(event);
 
         log.info("ESP32 버튼 신호 수신: topic={}, payload={}", receivedTopic, payload);
         eventStream.publish(event);
+        log.info("ESP32 버튼 SSE 전송 완료: elapsedMs={}", elapsedMillis(receivedAt));
         webPushService.notifyButtonPressed();
+        log.info("ESP32 버튼 Web Push 비동기 작업 등록: elapsedMs={}", elapsedMillis(receivedAt));
     }
 
     @Override
@@ -118,6 +121,10 @@ public class MqttButtonSubscriber implements MqttCallbackExtended {
 
     public String getTopic() {
         return topic;
+    }
+
+    private long elapsedMillis(long startedAt) {
+        return (System.nanoTime() - startedAt) / 1_000_000;
     }
 
     @PreDestroy

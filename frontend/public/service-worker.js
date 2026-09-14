@@ -17,6 +17,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("push", (event) => {
   console.log("[NEXTiME][SW] push 수신", {
     hasData: Boolean(event.data),
+    receivedAt: new Date().toISOString(),
+    timestamp: Date.now(),
   });
 
   let data = {

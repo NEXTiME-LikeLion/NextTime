@@ -5,11 +5,13 @@ import deviceImg from "../../assets/device.svg";
 import device2Img from "../../assets/device2.svg";
 import { getMqttStatus, connectButtonEvents } from "../../api/device";
 import { debugError, debugLog } from "../../api/debugLog";
+import { useToast } from "../../contexts/ToastContext";
 import PushNotificationSection from "./PushNotificationSection";
 
 const DevicePage = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState(null);
+  const { showToast } = useToast();
 
   // 페이지 진입 시 현재 연결 상태 확인
   useEffect(() => {
@@ -42,6 +44,10 @@ const DevicePage = () => {
       debugLog("SSE", "기기 화면에서 버튼 신호 반영", event);
       setLastEvent(event);
       setIsConnected(true);
+      showToast("버튼이 눌렀습니다.", {
+        id: "mqtt-button",
+        duration: 3000,
+      });
     })
       .then((cleanup) => {
         disconnect = cleanup;
@@ -55,7 +61,7 @@ const DevicePage = () => {
       debugLog("SSE", "기기 화면 이탈 - SSE 해제");
       if (disconnect) disconnect();
     };
-  }, []);
+  }, [showToast]);
 
   return (
     <S.Wrapper>
