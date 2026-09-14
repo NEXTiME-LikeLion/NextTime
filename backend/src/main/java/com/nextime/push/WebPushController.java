@@ -19,13 +19,16 @@ public class WebPushController {
 
     private final WebPushSubscriptionRepository repository;
     private final WebPushAudience audience;
+    private final WebPushService webPushService;
 
     public WebPushController(
             WebPushSubscriptionRepository repository,
-            WebPushAudience audience
+            WebPushAudience audience,
+            WebPushService webPushService
     ) {
         this.repository = repository;
         this.audience = audience;
+        this.webPushService = webPushService;
     }
 
     @PostMapping
@@ -51,6 +54,16 @@ public class WebPushController {
                 ));
 
         repository.save(subscription);
+    }
+
+    @PostMapping("/test")
+    public WebPushService.PushSendResult test(
+            @CurrentUser AuthenticatedUser user
+    ) {
+        if (!audience.allows(user.email())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        return webPushService.sendTest(user.userId());
     }
 
     @DeleteMapping
