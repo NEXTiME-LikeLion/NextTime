@@ -4,6 +4,7 @@ import actionBreathe from "../../assets/pattern/action-breathe.png";
 import actionStretch from "../../assets/pattern/action-stretch.png";
 import actionMusic from "../../assets/pattern/action-music.png";
 import actionLeave from "../../assets/pattern/action-leave.png";
+import { getActionImage } from "./actionImages";
 
 export const REQUIRED_PATTERN_RECORDS = 5;
 
@@ -95,9 +96,9 @@ export function getSmokingTime(report) {
     hasLastWeek: Boolean(lastWeekPeak?.slot),
     lastWeekPeak: lastWeekPeak
       ? {
-          slot: lastWeekPeak.slot,
-          count: toFiniteNumber(lastWeekPeak.count),
-        }
+        slot: lastWeekPeak.slot,
+        count: toFiniteNumber(lastWeekPeak.count),
+      }
       : null,
     thisWeekPeak: {
       slot: thisWeekSlot,
@@ -159,13 +160,13 @@ export function getEasySituations(report) {
   return {
     best: best
       ? {
-          ...best,
-          caption:
-            detail.bestCaption ??
-            (best.success != null && best.total != null
-              ? `${best.total}번 중 ${best.success}번 바로 피우지 않았어요`
-              : ""),
-        }
+        ...best,
+        caption:
+          detail.bestCaption ??
+          (best.success != null && best.total != null
+            ? `${best.total}번 중 ${best.success}번 바로 피우지 않았어요`
+            : ""),
+      }
       : null,
     items,
   };
@@ -189,12 +190,12 @@ export function getHelpfulActions(report) {
   return {
     best: best
       ? {
-          ...best,
-          caption:
-            best.success != null && best.total != null
-              ? `${best.total}번 중 ${best.success}번 흡연 욕구 감소`
-              : "",
-        }
+        ...best,
+        caption:
+          best.success != null && best.total != null
+            ? `${best.total}번 중 ${best.success}번 흡연 욕구 감소`
+            : "",
+      }
       : null,
     others: items.slice(1),
   };
@@ -261,3 +262,125 @@ export const READY_PATTERN_REPORT = {
     },
   ],
 };
+
+function formatSlotLabel(startHour, endHour) {
+  return `${startHour}-${endHour}`;
+}
+
+function toDayLabel(dayOfWeek) {
+  const map = {
+    MONDAY: "월",
+    TUESDAY: "화",
+    WEDNESDAY: "수",
+    THURSDAY: "목",
+    FRIDAY: "금",
+    SATURDAY: "토",
+    SUNDAY: "일",
+  };
+  return map[dayOfWeek] ?? "";
+}
+
+
+export function mapApiToReport(apiData) {
+  if (!apiData) return null;
+
+  const {
+    smokingAmount,
+    smokingTime,
+    reductionBriefing,
+    easyReductionContexts = [],
+    effectiveActions = [],
+  } = apiData;
+
+  const actions = effectiveActions.map((item) => ({
+    name: item.mission?.name ?? "",
+    image: getActionImage(item.mission?.code),
+    height: 100,
+    rate: item.successRatePercent,
+    success: item.successCount,
+    total: item.totalCount,
+  }));
+
+  const situationItems = easyReductionContexts.map((item) => ({
+    name: item.context?.name ?? "",
+    rate: item.successRatePercent,
+    success: item.successCount,
+    total: item.totalCount,
+  }));
+
+  const topSituation = situationItems[0] ?? null;
+  const otherRanks = situationItems.slice(1, 3);
+
+  const peakSlotLabel = smokingTime?.currentPrimarySlot
+    ? formatSlotLabel(
+      smokingTime.currentPrimarySlot.startHour,
+      smokingTime.currentPrimarySlot.endHour,
+    )
+    : "";
+
+  const bars = (smokingTime?.currentSlots ?? []).map((s) => s.count);
+  const peakBarIndex = (smokingTime?.currentSlots ?? []).findIndex(
+    (s) =>
+      smokingTime?.currentPrimarySlot &&
+      s.startHour === smokingTime.currentPrimarySlot.startHour,
+  );
+
+  return {
+    reductionLabel:
+      smokingAmount?.reducedDailyAverage != null
+        ? `${Math.abs(smokingAmount.reducedDailyAverage).toFixed(1)}개비 ${smokingAmount.reducedDailyAverage > 0 ? "↓" : "↑"
+        }`
+        : "",
+    caption: smokingAmount?.comparisonMessage ?? "",
+    tip: reductionBriefing?.message ?? "",
+    peakSlot: peakSlotLabel,
+    peakBarIndex: peakBarIndex >= 0 ? peakBarIndex : 0,
+    bars,
+    situation: topSituation?.name ?? "",
+    situationRate: topSituation?.rate ?? 0,
+    ranks: otherRanks,
+    actions,
+
+    reduction: {
+      lastWeekAverage: smokingAmount?.previousDailyAverage ?? null,
+      thisWeekAverage: smokingAmount?.currentDailyAverage ?? null,
+      changeLabel:
+        smokingAmount?.reducedDailyAverage != null
+          ? `${Math.abs(smokingAmount.reducedDailyAverage).toFixed(1)} 개비${smokingAmount.reducedDailyAverage > 0 ? "↓" : "↑"
+          }`
+          : "",
+      insight: smokingAmount?.comparisonMessage ?? "",
+      dailyAmounts: (smokingAmount?.dailyCounts ?? []).map((d) => d.count),
+      highlightDay: toDayLabel(
+        (smokingAmount?.dailyCounts ?? []).find((d) => d.tracked)?.dayOfWeek,
+      ),
+    },
+
+    time: {
+      lastWeekPeak: smokingTime?.previousPrimarySlot
+        ? {
+          slot: formatSlotLabel(
+            smokingTime.previousPrimarySlot.startHour,
+            smokingTime.previousPrimarySlot.endHour,
+          ),
+          count: smokingTime.previousPrimarySlot.count,
+        }
+        : null,
+      thisWeekPeak: {
+        slot: peakSlotLabel,
+        count: smokingTime?.currentPrimarySlot?.count ?? null,
+      },
+      insight: smokingTime?.comparisonMessage ?? "",
+      slotCounts: bars,
+      weekdayPeaks: (smokingTime?.dailyPrimaryHours ?? []).map((d) =>
+        d.hour != null ? `${d.hour}시` : null,
+      ),
+    },
+
+    situationDetail: {
+      items: situationItems,
+    },
+
+    helpfulActions: actions,
+  };
+}
