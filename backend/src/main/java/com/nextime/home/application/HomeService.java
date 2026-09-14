@@ -13,6 +13,7 @@ import com.nextime.nexttime.domain.NextTimeSessionRepository;
 import com.nextime.nexttime.domain.NextTimeSessionStatus;
 import com.nextime.smokingrecord.domain.SmokingRecord;
 import com.nextime.smokingrecord.domain.SmokingRecordRepository;
+import com.nextime.smokingrecord.application.RecordListService;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,7 @@ public class HomeService {
     private final NextMeGenerationRepository nextMeGenerationRepository;
     private final NextTimeSessionRepository nextTimeSessionRepository;
     private final SmokingRecordRepository smokingRecordRepository;
+    private final RecordListService recordListService;
 
     @Transactional(readOnly = true)
     public HomeResponse getHome(UUID userId) {
@@ -85,7 +87,8 @@ public class HomeService {
         return new HomeResponse(
                 HomeResponse.NextMe.from(nextMe),
                 activeSession == null ? null : HomeResponse.ActiveNextTimeSession.from(activeSession),
-                summarize(todayResults, todaySmokingRecords)
+                summarize(todayResults, todaySmokingRecords),
+                recordListService.getRecords(userId, 3).records()
         );
     }
 
