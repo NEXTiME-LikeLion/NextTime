@@ -18,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.mock;
@@ -59,7 +60,8 @@ class HomeControllerTest {
                         NextBudTheme.NEXTBUD_HEALTH_01
                 ),
                 null,
-                new HomeResponse.TodaySummary(5, 3, 1, 1, null)
+                new HomeResponse.TodaySummary(5, 3, 1, 1, null),
+                List.of()
         );
         when(homeService.getHome(USER_ID)).thenReturn(response);
 
