@@ -10,12 +10,16 @@ import com.nextime.smokingcontext.domain.SmokingContext;
 import com.nextime.smokingcontext.domain.SmokingContextType;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+
+import com.nextime.smokingrecord.api.RecordListResponse.RecordItem;
 
 public record HomeResponse(
         NextMe nextMe,
         ActiveNextTimeSession activeNextTimeSession,
-        TodaySummary todaySummary
+        TodaySummary todaySummary,
+        List<RecordItem> recentRecords
 ) {
     public record NextMe(
             String headline,

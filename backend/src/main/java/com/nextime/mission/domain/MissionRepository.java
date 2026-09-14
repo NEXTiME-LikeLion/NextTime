@@ -134,4 +134,7 @@ public interface MissionRepository extends JpaRepository<Mission, UUID> {
             @Param("missionId") UUID missionId,
             @Param("restoredAt") Instant restoredAt
     );
+
+    List<Mission> findAllByOrderByDisplayOrderAsc();
+    
 }

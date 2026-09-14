@@ -10,6 +10,8 @@ import com.nextime.nexttime.domain.NextTimeSessionRepository;
 import com.nextime.smokingcontext.domain.SmokingContext;
 import com.nextime.smokingrecord.domain.SmokingRecord;
 import com.nextime.smokingrecord.domain.SmokingRecordRepository;
+import com.nextime.smokingrecord.application.RecordListService;
+import com.nextime.smokingrecord.api.RecordListResponse;
 import com.nextime.user.domain.User;
 import com.nextime.user.domain.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +53,8 @@ class HomeServiceTest {
     private NextTimeSessionRepository nextTimeSessionRepository;
     @Mock
     private SmokingRecordRepository smokingRecordRepository;
+    @Mock
+    private RecordListService recordListService;
 
     private HomeService service;
 
@@ -60,7 +64,8 @@ class HomeServiceTest {
                 userRepository,
                 nextMeGenerationRepository,
                 nextTimeSessionRepository,
-                smokingRecordRepository
+                smokingRecordRepository,
+                recordListService
         );
     }
 
@@ -200,6 +205,8 @@ class HomeServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(nextMeGenerationRepository.findFirstByUserIdOrderByCreatedAtDesc(userId))
                 .thenReturn(Optional.of(nextMe));
+        when(recordListService.getRecords(userId, 3))
+                .thenReturn(new RecordListResponse(List.of()));
     }
 
     private NextMeGeneration nextMe() {
