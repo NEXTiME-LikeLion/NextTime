@@ -254,12 +254,12 @@ export const RankPill = styled.div`
   justify-content: center;
   gap: 0.75rem;
   width: 100%;
-  max-width: 10.25rem;
+  max-width: 9.25rem;
   padding: 0.75rem;
   border-radius: 0.75rem;
   background: rgba(178, 178, 178, 0.1);
   color: #7c8581;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   line-height: 1.4;
   white-space: nowrap;
 `;
