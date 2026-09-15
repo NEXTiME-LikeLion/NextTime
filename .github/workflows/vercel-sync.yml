@@ -43,7 +43,32 @@ jobs:
           set -euo pipefail
 
           if [ -z "${AUTO_ACTIONS}" ]; then
-            echo "AUTO_ACTIONS secret is empty."
+            echo "::error::AUTO_ACTIONS secret is empty."
+            exit 1
+          fi
+
+          AUTH_HEADER="Authorization: Bearer ${AUTO_ACTIONS}"
+          USER_CODE="$(curl -sS -o /tmp/gh-user.json -w "%{http_code}" \
+            -H "${AUTH_HEADER}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/user || true)"
+          REPO_CODE="$(curl -sS -o /tmp/gh-fork.json -w "%{http_code}" \
+            -H "${AUTH_HEADER}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/jiminxha/NextTime || true)"
+
+          LOGIN="$(python3 -c "import json; print(json.load(open('/tmp/gh-user.json')).get('login','unknown'))" 2>/dev/null || echo unknown)"
+          PUSHABLE="$(python3 -c "import json; print(json.load(open('/tmp/gh-fork.json')).get('permissions',{}).get('push', False))" 2>/dev/null || echo unknown)"
+
+          echo "AUTO_ACTIONS user=${LOGIN} user_http=${USER_CODE} fork_http=${REPO_CODE} fork_push=${PUSHABLE}"
+
+          if [ "${USER_CODE}" = "401" ] || [ "${USER_CODE}" = "403" ]; then
+            echo "::error::AUTO_ACTIONS is invalid or expired (HTTP ${USER_CODE}). Recreate a PAT with write access to jiminxha/NextTime and update the secret."
+            exit 1
+          fi
+
+          if [ "${PUSHABLE}" != "True" ] && [ "${PUSHABLE}" != "true" ]; then
+            echo "::error::AUTO_ACTIONS (${LOGIN}) cannot push to jiminxha/NextTime. Grant Contents: Write on the fork, then update the secret."
             exit 1
           fi
 
@@ -51,15 +76,27 @@ jobs:
           # fork URL에도 붙으면 AUTO_ACTIONS 대신 org 토큰으로 push되어 128이 난다.
           git config --unset-all http.https://github.com/.extraheader || true
 
-          echo "Testing write access to jiminxha/NextTime..."
-          git ls-remote \
-            "https://x-access-token:${AUTO_ACTIONS}@github.com/jiminxha/NextTime.git" \
-            "refs/heads/${TARGET_BRANCH}"
+          {
+            echo '#!/bin/sh'
+            echo 'printf %s "$AUTO_ACTIONS"'
+          } > /tmp/git-askpass.sh
+          chmod +x /tmp/git-askpass.sh
 
-          git -c "http.https://github.com/.extraheader=" \
+          set +e
+          GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/tmp/git-askpass.sh \
+            git -c "http.https://github.com/.extraheader=" \
             push \
-            "https://x-access-token:${AUTO_ACTIONS}@github.com/jiminxha/NextTime.git" \
+            "https://x-access-token@github.com/jiminxha/NextTime.git" \
             "HEAD:refs/heads/${TARGET_BRANCH}" \
-            --force
+            --force \
+            2>/tmp/git-push.err
+          PUSH_STATUS=$?
+          set -e
+
+          if [ "${PUSH_STATUS}" -ne 0 ]; then
+            sed 's/[A-Za-z0-9_\-]\{20,\}/[redacted]/g' /tmp/git-push.err
+            echo "::error::git push to jiminxha/NextTime failed with exit ${PUSH_STATUS}."
+            exit "${PUSH_STATUS}"
+          fi
 
           echo "Synced ${TARGET_BRANCH} to jiminxha/NextTime"
