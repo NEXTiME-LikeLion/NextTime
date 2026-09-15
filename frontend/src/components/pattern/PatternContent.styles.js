@@ -259,7 +259,7 @@ export const RankPill = styled.div`
   border-radius: 0.75rem;
   background: rgba(178, 178, 178, 0.1);
   color: #7c8581;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   line-height: 1.4;
   white-space: nowrap;
 `;
