@@ -1,18 +1,17 @@
-import actionWalk from "../../assets/pattern/action-walk.png";
-import actionWater from "../../assets/pattern/action-water.png";
-import actionBreathe from "../../assets/pattern/action-breathe.png";
-import actionStretch from "../../assets/pattern/action-stretch.png";
-import actionMusic from "../../assets/pattern/action-music.png";
-import actionLeave from "../../assets/pattern/action-leave.png";
 import { getActionImage } from "./actionImages";
+
+const CONTEXT_SHORT_NAME_MAP = {
+  AFTER_WORK_OR_CLASS: "일·공부가 끝난 후",
+  AFTER_MEAL: "식사 후",
+  STRESS: "스트레스",
+  DRINKING_OR_SOCIAL: "술자리",
+  BOREDOM_OR_HABIT: "심심함",
+  AFTER_WAKING: "기상 직후",
+  OTHER: "기타",
+};
 
 export const REQUIRED_PATTERN_RECORDS = 5;
 
-const ACTION_POOL = [
-  { name: "걷기", image: actionWalk, height: 102 },
-  { name: "물 마시기", image: actionWater, height: 95 },
-  { name: "심호흡 하기", image: actionBreathe, height: 94 },
-];
 
 const TIME_SLOT_LABELS = [
   "0–3",
@@ -201,70 +200,9 @@ export function getHelpfulActions(report) {
   };
 }
 
-export const READY_PATTERN_REPORT = {
-  reductionLabel: "1.4개비 ↓",
-  caption: "지난주 평균 10.2개비 → 이번 주 평균 8.8개비로 줄었어요",
-  tip: "이번 주에는 일·공부가 끝난 후 걷기로 감연해봐요",
-  peakSlot: "18–21시",
-  peakBarIndex: 6,
-  bars: [12, 20, 28, 21, 34, 46, 64, 30, 30],
-  situation: "일·공부가 끝난 후",
-  situationRate: 75,
-  ranks: [
-    { name: "스트레스", rate: 33 },
-    { name: "식사 후", rate: 25 },
-  ],
-  actions: ACTION_POOL,
-  reduction: {
-    lastWeekAverage: 10.2,
-    thisWeekAverage: 8.8,
-    changeLabel: "1.4 개비↓",
-    insight: "기록된 5일 모두 지난주 평균보다 적게 피웠어요",
-    dailyAmounts: [10, 9, 8, 9, 8, null, null],
-    highlightDay: "금",
-  },
-  time: {
-    lastWeekPeak: { slot: "21~24시", count: 8 },
-    thisWeekPeak: { slot: "18~21시", count: 5 },
-    insight: "저녁이 여전히 가장 많지만, 지난주보다 3회 줄었어요",
-    slotCounts: [0, 0, 1, 2, 2, 3, 5, 2],
-    weekdayPeaks: ["19시", "20시", "18시", "19시", "20시", "15시", "19시"],
-  },
-  situationDetail: {
-    bestCaption: "4번 중 3번 바로 피우지 않았어요",
-    items: [
-      { name: "일·공부 후", rate: 75, success: 3, total: 4 },
-      { name: "스트레스", rate: 33, success: 2, total: 6 },
-      { name: "식사 후", rate: 25, success: 1, total: 4 },
-      { name: "쉬다가·심심", rate: 20, success: 1, total: 5 },
-      { name: "술 마실 때", rate: 17, success: 1, total: 6 },
-      { name: "다른 사람이 피울 때", rate: 14, success: 1, total: 7 },
-    ],
-  },
-  helpfulActions: [
-    { name: "걷기", image: actionWalk, rate: 80, success: 4, total: 5 },
-    { name: "물 마시기", image: actionWater, rate: 60, success: 3, total: 5 },
-    {
-      name: "심호흡 하기",
-      image: actionBreathe,
-      rate: 60,
-      success: 3,
-      total: 5,
-    },
-    { name: "스트레칭", image: actionStretch, rate: 50, success: 2, total: 4 },
-    { name: "음악 듣기", image: actionMusic, rate: 40, success: 2, total: 5 },
-    {
-      name: "자리 벗어나기",
-      image: actionLeave,
-      rate: 33,
-      success: 1,
-      total: 3,
-    },
-  ],
-};
 
 function formatSlotLabel(startHour, endHour) {
-  return `${startHour}-${endHour}`;
+  return `${startHour}-${endHour}시`;
 }
 
 function toDayLabel(dayOfWeek) {
@@ -302,7 +240,7 @@ export function mapApiToReport(apiData) {
   }));
 
   const situationItems = easyReductionContexts.map((item) => ({
-    name: item.context?.name ?? "",
+    name: CONTEXT_SHORT_NAME_MAP[item.context?.code] ?? item.context?.name ?? "",
     rate: item.successRatePercent,
     success: item.successCount,
     total: item.totalCount,

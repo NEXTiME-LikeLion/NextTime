@@ -44,7 +44,8 @@ function PatternContent({
 }) {
   if (!report) return null;
 
-  const maxBarHeight = Math.max(...report.bars, 1);
+  const displayBars = report.bars.map((h) => Math.min(Math.max(h || 0, 8), 64));
+  const maxBarHeight = Math.max(...displayBars, 1);
 
   return (
     <S.Cards>
@@ -75,7 +76,7 @@ function PatternContent({
         </S.CardHeader>
         <S.Chart>
           <S.Bars style={{ height: `${maxBarHeight / 16}rem` }}>
-            {report.bars.map((height, index) => {
+            {displayBars.map((height, index) => {
               const slotCenterHour = index * 3 + 1.5;
               const leftPercent = (slotCenterHour / 24) * 100;
 
