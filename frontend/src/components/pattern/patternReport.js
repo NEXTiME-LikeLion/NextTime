@@ -264,7 +264,7 @@ export const READY_PATTERN_REPORT = {
 };
 
 function formatSlotLabel(startHour, endHour) {
-  return `${startHour}-${endHour}`;
+  return `${startHour}-${endHour}시`;
 }
 
 function toDayLabel(dayOfWeek) {

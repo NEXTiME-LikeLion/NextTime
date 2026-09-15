@@ -34,9 +34,10 @@ export const ChangeCard = styled(ClickableCard)`
 `;
 
 export const TimeCard = styled(ClickableCard)`
-  gap: 0.25rem;
+  height: 11.125rem;
+  gap: 3rem;
   align-items: center;
-  padding: 1rem 1.25rem;
+  padding: 1rem 1.25rem 1rem;
 `;
 
 export const SituationCard = styled(ClickableCard)`
@@ -128,7 +129,7 @@ export const Chart = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.25rem;
   width: 100%;
   max-width: 19.5625rem;
 `;
@@ -169,7 +170,7 @@ export const Axis = styled.div`
 
 export const AxisLabel = styled.span`
   position: absolute;
-  top: 0.375rem;
+  top: 0.9rem;
   z-index: 2;
   width: fit-content;
   transform: translateX(-50%);
@@ -253,12 +254,12 @@ export const RankPill = styled.div`
   justify-content: center;
   gap: 0.75rem;
   width: 100%;
-  max-width: 9.25rem;
+  max-width: 10.25rem;
   padding: 0.75rem;
   border-radius: 0.75rem;
   background: rgba(178, 178, 178, 0.1);
   color: #7c8581;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.4;
   white-space: nowrap;
 `;
@@ -300,6 +301,7 @@ export const ActionImageBox = styled.div`
   height: ${({ $height }) => `${$height / 16}rem`};
   overflow: hidden;
   flex-shrink: 0;
+  border-radius: 1.25rem;
 `;
 
 export const ActionImage = styled.img`
