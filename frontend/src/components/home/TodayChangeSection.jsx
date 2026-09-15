@@ -35,7 +35,7 @@ function TodayChangeSection({ todaySummary }) {
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            navigate("/pattern");
+            navigate("/main/pattern");
           }
         }}
       >
