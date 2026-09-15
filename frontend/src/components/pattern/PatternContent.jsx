@@ -1,6 +1,7 @@
 import * as S from "./PatternContent.styles";
 
-const TIME_AXIS = ["0", "6", "12", "18", "24"];
+const AXIS_HOURS = [0, 6, 12, 18, 24];
+const TICK_HOURS = [3, 9, 15, 21];
 const GAUGE_RADIUS = 72;
 const GAUGE_HALF = Math.PI * GAUGE_RADIUS;
 
@@ -43,10 +44,7 @@ function PatternContent({
 }) {
   if (!report) return null;
 
-  const peakStart = Number.parseInt(report.peakSlot, 10);
-  const peakAxis = Number.isNaN(peakStart)
-    ? "18"
-    : String(Math.round(peakStart / 6) * 6);
+  const maxBarHeight = Math.max(...report.bars, 1);
 
   return (
     <S.Cards>
@@ -64,7 +62,10 @@ function PatternContent({
         </S.TipBox>
       </S.ChangeCard>
 
-      <S.TimeCard onClick={onTimeCardClick} aria-label="흡연 시간대 자세히 보기">
+      <S.TimeCard
+        onClick={onTimeCardClick}
+        aria-label="흡연 시간대 자세히 보기"
+      >
         <S.CardHeader>
           <S.CardHeaderRow>
             <S.Label>흡연 시간대</S.Label>
@@ -73,20 +74,33 @@ function PatternContent({
           <S.Title>{report.peakSlot}</S.Title>
         </S.CardHeader>
         <S.Chart>
-          <S.Bars>
-            {report.bars.map((height, index) => (
-              <S.Bar
-                key={`time-bar-${index}`}
-                $height={height}
-                $peak={index === report.peakBarIndex}
-              />
-            ))}
+          <S.Bars style={{ height: `${maxBarHeight / 16}rem` }}>
+            {report.bars.map((height, index) => {
+              const slotCenterHour = index * 3 + 1.5;
+              const leftPercent = (slotCenterHour / 24) * 100;
+
+              return (
+                <S.Bar
+                  key={`time-bar-${index}`}
+                  $height={height}
+                  $peak={index === report.peakBarIndex}
+                  style={{ left: `${leftPercent}%` }}
+                />
+              );
+            })}
           </S.Bars>
+
           <S.Axis>
-            {TIME_AXIS.map((tick) => (
-              <S.AxisLabel key={tick} $peak={tick === peakAxis}>
-                {tick}
+            {AXIS_HOURS.map((hour) => (
+              <S.AxisLabel key={hour} style={{ left: `${(hour / 24) * 100}%` }}>
+                {hour}
               </S.AxisLabel>
+            ))}
+            {TICK_HOURS.map((hour) => (
+              <S.AxisTickLine
+                key={hour}
+                style={{ left: `${(hour / 24) * 100}%` }}
+              />
             ))}
           </S.Axis>
         </S.Chart>

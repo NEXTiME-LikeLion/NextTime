@@ -134,48 +134,68 @@ export const Chart = styled.div`
 `;
 
 export const Bars = styled.div`
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  position: relative;
   width: 100%;
-  padding: 0 0.25rem;
 `;
 
 export const Bar = styled.div`
+  position: absolute;
+  bottom: 0;
   width: 1rem;
   height: ${({ $height }) => `${$height / 16}rem`};
   border-radius: 0.4375rem;
   background: ${({ $peak, theme }) =>
     $peak ? theme.colors.primary : "#dde5e1"};
-  flex-shrink: 0;
+  transform: translateX(-50%);
 `;
 
+
 export const Axis = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  position: relative;
   width: 100%;
+  height: 1.775rem;
+  padding-top: 0.5rem;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 1.4rem;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #e5e6ec;
+  }
 `;
 
 export const AxisLabel = styled.span`
-  width: 1.5rem;
-  color: ${({ $peak }) => ($peak ? "#00b96b" : "#8b9490")};
+  position: absolute;
+  top: 0.375rem;
+  z-index: 2;
+  width: fit-content;
+  transform: translateX(-50%);
+  color: #8b9490;
+  background-color: ${({ theme }) => theme.colors.white};
   font-size: 0.75rem;
-  font-weight: ${({ $peak }) => ($peak ? 700 : 400)};
+  font-weight: 400;
   line-height: 1.4;
   text-align: center;
+  padding: 0 0.15rem;
+`;
 
-   &::before {
-    content: "";
-    position: absolute;
-    top: -0.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 1px;
-    height: 0.375rem;
-    background-color: ${({ $peak }) => ($peak ? "#00b96b" : "#d9dedb")};
-  }
+export const AxisTick = styled.div`
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  align-self: stretch;
+`;
 
+export const AxisTickLine = styled.div`
+  position: absolute;
+  top: 1.2rem;
+  width: 1px;
+  height: 0.375rem;
+  background-color: #d9dedb;
+  transform: translateX(-50%);
 `;
 
 export const GaugeBlock = styled.div`
