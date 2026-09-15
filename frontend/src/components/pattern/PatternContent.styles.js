@@ -164,6 +164,18 @@ export const AxisLabel = styled.span`
   font-weight: ${({ $peak }) => ($peak ? 700 : 400)};
   line-height: 1.4;
   text-align: center;
+
+   &::before {
+    content: "";
+    position: absolute;
+    top: -0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 0.375rem;
+    background-color: ${({ $peak }) => ($peak ? "#00b96b" : "#d9dedb")};
+  }
+
 `;
 
 export const GaugeBlock = styled.div`
