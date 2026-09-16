@@ -75,8 +75,8 @@ export const OptionalHint = styled.p`
 
 export const BottomArea = styled.div`
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 1.25rem;
+  right: 1.25rem;
   bottom: 0;
   padding-block: 3.56rem 2.25rem;
 
