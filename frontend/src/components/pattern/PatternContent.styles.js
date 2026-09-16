@@ -34,10 +34,10 @@ export const ChangeCard = styled(ClickableCard)`
 `;
 
 export const TimeCard = styled(ClickableCard)`
-  height: 11.125rem;
-  gap: 3rem;
+  min-height: 11.125rem;
+  gap: 1rem;
   align-items: center;
-  padding: 1rem 1.25rem 1rem;
+  padding: 1rem 1.25rem;
 `;
 
 export const SituationCard = styled(ClickableCard)`

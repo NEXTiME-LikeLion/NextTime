@@ -44,8 +44,22 @@ function PatternContent({
 }) {
   if (!report) return null;
 
-  const displayBars = report.bars.map((h) => Math.min(Math.max(h || 0, 8), 64));
-  const maxBarHeight = Math.max(...displayBars, 1);
+  const MIN_BAR_HEIGHT = 8;
+  const MAX_BAR_HEIGHT = 64;
+  const MAX_DATA_VALUE = 8;
+
+  const displayBars = report.bars.map((value) => {
+    const dataValue = Math.max(value || 0, 0);
+
+    const normalizedValue = Math.min(dataValue, MAX_DATA_VALUE);
+
+    return (
+      MIN_BAR_HEIGHT +
+      (normalizedValue / MAX_DATA_VALUE) * (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT)
+    );
+  });
+
+  const maxBarHeight = Math.max(...displayBars, MIN_BAR_HEIGHT);
 
   return (
     <S.Cards>
