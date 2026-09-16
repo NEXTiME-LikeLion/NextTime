@@ -5,6 +5,7 @@ import { useToast } from "../../contexts/ToastContext";
 import { registerUser } from "../../api/auth";
 import { getApiErrorMessage } from "../../api/getApiErrorMessage";
 import { debugError } from "../../api/debugLog";
+import Toast from "../../components/Toast/Toast";
 import * as S from "./Login.styles";
 
 const Login = () => {
@@ -12,7 +13,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const { showToast } = useToast();
+  const { toast, showToast } = useToast();
 
   const doSignIn = async () => {
     await signIn({ username: email, password });
@@ -88,6 +89,7 @@ const Login = () => {
         아직 계정이 없으신가요?
         <S.StyledLink to="/signup">회원가입 하기</S.StyledLink>
       </S.BottomText>
+      {toast && <Toast message={toast.message} />}
     </S.FormContainer>
   );
 };

@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signUp, resendSignUpCode, confirmSignUp } from "aws-amplify/auth";
+import { useToast } from "../../contexts/ToastContext";
+import Toast from "../../components/Toast/Toast";
 import * as S from "./Signup.styles";
 
 const Signup = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState("form"); // "form" | "verify"
+
+  const { toast, showToast } = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,6 +59,7 @@ const Signup = () => {
         username: email,
         confirmationCode: code,
       });
+      showToast("회원가입 완료!");
       navigate("/login");
     } catch (error) {
       setErrorMessage("인증 코드가 올바르지 않습니다.");
@@ -138,6 +143,7 @@ const Signup = () => {
         이미 계정이 있나요?
         <S.StyledLink to="/login">로그인 하기</S.StyledLink>
       </S.BottomText>
+      {toast && <Toast message={toast.message} />}
     </S.FormContainer>
   );
 };
