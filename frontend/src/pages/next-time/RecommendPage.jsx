@@ -41,10 +41,7 @@ function RecommendPage() {
     durationSeconds = 0,
   } = recommendedMission ?? {};
   const titleLines = splitMissionTitle(title);
-  const {
-    isLoading: isStarting,
-    execute,
-  } = useAsync(startNextTimeMission, {
+  const { isLoading: isStarting, execute } = useAsync(startNextTimeMission, {
     immediate: false,
   });
   const { skip, isLoading: isSkipping } = useSkipNextTimeMission({
@@ -122,36 +119,36 @@ function RecommendPage() {
 
   return (
     <S.PageContainer>
-        <Header title="NEXT TIME" onBack={handleBack} />
+      <Header title="NEXT TIME" back={false} />
 
-        <S.Content $bottomAreaHeight={bottomAreaHeight}>
-          <S.MissionTitle>
-            {titleLines.map((line) => (
-              <p key={line}>{line}</p>
-            ))}
-          </S.MissionTitle>
+      <S.Content $bottomAreaHeight={bottomAreaHeight}>
+        <S.MissionTitle>
+          {titleLines.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </S.MissionTitle>
 
-          <CircularTimer
-            totalSeconds={durationSeconds}
-            remainingSeconds={durationSeconds}
-          />
+        <CircularTimer
+          totalSeconds={durationSeconds}
+          remainingSeconds={durationSeconds}
+        />
 
-          <S.Description>{description}</S.Description>
-        </S.Content>
+        <S.Description>{description}</S.Description>
+      </S.Content>
 
-        <S.BottomArea ref={bottomAreaRef}>
-          <PrimaryButton
-            variant="primary"
-            disabled={isLoading}
-            onClick={startMission}
-          >
-            시작하기
-          </PrimaryButton>
-          <S.SkipButton type="button" disabled={isLoading} onClick={handleSkip}>
-            건너뛰기
-          </S.SkipButton>
-        </S.BottomArea>
-      </S.PageContainer>
+      <S.BottomArea ref={bottomAreaRef}>
+        <PrimaryButton
+          variant="primary"
+          disabled={isLoading}
+          onClick={startMission}
+        >
+          시작하기
+        </PrimaryButton>
+        <S.SkipButton type="button" disabled={isLoading} onClick={handleSkip}>
+          건너뛰기
+        </S.SkipButton>
+      </S.BottomArea>
+    </S.PageContainer>
   );
 }
 

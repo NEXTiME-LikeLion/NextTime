@@ -30,7 +30,7 @@ function CompletePage() {
 
   return (
     <S.PageContainer>
-      <Header title="" onBack={handleGoHome} />
+      <Header title="" back={false} />
 
       <S.Content $bottomAreaHeight={bottomAreaHeight}>
         <S.TextBlock>

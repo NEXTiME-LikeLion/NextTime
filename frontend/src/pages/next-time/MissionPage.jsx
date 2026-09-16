@@ -47,8 +47,11 @@ function MissionPage() {
     error: completeError,
     execute,
   } = useAsync(completeNextTimeMission, { immediate: false });
-  const { skip, isLoading: isSkipping, error: skipError } =
-    useSkipNextTimeMission({ isBusy: isCompleting });
+  const {
+    skip,
+    isLoading: isSkipping,
+    error: skipError,
+  } = useSkipNextTimeMission({ isBusy: isCompleting });
   const {
     rewind,
     isLoading: isRewinding,
@@ -178,46 +181,42 @@ function MissionPage() {
 
   return (
     <S.PageContainer>
-        <Header title="NEXT TIME" onBack={handleBack} />
+      <Header title="NEXT TIME" back={false} />
 
-        <S.AllContent>
-          <S.Box>
-            <S.Content>
-              <S.StatusLabel>미션 진행 중</S.StatusLabel>
+      <S.AllContent>
+        <S.Box>
+          <S.Content>
+            <S.StatusLabel>미션 진행 중</S.StatusLabel>
 
-              <S.MissionTitle>
-                {titleLines.map((line) => (
-                  <p key={line}>{line}</p>
-                ))}
-              </S.MissionTitle>
+            <S.MissionTitle>
+              {titleLines.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </S.MissionTitle>
 
-              <CircularTimer
-                totalSeconds={durationSeconds}
-                remainingSeconds={Math.max(0, remainingSeconds)}
-                showRemainingLabel
-              />
+            <CircularTimer
+              totalSeconds={durationSeconds}
+              remainingSeconds={Math.max(0, remainingSeconds)}
+              showRemainingLabel
+            />
 
-              <S.Description>
-                {missionDescriptionLines.map((line) => (
-                  <p key={line}>{line}</p>
-                ))}
-              </S.Description>
-            </S.Content>
+            <S.Description>
+              {missionDescriptionLines.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </S.Description>
+          </S.Content>
 
-            {whyThisText && <WhyThisBox text={whyThisText} />}
-          </S.Box>
+          {whyThisText && <WhyThisBox text={whyThisText} />}
+        </S.Box>
 
-          <S.BottomArea>
-            <S.SkipButton
-              type="button"
-              disabled={isLoading}
-              onClick={handleSkip}
-            >
-              건너뛰기
-            </S.SkipButton>
-          </S.BottomArea>
-        </S.AllContent>
-      </S.PageContainer>
+        <S.BottomArea>
+          <S.SkipButton type="button" disabled={isLoading} onClick={handleSkip}>
+            건너뛰기
+          </S.SkipButton>
+        </S.BottomArea>
+      </S.AllContent>
+    </S.PageContainer>
   );
 }
 
