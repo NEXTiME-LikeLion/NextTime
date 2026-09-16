@@ -1,6 +1,5 @@
 import * as S from "./RecordPage.styles";
 import { useNavigate } from "react-router-dom";
-import { useElementHeight } from "../../hooks/useElementHeight";
 import { useNextTime } from "../../contexts/NextTimeContext";
 import useAsync from "../../hooks/useAsync";
 import useNextTimeStatusRedirect from "../../hooks/useNextTimeStatusRedirect";
@@ -58,8 +57,6 @@ function RecordPage() {
   });
 
   const isFormValid = howDidYouDo && currentIntensity && missionFeedback;
-
-  const [bottomAreaRef, bottomAreaHeight] = useElementHeight();
 
   const goToComplete = (savedResult) => {
     if (savedResult) {
@@ -161,7 +158,7 @@ function RecordPage() {
           </S.HelperText>
         </S.IntroBlock>
 
-        <S.ScrollContent $bottomAreaHeight={bottomAreaHeight}>
+        <S.ScrollContent>
           <S.FieldGroup>
             <S.FieldLabel>{RECORD_OPTIONS.howDidYouDo.label}</S.FieldLabel>
             <OptionGrid
@@ -215,16 +212,15 @@ function RecordPage() {
               maxLength={FEEDBACK_MAX_LENGTH}
             />
           </S.FieldGroup>
+          <S.BottomArea>
+            <PrimaryButton
+              disabled={!isFormValid || isLoading}
+              onClick={saveResult}
+            >
+              기록하기
+            </PrimaryButton>
+          </S.BottomArea>
         </S.ScrollContent>
-
-        <S.BottomArea ref={bottomAreaRef}>
-          <PrimaryButton
-            disabled={!isFormValid || isLoading}
-            onClick={saveResult}
-          >
-            기록하기
-          </PrimaryButton>
-        </S.BottomArea>
       </S.PageContainer>
     </ApiStatusView>
   );
