@@ -59,8 +59,8 @@ export const Question = styled.h2`
 
 export const BottomArea = styled.div`
   position: absolute;
-  left: 1.25rem;
-  right: 1.25rem;
+  left: 0;
+  right: 0;
   bottom: 0;
   padding-block: 2.5rem 2.25rem;
 
