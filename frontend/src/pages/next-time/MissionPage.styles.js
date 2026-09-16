@@ -4,7 +4,6 @@ export const PageContainer = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
   padding-inline: 1.25rem;
 `;
@@ -74,6 +73,7 @@ export const BottomArea = styled.div`
   justify-content: center;
   margin-bottom: 2.06rem;
   padding-inline: 0.94rem;
+  padding-bottom: max(var(--safe-bottom), env(safe-area-inset-bottom, 0px));
   background: transparent;
 
   & > button {

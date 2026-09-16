@@ -1,8 +1,8 @@
 :root {
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-top: 0px;
+  --safe-bottom: 0px;
+  --safe-left: 0px;
+  --safe-right: 0px;
 }
 
 @supports (padding-top: constant(safe-area-inset-top)) {
@@ -11,6 +11,15 @@
     --safe-bottom: constant(safe-area-inset-bottom);
     --safe-left: constant(safe-area-inset-left);
     --safe-right: constant(safe-area-inset-right);
+  }
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
   }
 }
 
@@ -59,10 +68,6 @@ select {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 #root > * {
@@ -89,6 +94,20 @@ html.standalone {
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+@supports (padding-top: constant(safe-area-inset-top)) {
+  html.standalone {
+    --safe-top: max(constant(safe-area-inset-top), 47px);
+    --safe-bottom: constant(safe-area-inset-bottom);
+  }
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  html.standalone {
+    --safe-top: max(env(safe-area-inset-top, 0px), 47px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
 html.standalone #root {
   position: fixed;
   top: 0;
@@ -100,13 +119,25 @@ html.standalone #root {
   height: var(--app-height, 100vh);
   min-height: var(--app-height, 100vh);
   margin-inline: auto;
-  --safe-top: max(env(safe-area-inset-top, 0px), 47px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (display-mode: standalone) {
   html {
     --safe-top: max(env(safe-area-inset-top, 0px), 47px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  @supports (padding-top: constant(safe-area-inset-top)) {
+    html {
+      --safe-top: max(constant(safe-area-inset-top), 47px);
+      --safe-bottom: constant(safe-area-inset-bottom);
+    }
+  }
+
+  @supports (padding-top: env(safe-area-inset-top)) {
+    html {
+      --safe-top: max(env(safe-area-inset-top, 0px), 47px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
   }
 }

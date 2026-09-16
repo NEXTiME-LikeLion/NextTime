@@ -61,9 +61,9 @@ export const dotExtra = keyframes`
 `;
 
 export const PageContainer = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
   padding-inline: 1.25rem;
 `;
@@ -137,6 +137,7 @@ export const BottomArea = styled.div`
   flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 3.56rem;
+  padding-bottom: max(var(--safe-bottom), env(safe-area-inset-bottom, 0px));
 `;
 
 export const LoadingBarTrack = styled.div`

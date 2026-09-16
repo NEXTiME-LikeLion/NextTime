@@ -1,9 +1,9 @@
 import styled from 'styled-components';
 
 export const PageContainer = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
   padding-inline: 1.25rem;
   position: relative;
@@ -75,5 +75,8 @@ export const OptionalHint = styled.p`
 
 export const BottomArea = styled.div`
   width: 100%;
-  padding-block: 3.56rem 2.25rem;
+  padding-top: 3.56rem;
+  padding-bottom: calc(
+    2.25rem + max(var(--safe-bottom), env(safe-area-inset-bottom, 0px))
+  );
 `;

@@ -1,9 +1,9 @@
 import styled from 'styled-components';
 
 export const PageContainer = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
   padding-inline: 1.25rem;
   position: relative;
@@ -52,7 +52,8 @@ export const BottomArea = styled.div`
   right: 0;
   bottom: 0;
   padding-inline: 1.25rem;
-  padding: 2.5rem 0.94rem 2.06rem;
+  padding: 2.5rem 0.94rem
+    calc(2.06rem + max(var(--safe-bottom), env(safe-area-inset-bottom, 0px)));
 
   display: flex;
   flex-direction: column;
