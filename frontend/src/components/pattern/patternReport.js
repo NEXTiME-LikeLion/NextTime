@@ -1,12 +1,12 @@
 import { getActionImage } from "./actionImages";
 
 const CONTEXT_SHORT_NAME_MAP = {
-  AFTER_WORK_OR_CLASS: "일·공부가 끝난 후",
+  WORK_OR_STUDY_ENDED: "일·공부가 끝난 후",
   AFTER_MEAL: "식사 후",
   STRESS: "스트레스",
-  DRINKING_OR_SOCIAL: "술자리",
+  DRINKING_OR_SOCIAL: "술자리·모임",
   BOREDOM_OR_HABIT: "심심함",
-  AFTER_WAKING: "기상 직후",
+  OTHERS_SMOKING: "다른 사람 흡연",
   OTHER: "기타",
 };
 

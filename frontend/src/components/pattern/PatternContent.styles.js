@@ -243,7 +243,7 @@ export const RankRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.125rem;
+  gap: 0.5rem;
   width: 100%;
   margin-top: 0.75rem;
 `;
@@ -252,14 +252,14 @@ export const RankPill = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   width: 100%;
-  max-width: 9.25rem;
-  padding: 0.75rem;
+  max-width: 10.5rem;
+  padding: 0.625rem 0.75rem;;
   border-radius: 0.75rem;
   background: rgba(178, 178, 178, 0.1);
   color: #7c8581;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.4;
   white-space: nowrap;
 `;
