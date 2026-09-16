@@ -80,19 +80,21 @@ export const Divider = styled.hr`
 
 export const NextMeCard = styled.div`
   position: relative;
-  width: 357px;
+  width: 100%;
+  max-width: 100%;
   min-height: 244px;
   background-color: ${({ theme }) => theme.colors.primary};
-  border-radius: 20px;
-  padding: 20px;
+  border-radius: 24px;
+  padding: 28px 20px;
+  box-sizing: border-box;
   box-shadow: 0px 4px 8px 4px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
 `;
 
 export const NextMeLabel = styled.p`
   font-size: 14px;
   font-weight: 600;
   color: ${({ theme }) => theme.colors.white};
-  margin-top: 16px;
   margin-bottom: 8px;
 `;
 
@@ -125,7 +127,10 @@ export const NextMeSubText = styled.p`
 export const MascotImage = styled.img`
   position: absolute;
   right: 12px;
-  bottom: 49px;
+  bottom: 28px;
   width: 137px;
   height: 154px;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
 `;
